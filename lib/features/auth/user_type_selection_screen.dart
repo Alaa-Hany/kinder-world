@@ -1,0 +1,250 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:kinder_world/core/constants/app_constants.dart';
+
+class UserTypeSelectionScreen extends ConsumerStatefulWidget {
+  const UserTypeSelectionScreen({super.key});
+
+  @override
+  ConsumerState<UserTypeSelectionScreen> createState() => 
+      _UserTypeSelectionScreenState();
+}
+
+class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScreen> 
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    ));
+    
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _selectUserType(String userType) {
+    if (userType == 'parent') {
+      context.go('/parent/login');
+    } else if (userType == 'child') {
+      context.go('/child/login');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return FadeTransition(
+              opacity: _fadeAnimation,
+              child: child,
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Header
+                const SizedBox(height: 40),
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.people,
+                    size: 60,
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                // Title
+                Text(
+                  'Who are you?',
+                  style: TextStyle(
+                    fontSize: AppConstants.largeFontSize * 1.2,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Subtitle
+                Text(
+                  'Choose how you want to use Kinder World',
+                  style: TextStyle(
+                    fontSize: AppConstants.fontSize,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 48),
+                
+                // User Type Cards
+                _buildUserTypeCard(
+                  'Parent',
+                  'Monitor progress, set controls, manage family',
+                  Icons.family_restroom,
+                  AppColors.parentModeColor ?? AppColors.secondary,
+                  'parent',
+                ),
+                const SizedBox(height: 24),
+                _buildUserTypeCard(
+                  'Child',
+                  'Learn, play, and explore safely',
+                  Icons.child_care,
+                  AppColors.behavioral,
+                  'child',
+                ),
+                const SizedBox(height: 24),
+                _buildUserTypeCard(
+                  'Teacher',
+                  'Manage classroom and track student progress',
+                  Icons.school,
+                  AppColors.educational,
+                  'teacher',
+                ),
+                
+                const SizedBox(height: 40),
+                
+                // Privacy note
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'All user data is protected and COPPA/GDPR compliant',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserTypeCard(
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+    String userType,
+  ) {
+    return InkWell(
+      onTap: () => _selectUserType(userType),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Icon
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                icon,
+                size: 35,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 20),
+            
+            // Text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: AppConstants.largeFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSize,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Arrow
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 24,
+              color: color,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Extension for parent mode color
+extension AppColorsExtension on AppColors {
+  static Color? get parentModeColor => const Color(0xFF2E7D32);
+}

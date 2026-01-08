@@ -1,0 +1,232 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
+class OnboardingScreen extends ConsumerStatefulWidget {
+  const OnboardingScreen({super.key});
+
+  @override
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> 
+    with SingleTickerProviderStateMixin {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  
+  // Onboarding pages
+  final List<OnboardingPage> pages = [
+    OnboardingPage(
+      title: 'Learn',
+      subtitle: 'Educational content tailored for your child',
+      description: 'Discover interactive lessons in math, science, reading, and more. Each activity is designed to make learning fun and engaging.',
+      icon: Icons.school,
+      color: AppColors.educational,
+      animation: 'learn.json',
+    ),
+    OnboardingPage(
+      title: 'Play',
+      subtitle: 'Fun games that develop skills',
+      description: 'Enjoy educational games, puzzles, and creative activities that help your child grow while having fun.',
+      icon: Icons.games,
+      color: AppColors.entertaining,
+      animation: 'play.json',
+    ),
+    OnboardingPage(
+      title: 'Grow',
+      subtitle: 'AI-powered personalized learning',
+      description: 'Our AI assistant adapts to your child\'s learning style and provides personalized recommendations for optimal growth.',
+      icon: Icons.psychology,
+      color: AppColors.behavioral,
+      animation: 'grow.json',
+    ),
+  ];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _nextPage() {
+    if (_currentPage < pages.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      // Navigate to welcome screen
+      context.go('/welcome');
+    }
+  }
+
+  void _skip() {
+    context.go('/welcome');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Skip button
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextButton(
+                  onPressed: _skip,
+                  child: Text(
+                    'Skip',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSize,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+            // Page content
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: pages.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return _buildOnboardingPage(pages[index]);
+                },
+              ),
+            ),
+            
+            // Page indicator
+            SmoothPageIndicator(
+              controller: _pageController,
+              count: pages.length,
+              effect: ExpandingDotsEffect(
+                activeDotColor: pages[_currentPage].color,
+                dotColor: AppColors.lightGrey,
+                dotHeight: 8,
+                dotWidth: 8,
+                spacing: 8,
+                expansionFactor: 3,
+              ),
+            ),
+            const SizedBox(height: 40),
+            
+            // Next button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: ElevatedButton(
+                onPressed: _nextPage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: pages[_currentPage].color,
+                  foregroundColor: AppColors.white,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Text(
+                  _currentPage == pages.length - 1 ? 'Get Started' : 'Next',
+                  style: TextStyle(
+                    fontSize: AppConstants.fontSize,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOnboardingPage(OnboardingPage page) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icon/Animation
+          Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              color: page.color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Icon(
+              page.icon,
+              size: 80,
+              color: page.color,
+            ),
+          ),
+          const SizedBox(height: 48),
+          
+          // Title
+          Text(
+            page.title,
+            style: TextStyle(
+              fontSize: AppConstants.largeFontSize * 1.5,
+              fontWeight: FontWeight.bold,
+              color: page.color,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Subtitle
+          Text(
+            page.subtitle,
+            style: TextStyle(
+              fontSize: AppConstants.fontSize,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          
+          // Description
+          Text(
+            page.description,
+            style: TextStyle(
+              fontSize: AppConstants.fontSize,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class OnboardingPage {
+  final String title;
+  final String subtitle;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final String animation;
+
+  const OnboardingPage({
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.animation,
+  });
+}

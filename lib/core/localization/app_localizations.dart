@@ -1,0 +1,282 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'l10n/app_localizations_en.dart';
+import 'l10n/app_localizations_ar.dart';
+
+abstract class AppLocalizations {
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate = 
+      _AppLocalizationsDelegate();
+
+  // Common
+  String get appTitle;
+  String get welcome;
+  String get next;
+  String get back;
+  String get continueText;
+  String get skip;
+  String get done;
+  String get cancel;
+  String get save;
+  String get delete;
+  String get edit;
+  String get loading;
+  String get error;
+  String get success;
+  String get retry;
+  String get noInternet;
+  String get offlineMode;
+  
+  // Authentication
+  String get login;
+  String get register;
+  String get email;
+  String get password;
+  String get confirmPassword;
+  String get forgotPassword;
+  String get parentLogin;
+  String get childLogin;
+  String get picturePassword;
+  String get selectPicturePassword;
+  String get confirmPicturePassword;
+  String get picturePasswordError;
+  String get loginError;
+  String get registerError;
+  
+  // User Types
+  String get selectUserType;
+  String get childMode;
+  String get parentMode;
+  String get teacherMode;
+  
+  // Child Mode
+  String get home;
+  String get learn;
+  String get play;
+  String get aiBuddy;
+  String get profile;
+  String get hello;
+  String get dailyGoal;
+  String get continueLearning;
+  String get recommendedForYou;
+  String get activityOfTheDay;
+  String get moodIndicator;
+  String get happy;
+  String get sad;
+  String get excited;
+  String get tired;
+  String get angry;
+  String get calm;
+  
+  // Learning
+  String get educationalContent;
+  String get behavioralSkills;
+  String get skillfulActivities;
+  String get subjects;
+  String get mathematics;
+  String get science;
+  String get reading;
+  String get history;
+  String get geography;
+  String get languages;
+  String get socialStories;
+  String get emotionCards;
+  String get problemSolving;
+  String get drawing;
+  String get music;
+  String get crafts;
+  String get cooking;
+  String get quiz;
+  String get lesson;
+  String get game;
+  String get story;
+  String get video;
+  String get complete;
+  String get start;
+  
+  // Entertainment
+  String get entertainment;
+  String get educationalGames;
+  String get puppetShows;
+  String get interactiveStories;
+  String get miniChallenges;
+  String get natureVideos;
+  String get brainTeasers;
+  String get cartoonMovies;
+  String get songs;
+  String get funnyClips;
+  
+  // AI Buddy
+  String get askMeAnything;
+  String get quickActions;
+  String get recommendLesson;
+  String get suggestGame;
+  String get tellStory;
+  String get funFact;
+  String get motivation;
+  String typeMessage;
+  String get voiceChat;
+  String get textChat;
+  String get aiThinking;
+  String get aiError;
+  
+  // Progress & Rewards
+  String get progress;
+  String get xp;
+  String get level;
+  String get streak;
+  String get achievements;
+  String get badges;
+  String get dailyStreak;
+  String get weeklyProgress;
+  String get monthlyProgress;
+  
+  // Parent Dashboard
+  String get parentDashboard;
+  String get overview;
+  String get childProfiles;
+  String get addChild;
+  String get editChild;
+  String get childName;
+  String get childAge;
+  String get childInterests;
+  String get avatar;
+  String get saveChanges;
+  
+  // Reports
+  String get reports;
+  String get activityReports;
+  String get learningProgress;
+  String get skillDevelopment;
+  String get behavioralProgress;
+  String get screenTimeReport;
+  String get aiInsights;
+  String get recentActivities;
+  String get timeSpent;
+  String get completedActivities;
+  String get averageScore;
+  String get strengths;
+  String get areasForImprovement;
+  
+  // Parental Controls
+  String get parentalControls;
+  String get contentRestrictions;
+  String get screenTime;
+  String get dailyLimit;
+  String get allowedHours;
+  String get sleepMode;
+  String get emergencyLock;
+  String get contentFiltering;
+  String get ageAppropriate;
+  String get blockContent;
+  String get allowContent;
+  String get timeLimits;
+  String get breakReminders;
+  String get smartControl;
+  String get aiRecommendations;
+  
+  // Settings
+  String get settings;
+  String get notifications;
+  String get privacySettings;
+  String get dataSharing;
+  String get parentalConsent;
+  String get accessibility;
+  String get fontSize;
+  String get contrast;
+  String get language;
+  String get english;
+  String get arabic;
+  String get theme;
+  String get lightMode;
+  String get darkMode;
+  String get eyeFriendlyMode;
+  String get auto;
+  String get sound;
+  String get music;
+  String get soundEffects;
+  String get voiceGuidance;
+  
+  // Subscription
+  String get subscription;
+  String get freeTrial;
+  String get familyPlan;
+  String get premiumFeatures;
+  String get upgradeNow;
+  String get manageSubscription;
+  String get paymentMethod;
+  String get billingInfo;
+  String get trialEnds;
+  String get subscriptionActive;
+  String get subscriptionExpired;
+  
+  // Safety & Privacy
+  String get safety;
+  String get privacy;
+  String get termsOfService;
+  String get privacyPolicy;
+  String get childProtection;
+  String get dataSecurity;
+  String get parentalConsentRequired;
+  String get minimalDataCollection;
+  String get encryptedStorage;
+  
+  // Help & Support
+  String get help;
+  String get support;
+  String get faq;
+  String get contactUs;
+  String get tutorial;
+  String get walkthrough;
+  String get feedback;
+  
+  // System Messages
+  String get maintenanceMode;
+  String get updateRequired;
+  String get syncData;
+  String get dataSyncComplete;
+  String get sessionExpired;
+  String get logoutConfirm;
+  String get exitConfirm;
+  String get deleteConfirm;
+  
+  // Validation
+  String get fieldRequired;
+  String get invalidEmail;
+  String get passwordTooShort;
+  String get passwordsDontMatch;
+  String get invalidAge;
+  String get selectAvatar;
+  
+  // Accessibility
+  String get increaseFontSize;
+  String get decreaseFontSize;
+  String get highContrast;
+  String get screenReader;
+  String get voiceCommands;
+  String get switchAccess;
+}
+
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => ['en', 'ar'].contains(locale.languageCode);
+
+  @override
+  Future<AppLocalizations> load(Locale locale) async {
+    switch (locale.languageCode) {
+      case 'ar':
+        return AppLocalizationsAr();
+      case 'en':
+      default:
+        return AppLocalizationsEn();
+    }
+  }
+
+  @override
+  bool shouldReload(covariant LocalizationsDelegate<AppLocalizations> old) => false;
+}
