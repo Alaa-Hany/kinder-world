@@ -20,7 +20,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
 
   // Mock child profiles
   final List<ChildProfile> _children = [
-    const ChildProfile(
+    ChildProfile(
       id: 'child1',
       name: 'Ahmed',
       age: 8,
@@ -32,13 +32,13 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
       favorites: ['activity1', 'activity2'],
       parentId: 'parent1',
       picturePassword: ['apple', 'ball', 'cat'],
-      createdAt: null,
-      updatedAt: null,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
       totalTimeSpent: 120,
       activitiesCompleted: 25,
       currentMood: 'happy',
     ),
-    const ChildProfile(
+    ChildProfile(
       id: 'child2',
       name: 'Sara',
       age: 6,
@@ -50,8 +50,8 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
       favorites: ['activity3', 'activity4'],
       parentId: 'parent1',
       picturePassword: ['dog', 'elephant', 'fish'],
-      createdAt: null,
-      updatedAt: null,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
       totalTimeSpent: 90,
       activitiesCompleted: 18,
       currentMood: 'excited',

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart' as custom_localizations;
 import 'package:kinder_world/core/theme/app_theme.dart';
 import 'package:kinder_world/core/storage/secure_storage.dart';
@@ -47,8 +47,7 @@ class KinderWorldApp extends ConsumerWidget {
       themeMode: themeMode,
       
       // Localization
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
+      localizationsDelegates: [
         custom_localizations.AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

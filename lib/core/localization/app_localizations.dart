@@ -117,7 +117,7 @@ abstract class AppLocalizations {
   String get tellStory;
   String get funFact;
   String get motivation;
-  String typeMessage;
+  String typeMessage(String name);
   String get voiceChat;
   String get textChat;
   String get aiThinking;
@@ -196,7 +196,6 @@ abstract class AppLocalizations {
   String get eyeFriendlyMode;
   String get auto;
   String get sound;
-  String get music;
   String get soundEffects;
   String get voiceGuidance;
   

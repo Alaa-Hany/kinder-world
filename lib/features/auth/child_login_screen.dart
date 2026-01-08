@@ -5,6 +5,7 @@ import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/storage/secure_storage.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
+import 'package:kinder_world/app.dart';
 
 class ChildLoginScreen extends ConsumerStatefulWidget {
   const ChildLoginScreen({super.key});
@@ -20,7 +21,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen>
   
   // Mock child profiles for demo
   final List<ChildProfile> _mockChildren = [
-    const ChildProfile(
+    ChildProfile(
       id: 'child1',
       name: 'Ahmed',
       age: 8,
@@ -32,12 +33,12 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen>
       favorites: ['activity1', 'activity2'],
       parentId: 'parent1',
       picturePassword: ['apple', 'ball', 'cat'],
-      createdAt: null,
-      updatedAt: null,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
       totalTimeSpent: 0,
       activitiesCompleted: 0,
     ),
-    const ChildProfile(
+    ChildProfile(
       id: 'child2',
       name: 'Sara',
       age: 6,
@@ -49,8 +50,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen>
       favorites: ['activity3', 'activity4'],
       parentId: 'parent1',
       picturePassword: ['dog', 'elephant', 'fish'],
-      createdAt: null,
-      updatedAt: null,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
       totalTimeSpent: 0,
       activitiesCompleted: 0,
     ),

@@ -35,6 +35,7 @@ dependencies:
   flutter_svg: ^2.0.9
   cached_network_image: ^3.3.1
   shimmer: ^3.0.0
+  smooth_page_indicator: ^1.1.0
   
   # AI & Voice
   speech_to_text: ^6.3.0
@@ -68,9 +69,6 @@ dependencies:
   shared_preferences: ^2.2.2
   flutter_native_splash: ^2.3.8
   
-  # Time
-  intl: ^0.18.1
-  
   # JSON Serialization
   json_annotation: ^4.8.0
   freezed_annotation: ^2.4.1
@@ -103,22 +101,22 @@ flutter:
     - assets/sounds/
     - assets/videos/
     
-  fonts:
-    - family: Poppins
-      fonts:
-        - asset: fonts/Poppins-Regular.ttf
-        - asset: fonts/Poppins-Bold.ttf
-          weight: 700
-        - asset: fonts/Poppins-Medium.ttf
-          weight: 500
-    - family: Cairo
-      fonts:
-        - asset: fonts/Cairo-Regular.ttf
-        - asset: fonts/Cairo-Bold.ttf
-          weight: 700
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: fonts/Poppins-Regular.ttf
+  #       - asset: fonts/Poppins-Bold.ttf
+  #         weight: 700
+  #       - asset: fonts/Poppins-Medium.ttf
+  #         weight: 500
+  #   - family: Cairo
+  #     fonts:
+  #       - asset: fonts/Cairo-Regular.ttf
+  #       - asset: fonts/Cairo-Bold.ttf
+  #         weight: 700
 
 flutter_native_splash:
   color: "#4A86E8"
-  image: assets/images/splash_logo.png
+  # image: assets/images/splash_logo.png
   android: true
   ios: true

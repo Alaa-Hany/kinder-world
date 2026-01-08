@@ -60,4 +60,7 @@ class AppColors {
   static const Color progressEnd = Color(0xFF1976D2);
   static const Color xpColor = Color(0xFFFFD700);
   static const Color streakColor = Color(0xFFFF5722);
+  
+  // Mode colors
+  static const Color parentModeColor = Color(0xFF2E7D32);
 }

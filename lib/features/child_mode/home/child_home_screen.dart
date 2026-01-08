@@ -23,7 +23,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
   late Animation<double> _fadeAnimation;
 
   // Mock child data
-  final ChildProfile _currentChild = const ChildProfile(
+  final ChildProfile _currentChild = ChildProfile(
     id: 'child1',
     name: 'Ahmed',
     age: 8,
@@ -35,8 +35,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
     favorites: ['activity1', 'activity2'],
     parentId: 'parent1',
     picturePassword: ['apple', 'ball', 'cat'],
-    createdAt: null,
-    updatedAt: null,
+    createdAt: DateTime(2024, 1, 1),
+    updatedAt: DateTime(2024, 1, 1),
     totalTimeSpent: 0,
     activitiesCompleted: 0,
     currentMood: 'happy',
@@ -165,7 +165,7 @@ class ChildHomeContent extends ConsumerStatefulWidget {
 
 class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
   // Mock child data
-  final ChildProfile _currentChild = const ChildProfile(
+  final ChildProfile _currentChild = ChildProfile(
     id: 'child1',
     name: 'Ahmed',
     age: 8,
@@ -177,8 +177,8 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
     favorites: ['activity1', 'activity2'],
     parentId: 'parent1',
     picturePassword: ['apple', 'ball', 'cat'],
-    createdAt: null,
-    updatedAt: null,
+    createdAt: DateTime(2024, 1, 1),
+    updatedAt: DateTime(2024, 1, 1),
     totalTimeSpent: 0,
     activitiesCompleted: 0,
     currentMood: 'happy',
@@ -560,7 +560,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 {'icon': Icons.science, 'title': 'Science Lab', 'color': AppColors.skillful},
                 {'icon': Icons.book, 'title': 'Story Time', 'color': AppColors.behavioral},
                 {'icon': Icons.music_note, 'title': 'Music Fun', 'color': AppColors.entertaining},
-                {'icon': Icons.puzzle_piece, 'title': 'Puzzle Game', 'color': AppColors.educational},
+                {'icon': Icons.extension, 'title': 'Puzzle Game', 'color': AppColors.educational},
               ];
               
               final activity = activities[index];

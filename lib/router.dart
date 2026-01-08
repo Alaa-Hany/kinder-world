@@ -1,206 +1,295 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:kinder_world/core/storage/secure_storage.dart';
+import 'package:kinder_world/app.dart';
+
 import 'package:kinder_world/features/app_core/splash_screen.dart';
 import 'package:kinder_world/features/app_core/language_selection_screen.dart';
 import 'package:kinder_world/features/app_core/onboarding_screen.dart';
 import 'package:kinder_world/features/app_core/welcome_screen.dart';
+
 import 'package:kinder_world/features/auth/user_type_selection_screen.dart';
 import 'package:kinder_world/features/auth/parent_login_screen.dart';
 import 'package:kinder_world/features/auth/parent_register_screen.dart';
 import 'package:kinder_world/features/auth/child_login_screen.dart';
+
 import 'package:kinder_world/features/child_mode/home/child_home_screen.dart';
 import 'package:kinder_world/features/child_mode/learn/learn_screen.dart';
 import 'package:kinder_world/features/child_mode/play/play_screen.dart';
 import 'package:kinder_world/features/child_mode/ai_buddy/ai_buddy_screen.dart';
 import 'package:kinder_world/features/child_mode/profile/child_profile_screen.dart';
+
 import 'package:kinder_world/features/parent_mode/dashboard/parent_dashboard_screen.dart';
 import 'package:kinder_world/features/parent_mode/child_management/child_management_screen.dart';
 import 'package:kinder_world/features/parent_mode/reports/reports_screen.dart';
 import 'package:kinder_world/features/parent_mode/controls/parental_controls_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/parent_settings_screen.dart';
 import 'package:kinder_world/features/parent_mode/subscription/subscription_screen.dart';
+
 import 'package:kinder_world/features/system_pages/no_internet_screen.dart';
 import 'package:kinder_world/features/system_pages/error_screen.dart';
 import 'package:kinder_world/features/system_pages/maintenance_screen.dart';
 
+// ========= Route Paths (keep as consts here to avoid scattering strings) =========
+class Routes {
+  // App core
+  static const splash = '/splash';
+  static const language = '/language';
+  static const onboarding = '/onboarding';
+  static const welcome = '/welcome';
+
+  // Auth
+  static const selectUserType = '/select-user-type';
+  static const parentLogin = '/parent/login';
+  static const parentRegister = '/parent/register';
+  static const childLogin = '/child/login';
+
+  // Child shell tabs
+  static const childHome = '/child/home';
+  static const childLearn = '/child/learn';
+  static const childPlay = '/child/play';
+  static const childAiBuddy = '/child/ai-buddy';
+  static const childProfile = '/child/profile';
+
+  // Parent
+  static const parentDashboard = '/parent/dashboard';
+  static const parentChildManagement = '/parent/child-management';
+  static const parentReports = '/parent/reports';
+  static const parentControls = '/parent/controls';
+  static const parentSettings = '/parent/settings';
+  static const parentSubscription = '/parent/subscription';
+
+  // System
+  static const noInternet = '/no-internet';
+  static const error = '/error';
+  static const maintenance = '/maintenance';
+}
+
+bool _isPublicRoute(String path) {
+  return path == Routes.splash ||
+      path == Routes.language ||
+      path == Routes.onboarding ||
+      path == Routes.welcome ||
+      path == Routes.selectUserType ||
+      path == Routes.error ||
+      path == Routes.noInternet ||
+      path == Routes.maintenance;
+}
+
+bool _isParentAuthRoute(String path) {
+  return path == Routes.parentLogin || path == Routes.parentRegister;
+}
+
+bool _isAnyChildRoute(String path) => path.startsWith('/child/');
+bool _isAnyParentRoute(String path) => path.startsWith('/parent/');
+
 // Router provider
 final routerProvider = Provider<GoRouter>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);
-  
+
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: Routes.splash,
     debugLogDiagnostics: true,
+
+    // Important: keep redirect logic strict + stable to avoid loops.
     redirect: (context, state) async {
-      // Check authentication status
+      final path = state.uri.path;
+
+      // Always allow public/system routes
+      if (_isPublicRoute(path)) return null;
+
+      // Read session
       final authToken = await secureStorage.getAuthToken();
-      final userRole = await secureStorage.getUserRole();
-      final childSession = await secureStorage.getChildSession();
-      
+      final userRole = await secureStorage.getUserRole(); // expected: 'parent' | 'child' | null
+      final childSession = await secureStorage.getChildSession(); // null if no selected child / guest not set
+
       final isAuthenticated = authToken != null;
-      final isOnboarding = state.uri.path.contains('onboarding');
-      final isSplash = state.uri.path == '/splash';
-      final isLanguage = state.uri.path == '/language';
-      final isWelcome = state.uri.path == '/welcome';
-      final isAuth = state.uri.path.contains('login') || state.uri.path.contains('register');
-      
-      // Allow splash, language selection, and onboarding for new users
-      if (isSplash || isLanguage || isOnboarding || isWelcome) {
+
+      // If not authenticated -> go to welcome (unless already on auth pages)
+      if (!isAuthenticated) {
+        // allow reaching parent login/register + child login, and select-user-type
+        if (_isParentAuthRoute(path) || path == Routes.childLogin || path == Routes.selectUserType) {
+          return null;
+        }
+        return Routes.welcome;
+      }
+
+      // Authenticated but role missing -> force select user type
+      if (userRole == null || userRole.isEmpty) {
+        if (path != Routes.selectUserType) return Routes.selectUserType;
         return null;
       }
-      
-      // Redirect to login if not authenticated
-      if (!isAuthenticated && !isAuth) {
-        return '/welcome';
+
+      // Prevent authenticated users from staying on login/register screens
+      if (_isParentAuthRoute(path)) {
+        if (userRole == 'parent') return Routes.parentDashboard;
+        if (userRole == 'child') return childSession == null ? Routes.childLogin : Routes.childHome;
       }
-      
-      // Handle role-based routing
-      if (isAuthenticated && !isAuth) {
-        if (userRole == 'parent' && !state.uri.path.contains('parent')) {
-          return '/parent/dashboard';
-        } else if (userRole == 'child' && childSession == null && !state.uri.path.contains('child/login')) {
-          return '/child/login';
-        } else if (userRole == 'child' && childSession != null && !state.uri.path.contains('child/home')) {
-          return '/child/home';
+
+      // Role-based protection
+      if (userRole == 'parent') {
+        // Block child area
+        if (_isAnyChildRoute(path)) return Routes.parentDashboard;
+        // Parent can access /parent/* freely
+        if (_isAnyParentRoute(path)) return null;
+        // Unknown route outside parent scope -> go dashboard
+        return Routes.parentDashboard;
+      }
+
+      if (userRole == 'child') {
+        // Child must have a session to enter child shell tabs
+        if (childSession == null) {
+          // Allow only child login (and public)
+          if (path != Routes.childLogin) return Routes.childLogin;
+          return null;
         }
+
+        // If child tries to access parent area -> bounce to child home
+        if (_isAnyParentRoute(path)) return Routes.childHome;
+
+        // If child is authenticated+session exists, but path is not under /child/*, send to child home
+        if (!_isAnyChildRoute(path)) return Routes.childHome;
+
+        // Otherwise allow the child route (including /child/play, /child/learn, etc.)
+        return null;
       }
-      
-      return null;
+
+      // Unknown role fallback
+      return Routes.selectUserType;
     },
+
     routes: [
       // App Core Routes
       GoRoute(
-        path: '/splash',
+        path: Routes.splash,
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
-        path: '/language',
+        path: Routes.language,
         builder: (context, state) => const LanguageSelectionScreen(),
       ),
       GoRoute(
-        path: '/onboarding',
+        path: Routes.onboarding,
         builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
-        path: '/welcome',
+        path: Routes.welcome,
         builder: (context, state) => const WelcomeScreen(),
       ),
-      
+
       // Auth Routes
       GoRoute(
-        path: '/select-user-type',
+        path: Routes.selectUserType,
         builder: (context, state) => const UserTypeSelectionScreen(),
       ),
       GoRoute(
-        path: '/parent/login',
+        path: Routes.parentLogin,
         builder: (context, state) => const ParentLoginScreen(),
       ),
       GoRoute(
-        path: '/parent/register',
+        path: Routes.parentRegister,
         builder: (context, state) => const ParentRegisterScreen(),
       ),
       GoRoute(
-        path: '/child/login',
+        path: Routes.childLogin,
         builder: (context, state) => const ChildLoginScreen(),
       ),
-      
-      // Child Mode Routes with Bottom Navigation
+
+      // Child Mode Routes with Bottom Navigation (Shell)
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
+          // Shell scaffold (bottom nav) must live here
           return ChildHomeScreen(navigationShell: navigationShell);
         },
         branches: [
-          // Home Branch
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/child/home',
+                path: Routes.childHome,
                 builder: (context, state) => const ChildHomeContent(),
               ),
             ],
           ),
-          // Learn Branch
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/child/learn',
+                path: Routes.childLearn,
                 builder: (context, state) => const LearnScreen(),
               ),
             ],
           ),
-          // Play Branch
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/child/play',
+                path: Routes.childPlay,
                 builder: (context, state) => const PlayScreen(),
               ),
             ],
           ),
-          // AI Buddy Branch
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/child/ai-buddy',
+                path: Routes.childAiBuddy,
                 builder: (context, state) => const AiBuddyScreen(),
               ),
             ],
           ),
-          // Profile Branch
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/child/profile',
+                path: Routes.childProfile,
                 builder: (context, state) => const ChildProfileScreen(),
               ),
             ],
           ),
         ],
       ),
-      
+
       // Parent Mode Routes
       GoRoute(
-        path: '/parent/dashboard',
+        path: Routes.parentDashboard,
         builder: (context, state) => const ParentDashboardScreen(),
       ),
       GoRoute(
-        path: '/parent/child-management',
+        path: Routes.parentChildManagement,
         builder: (context, state) => const ChildManagementScreen(),
       ),
       GoRoute(
-        path: '/parent/reports',
+        path: Routes.parentReports,
         builder: (context, state) => const ReportsScreen(),
       ),
       GoRoute(
-        path: '/parent/controls',
+        path: Routes.parentControls,
         builder: (context, state) => const ParentalControlsScreen(),
       ),
       GoRoute(
-        path: '/parent/settings',
+        path: Routes.parentSettings,
         builder: (context, state) => const ParentSettingsScreen(),
       ),
       GoRoute(
-        path: '/parent/subscription',
+        path: Routes.parentSubscription,
         builder: (context, state) => const SubscriptionScreen(),
       ),
-      
+
       // System Pages
       GoRoute(
-        path: '/no-internet',
+        path: Routes.noInternet,
         builder: (context, state) => const NoInternetScreen(),
       ),
       GoRoute(
-        path: '/error',
+        path: Routes.error,
         builder: (context, state) => ErrorScreen(
           error: state.extra as String? ?? 'An unexpected error occurred',
         ),
       ),
       GoRoute(
-        path: '/maintenance',
+        path: Routes.maintenance,
         builder: (context, state) => const MaintenanceScreen(),
       ),
     ],
+
     errorBuilder: (context, state) => ErrorScreen(
       error: state.error?.toString() ?? 'Page not found',
     ),

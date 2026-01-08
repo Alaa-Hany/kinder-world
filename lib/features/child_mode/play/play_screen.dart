@@ -63,7 +63,7 @@ class PlayScreen extends ConsumerWidget {
                     ),
                     _buildGameCard(
                       'Puzzle Games',
-                      Icons.puzzle_piece,
+                      Icons.extension,
                       AppColors.educational,
                       'Challenge your mind',
                     ),

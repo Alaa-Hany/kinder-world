@@ -32,7 +32,7 @@ void main() async {
   
   // Set error handler
   FlutterError.onError = (FlutterErrorDetails details) {
-    logger.e('Flutter Error: ${details.exception}', details.exception, details.stack);
+    logger.e('Flutter Error: ${details.exception}');
   };
   
   runApp(
