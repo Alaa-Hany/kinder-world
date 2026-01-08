@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/repositories/child_repository.dart';
+import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
 /// Child session state
@@ -64,7 +66,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       state = state.copyWith(isLoading: true);
       
       // Create mock child profile
-      final mockChild = const ChildProfile(
+      final mockChild = ChildProfile(
         id: 'child1',
         name: 'Ahmed',
         age: 8,
@@ -76,8 +78,8 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
         favorites: ['activity1', 'activity2'],
         parentId: 'parent1',
         picturePassword: ['apple', 'ball', 'cat'],
-        createdAt: null,
-        updatedAt: null,
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
         totalTimeSpent: 0,
         activitiesCompleted: 0,
         currentMood: 'happy',
@@ -91,7 +93,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       _logger.d('Mock child profile loaded: ${mockChild.name}');
     } catch (e, stack) {
-      _logger.e('Error loading mock child profile', e, stack);
+      _logger.e('Error loading mock child profile: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load child profile',
@@ -118,7 +120,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       _logger.d('Child session started: ${childProfile.name}');
       return true;
     } catch (e, stack) {
-      _logger.e('Error starting child session', e, stack);
+      _logger.e('Error starting child session: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to start child session',
@@ -141,7 +143,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       _logger.d('Child session ended');
       return true;
     } catch (e, stack) {
-      _logger.e('Error ending child session', e, stack);
+      _logger.e('Error ending child session: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to end child session',
@@ -176,7 +178,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
         return false;
       }
     } catch (e, stack) {
-      _logger.e('Error loading child profile: $childId', e, stack);
+      _logger.e('Error loading child profile: $childId, $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load child profile',
@@ -198,7 +200,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error updating child profile', e, stack);
+      _logger.e('Error updating child profile: $e');
       return false;
     }
   }
@@ -223,7 +225,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error adding XP', e, stack);
+      _logger.e('Error adding XP: $e');
       return false;
     }
   }
@@ -246,7 +248,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error updating streak', e, stack);
+      _logger.e('Error updating streak: $e');
       return false;
     }
   }
@@ -276,7 +278,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error completing activity', e, stack);
+      _logger.e('Error completing activity: $e');
       return false;
     }
   }
@@ -301,7 +303,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error adding to favorites', e, stack);
+      _logger.e('Error adding to favorites: $e');
       return false;
     }
   }
@@ -324,7 +326,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error removing from favorites', e, stack);
+      _logger.e('Error removing from favorites: $e');
       return false;
     }
   }
@@ -347,7 +349,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error updating interests', e, stack);
+      _logger.e('Error updating interests: $e');
       return false;
     }
   }
@@ -372,7 +374,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error updating mood', e, stack);
+      _logger.e('Error updating mood: $e');
       return false;
     }
   }
@@ -395,7 +397,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       
       return false;
     } catch (e, stack) {
-      _logger.e('Error updating learning style', e, stack);
+      _logger.e('Error updating learning style: $e');
       return false;
     }
   }
@@ -411,7 +413,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
     try {
       return await _childRepository.getChildStats(state.childId!);
     } catch (e, stack) {
-      _logger.e('Error getting child stats', e, stack);
+      _logger.e('Error getting child stats: $e');
       return {};
     }
   }
@@ -427,7 +429,7 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
 
   /// Get mock child profile for development
   ChildProfile getMockChildProfile() {
-    return const ChildProfile(
+    return ChildProfile(
       id: 'child1',
       name: 'Ahmed',
       age: 8,
@@ -439,8 +441,8 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
       favorites: ['activity1', 'activity2'],
       parentId: 'parent1',
       picturePassword: ['apple', 'ball', 'cat'],
-      createdAt: null,
-      updatedAt: null,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
       totalTimeSpent: 0,
       activitiesCompleted: 0,
       currentMood: 'happy',
@@ -461,7 +463,7 @@ final childSessionControllerProvider = StateNotifierProvider<ChildSessionControl
 
 // Repository provider
 final childRepositoryProvider = Provider<ChildRepository>((ref) {
-  final childBox = Hive.box<ChildProfile>('child_profiles');
+  final childBox = Hive.box('child_profiles');
   final logger = ref.watch(loggerProvider);
   
   return ChildRepository(

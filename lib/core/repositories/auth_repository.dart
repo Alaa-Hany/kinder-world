@@ -38,15 +38,15 @@ class AuthRepository {
           id: 'parent_${email.hashCode}',
           email: email,
           name: email.split('@')[0],
-          role: UserRole.parent,
-          authToken: token,
+          role: UserRoles.parent,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
+          isActive: true,
         );
         
         // Save to secure storage
         await _secureStorage.saveAuthToken(token);
-        await _secureStorage.saveUserRole(UserRole.parent);
+        await _secureStorage.saveUserRole(UserRoles.parent);
         await _secureStorage.saveParentId(parent.id);
         
         _logger.d('Parent login successful: ${parent.id}');
@@ -56,7 +56,7 @@ class AuthRepository {
         return null;
       }
     } catch (e, stack) {
-      _logger.e('Parent login error', e, stack);
+      _logger.e('Parent login error: $e');
       return null;
     }
   }
@@ -98,21 +98,21 @@ class AuthRepository {
         id: 'parent_${email.hashCode}_${DateTime.now().millisecondsSinceEpoch}',
         email: email,
         name: name,
-        role: UserRole.parent,
-        authToken: token,
+        role: UserRoles.parent,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        isActive: true,
       );
       
       // Save to secure storage
       await _secureStorage.saveAuthToken(token);
-      await _secureStorage.saveUserRole(UserRole.parent);
+      await _secureStorage.saveUserRole(UserRoles.parent);
       await _secureStorage.saveParentId(parent.id);
       
       _logger.d('Parent registration successful: ${parent.id}');
       return parent;
     } catch (e, stack) {
-      _logger.e('Parent registration error', e, stack);
+      _logger.e('Parent registration error: $e');
       return null;
     }
   }
@@ -144,21 +144,21 @@ class AuthRepository {
         id: childId,
         email: 'child_$childId@local',
         name: 'Child_$childId',
-        role: UserRole.child,
-        authToken: token,
+        role: UserRoles.child,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        isActive: true,
       );
       
       // Save to secure storage
       await _secureStorage.saveAuthToken(token);
-      await _secureStorage.saveUserRole(UserRole.child);
+      await _secureStorage.saveUserRole(UserRoles.child);
       await _secureStorage.saveChildSession(childId);
       
       _logger.d('Child login successful: $childId');
       return child;
     } catch (e, stack) {
-      _logger.e('Child login error', e, stack);
+      _logger.e('Child login error: $e');
       return null;
     }
   }
@@ -171,7 +171,7 @@ class AuthRepository {
       final token = await _secureStorage.getAuthToken();
       return token != null && token.isNotEmpty;
     } catch (e) {
-      _logger.e('Error checking authentication', e);
+      _logger.e('Error checking authentication: $e');
       return false;
     }
   }
@@ -181,7 +181,7 @@ class AuthRepository {
     try {
       return await _secureStorage.getUserRole();
     } catch (e) {
-      _logger.e('Error getting user role', e);
+      _logger.e('Error getting user role: $e');
       return null;
     }
   }
@@ -203,12 +203,12 @@ class AuthRepository {
         email: 'user@local',
         name: 'Current User',
         role: role,
-        authToken: token,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        isActive: true,
       );
     } catch (e, stack) {
-      _logger.e('Error getting current user', e, stack);
+      _logger.e('Error getting current user: $e');
       return null;
     }
   }
@@ -222,7 +222,7 @@ class AuthRepository {
       await _secureStorage.clearAll();
       _logger.d('User logged out successfully');
     } catch (e, stack) {
-      _logger.e('Error during logout', e, stack);
+      _logger.e('Error during logout: $e');
     }
   }
 
@@ -240,7 +240,7 @@ class AuthRepository {
       _logger.d('Parent PIN set successfully');
       return true;
     } catch (e) {
-      _logger.e('Error setting parent PIN', e);
+      _logger.e('Error setting parent PIN: $e');
       return false;
     }
   }
@@ -257,7 +257,7 @@ class AuthRepository {
       
       return storedPin == enteredPin;
     } catch (e) {
-      _logger.e('Error verifying PIN', e);
+      _logger.e('Error verifying PIN: $e');
       return false;
     }
   }
@@ -268,7 +268,7 @@ class AuthRepository {
       final pin = await _secureStorage.getParentPin();
       return pin != null && pin.isNotEmpty;
     } catch (e) {
-      _logger.e('Error checking PIN requirement', e);
+      _logger.e('Error checking PIN requirement: $e');
       return false;
     }
   }
@@ -282,7 +282,7 @@ class AuthRepository {
       _logger.d('Child session saved: $childId');
       return true;
     } catch (e) {
-      _logger.e('Error saving child session', e);
+      _logger.e('Error saving child session: $e');
       return false;
     }
   }
@@ -292,7 +292,7 @@ class AuthRepository {
     try {
       return await _secureStorage.getChildSession();
     } catch (e) {
-      _logger.e('Error getting child session', e);
+      _logger.e('Error getting child session: $e');
       return null;
     }
   }
@@ -304,7 +304,7 @@ class AuthRepository {
       _logger.d('Child session cleared');
       return true;
     } catch (e) {
-      _logger.e('Error clearing child session', e);
+      _logger.e('Error clearing child session: $e');
       return false;
     }
   }
@@ -329,7 +329,7 @@ class AuthRepository {
       _logger.d('Token refreshed successfully');
       return newToken;
     } catch (e) {
-      _logger.e('Error refreshing token', e);
+      _logger.e('Error refreshing token: $e');
       return null;
     }
   }
@@ -345,7 +345,7 @@ class AuthRepository {
       // Simple token validation - in real app, verify with server
       return !token.contains('expired');
     } catch (e) {
-      _logger.e('Error validating token', e);
+      _logger.e('Error validating token: $e');
       return false;
     }
   }

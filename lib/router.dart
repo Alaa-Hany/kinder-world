@@ -17,7 +17,10 @@ import 'package:kinder_world/features/auth/child_login_screen.dart';
 
 import 'package:kinder_world/features/child_mode/home/child_home_screen.dart';
 import 'package:kinder_world/features/child_mode/learn/learn_screen.dart';
+import 'package:kinder_world/features/child_mode/learn/subject_screen.dart';
+import 'package:kinder_world/features/child_mode/learn/lesson_flow_screen.dart';
 import 'package:kinder_world/features/child_mode/play/play_screen.dart';
+import 'package:kinder_world/features/child_mode/play/category_screen.dart';
 import 'package:kinder_world/features/child_mode/ai_buddy/ai_buddy_screen.dart';
 import 'package:kinder_world/features/child_mode/profile/child_profile_screen.dart';
 
@@ -27,8 +30,12 @@ import 'package:kinder_world/features/parent_mode/reports/reports_screen.dart';
 import 'package:kinder_world/features/parent_mode/controls/parental_controls_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/parent_settings_screen.dart';
 import 'package:kinder_world/features/parent_mode/subscription/subscription_screen.dart';
+import 'package:kinder_world/features/parent_mode/notifications/parent_notifications_screen.dart';
 
 import 'package:kinder_world/features/system_pages/no_internet_screen.dart';
+import 'package:kinder_world/features/system_pages/help_support_screen.dart';
+import 'package:kinder_world/features/system_pages/legal_screen.dart';
+import 'package:kinder_world/features/system_pages/data_sync_screen.dart';
 import 'package:kinder_world/features/system_pages/error_screen.dart';
 import 'package:kinder_world/features/system_pages/maintenance_screen.dart';
 
@@ -60,11 +67,15 @@ class Routes {
   static const parentControls = '/parent/controls';
   static const parentSettings = '/parent/settings';
   static const parentSubscription = '/parent/subscription';
+  static const parentNotifications = '/parent/notifications';
+  static const parentDataSync = '/parent/data-sync';
 
   // System
   static const noInternet = '/no-internet';
   static const error = '/error';
   static const maintenance = '/maintenance';
+  static const help = '/help';
+  static const legal = '/legal';
 }
 
 bool _isPublicRoute(String path) {
@@ -217,6 +228,22 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.childLearn,
                 builder: (context, state) => const LearnScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'subject/:subject',
+                    builder: (context, state) {
+                      final subject = state.pathParameters['subject']!;
+                      return SubjectScreen(subject: subject);
+                    },
+                  ),
+                  GoRoute(
+                    path: 'lesson/:lessonId',
+                    builder: (context, state) {
+                      final lessonId = state.pathParameters['lessonId']!;
+                      return LessonFlowScreen(lessonId: lessonId);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -225,6 +252,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.childPlay,
                 builder: (context, state) => const PlayScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'category/:category',
+                    builder: (context, state) {
+                      final category = state.pathParameters['category']!;
+                      return CategoryScreen(category: category);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -272,6 +308,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: Routes.parentSubscription,
         builder: (context, state) => const SubscriptionScreen(),
       ),
+      GoRoute(
+        path: Routes.parentNotifications,
+        builder: (context, state) => const ParentNotificationsScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentDataSync,
+        builder: (context, state) => const DataSyncScreen(),
+      ),
 
       // System Pages
       GoRoute(
@@ -287,6 +331,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.maintenance,
         builder: (context, state) => const MaintenanceScreen(),
+      ),
+      GoRoute(
+        path: Routes.help,
+        builder: (context, state) => const HelpSupportScreen(),
+      ),
+      GoRoute(
+        path: Routes.legal,
+        builder: (context, state) {
+          final type = state.uri.queryParameters['type'] ?? 'terms';
+          return LegalScreen(type: type);
+        },
       ),
     ],
 

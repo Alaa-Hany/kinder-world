@@ -6,16 +6,49 @@ import 'package:logger/logger.dart';
 
 /// Repository for content management
 /// Provides offline-first access to activities with local seed data
+/// Stores data as JSON maps since Freezed models don't support Hive TypeAdapters
 class ContentRepository {
-  final Box<Activity> _activityBox;
+  final Box _activityBox;
   final Logger _logger;
 
   ContentRepository({
-    required Box<Activity> activityBox,
+    required Box activityBox,
     required Logger logger,
   })  : _activityBox = activityBox,
         _logger = logger {
     _initializeSeedData();
+  }
+
+  // Helper methods for JSON serialization
+  Activity? _getActivityFromBox(String activityId) {
+    final data = _activityBox.get(activityId);
+    if (data == null) return null;
+    try {
+      final map = data as Map<String, dynamic>;
+      return Activity.fromJson(map);
+    } catch (e) {
+      _logger.e('Error deserializing activity: $activityId, $e');
+      return null;
+    }
+  }
+
+  Future<void> _saveActivityToBox(String activityId, Activity activity) async {
+    await _activityBox.put(activityId, activity.toJson());
+  }
+
+  List<Activity> _getAllActivitiesFromBox() {
+    return _activityBox.values
+        .map((data) {
+          try {
+            final map = data as Map<String, dynamic>;
+            return Activity.fromJson(map);
+          } catch (e) {
+            _logger.e('Error deserializing activity from box: $e');
+            return null;
+          }
+        })
+        .whereType<Activity>()
+        .toList();
   }
 
   // ==================== SEED DATA ====================
@@ -29,13 +62,13 @@ class ContentRepository {
         final seedActivities = _getSeedActivities();
         
         for (final activity in seedActivities) {
-          await _activityBox.put(activity.id, activity);
+          await _saveActivityToBox(activity.id, activity);
         }
         
         _logger.d('Initialized ${seedActivities.length} seed activities');
       }
     } catch (e, stack) {
-      _logger.e('Error initializing seed data', e, stack);
+      _logger.e('Error initializing seed data: $e');
     }
   }
 
@@ -298,9 +331,9 @@ class ContentRepository {
   /// Get activity by ID
   Future<Activity?> getActivity(String activityId) async {
     try {
-      return _activityBox.get(activityId);
+      return _getActivityFromBox(activityId);
     } catch (e, stack) {
-      _logger.e('Error getting activity: $activityId', e, stack);
+      _logger.e('Error getting activity: $activityId, $e');
       return null;
     }
   }
@@ -308,9 +341,9 @@ class ContentRepository {
   /// Get all activities
   Future<List<Activity>> getAllActivities() async {
     try {
-      return _activityBox.values.toList();
+      return _getAllActivitiesFromBox();
     } catch (e, stack) {
-      _logger.e('Error getting all activities', e, stack);
+      _logger.e('Error getting all activities: $e');
       return [];
     }
   }
@@ -318,11 +351,11 @@ class ContentRepository {
   /// Get activities by category
   Future<List<Activity>> getActivitiesByCategory(String category) async {
     try {
-      return _activityBox.values
+      return _getAllActivitiesFromBox()
           .where((activity) => activity.category == category)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting activities by category: $category', e, stack);
+      _logger.e('Error getting activities by category: $category, $e');
       return [];
     }
   }
@@ -330,11 +363,11 @@ class ContentRepository {
   /// Get activities by type
   Future<List<Activity>> getActivitiesByType(String type) async {
     try {
-      return _activityBox.values
+      return _getAllActivitiesFromBox()
           .where((activity) => activity.type == type)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting activities by type: $type', e, stack);
+      _logger.e('Error getting activities by type: $type, $e');
       return [];
     }
   }
@@ -342,11 +375,11 @@ class ContentRepository {
   /// Get activities by aspect
   Future<List<Activity>> getActivitiesByAspect(String aspect) async {
     try {
-      return _activityBox.values
+      return _getAllActivitiesFromBox()
           .where((activity) => activity.aspect == aspect)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting activities by aspect: $aspect', e, stack);
+      _logger.e('Error getting activities by aspect: $aspect, $e');
       return [];
     }
   }
@@ -355,13 +388,13 @@ class ContentRepository {
   Future<List<Activity>> searchActivities(String query) async {
     try {
       final lowerQuery = query.toLowerCase();
-      return _activityBox.values.where((activity) {
+      return _getAllActivitiesFromBox().where((activity) {
         return activity.title.toLowerCase().contains(lowerQuery) ||
                activity.description.toLowerCase().contains(lowerQuery) ||
                activity.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
       }).toList();
     } catch (e, stack) {
-      _logger.e('Error searching activities: $query', e, stack);
+      _logger.e('Error searching activities: $query, $e');
       return [];
     }
   }
@@ -371,7 +404,7 @@ class ContentRepository {
   /// Get activities appropriate for child
   Future<List<Activity>> getActivitiesForChild(ChildProfile child) async {
     try {
-      return _activityBox.values.where((activity) {
+      return _getAllActivitiesFromBox().where((activity) {
         // Check age appropriateness
         if (!activity.isAppropriateForAge(child.age)) {
           return false;
@@ -385,7 +418,7 @@ class ContentRepository {
         return true;
       }).toList();
     } catch (e, stack) {
-      _logger.e('Error getting activities for child: ${child.id}', e, stack);
+      _logger.e('Error getting activities for child: ${child.id}, $e');
       return [];
     }
   }
@@ -430,14 +463,14 @@ class ContentRepository {
       }).toList();
       
       // Sort by score and return top activities
-      scoredActivities.sort((a, b) => b['score'].compareTo(a['score']));
+      scoredActivities.sort((a, b) => (b['score'] as num).compareTo(a['score'] as num));
       
       return scoredActivities
           .take(10)
           .map((item) => item['activity'] as Activity)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting recommended activities for child: ${child.id}', e, stack);
+      _logger.e('Error getting recommended activities for child: ${child.id}, $e');
       return [];
     }
   }
@@ -445,11 +478,11 @@ class ContentRepository {
   /// Get activities by difficulty
   Future<List<Activity>> getActivitiesByDifficulty(String difficulty) async {
     try {
-      return _activityBox.values
+      return _getAllActivitiesFromBox()
           .where((activity) => activity.difficulty == difficulty)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting activities by difficulty: $difficulty', e, stack);
+      _logger.e('Error getting activities by difficulty: $difficulty, $e');
       return [];
     }
   }
@@ -459,11 +492,11 @@ class ContentRepository {
   /// Get offline available activities
   Future<List<Activity>> getOfflineActivities() async {
     try {
-      return _activityBox.values
+      return _getAllActivitiesFromBox()
           .where((activity) => activity.isOfflineAvailable)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting offline activities', e, stack);
+      _logger.e('Error getting offline activities: $e');
       return [];
     }
   }
@@ -471,7 +504,7 @@ class ContentRepository {
   /// Download activity for offline use
   Future<bool> downloadForOffline(String activityId) async {
     try {
-      final activity = _activityBox.get(activityId);
+      final activity = _getActivityFromBox(activityId);
       if (activity == null) return false;
       
       // In a real app, this would download content files
@@ -480,7 +513,7 @@ class ContentRepository {
       
       return true;
     } catch (e, stack) {
-      _logger.e('Error downloading activity for offline: $activityId', e, stack);
+      _logger.e('Error downloading activity for offline: $activityId, $e');
       return false;
     }
   }
@@ -490,11 +523,11 @@ class ContentRepository {
   /// Get popular activities
   Future<List<Activity>> getPopularActivities({int limit = 10}) async {
     try {
-      final activities = _activityBox.values.toList();
+      final activities = _getAllActivitiesFromBox();
       activities.sort((a, b) => b.playCount.compareTo(a.playCount));
       return activities.take(limit).toList();
     } catch (e, stack) {
-      _logger.e('Error getting popular activities', e, stack);
+      _logger.e('Error getting popular activities: $e');
       return [];
     }
   }
@@ -502,11 +535,11 @@ class ContentRepository {
   /// Get recently added activities
   Future<List<Activity>> getRecentlyAddedActivities({int limit = 10}) async {
     try {
-      final activities = _activityBox.values.toList();
+      final activities = _getAllActivitiesFromBox();
       activities.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return activities.take(limit).toList();
     } catch (e, stack) {
-      _logger.e('Error getting recently added activities', e, stack);
+      _logger.e('Error getting recently added activities: $e');
       return [];
     }
   }
@@ -514,7 +547,7 @@ class ContentRepository {
   /// Increment play count
   Future<bool> incrementPlayCount(String activityId) async {
     try {
-      final activity = _activityBox.get(activityId);
+      final activity = _getActivityFromBox(activityId);
       if (activity == null) return false;
       
       final updated = activity.copyWith(
@@ -522,10 +555,10 @@ class ContentRepository {
         updatedAt: DateTime.now(),
       );
       
-      await _activityBox.put(activityId, updated);
+      await _saveActivityToBox(activityId, updated);
       return true;
     } catch (e, stack) {
-      _logger.e('Error incrementing play count: $activityId', e, stack);
+      _logger.e('Error incrementing play count: $activityId, $e');
       return false;
     }
   }
@@ -538,7 +571,7 @@ class ContentRepository {
       // In a real app, this would check sync status
       return [];
     } catch (e, stack) {
-      _logger.e('Error getting activities needing sync', e, stack);
+      _logger.e('Error getting activities needing sync: $e');
       return [];
     }
   }
@@ -551,7 +584,7 @@ class ContentRepository {
       await Future.delayed(const Duration(seconds: 2));
       return true;
     } catch (e, stack) {
-      _logger.e('Error syncing with server', e, stack);
+      _logger.e('Error syncing with server: $e');
       return false;
     }
   }

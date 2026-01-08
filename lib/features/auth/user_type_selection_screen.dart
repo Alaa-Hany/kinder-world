@@ -63,96 +63,90 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
               child: child,
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Header
-                const SizedBox(height: 40),
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Header
+                  const SizedBox(height: 40),
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.people,
+                      size: 60,
+                      color: AppColors.white,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.people,
-                    size: 60,
-                    color: AppColors.white,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                
-                // Title
-                Text(
-                  'Who are you?',
-                  style: TextStyle(
-                    fontSize: AppConstants.largeFontSize * 1.2,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                
-                // Subtitle
-                Text(
-                  'Choose how you want to use Kinder World',
-                  style: TextStyle(
-                    fontSize: AppConstants.fontSize,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                
-                // User Type Cards
-                _buildUserTypeCard(
-                  'Parent',
-                  'Monitor progress, set controls, manage family',
-                  Icons.family_restroom,
-                  AppColors.parentModeColor ?? AppColors.secondary,
-                  'parent',
-                ),
-                const SizedBox(height: 24),
-                _buildUserTypeCard(
-                  'Child',
-                  'Learn, play, and explore safely',
-                  Icons.child_care,
-                  AppColors.behavioral,
-                  'child',
-                ),
-                const SizedBox(height: 24),
-                _buildUserTypeCard(
-                  'Teacher',
-                  'Manage classroom and track student progress',
-                  Icons.school,
-                  AppColors.educational,
-                  'teacher',
-                ),
-                
-                const SizedBox(height: 40),
-                
-                // Privacy note
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'All user data is protected and COPPA/GDPR compliant',
+                  const SizedBox(height: 32),
+                  
+                  // Title
+                  Text(
+                    'Who are you?',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: AppConstants.largeFontSize * 1.2,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Subtitle
+                  Text(
+                    'Choose how you want to use Kinder World',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSize,
                       color: AppColors.textSecondary,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 48),
+                  
+                  // User Type Cards
+                  _buildUserTypeCard(
+                    'Parent',
+                    'Monitor progress, set controls, manage family',
+                    Icons.family_restroom,
+                    AppColors.parentModeColor ?? AppColors.secondary,
+                    'parent',
+                  ),
+                  const SizedBox(height: 24),
+                  _buildUserTypeCard(
+                    'Child',
+                    'Learn, play, and explore safely',
+                    Icons.child_care,
+                    AppColors.behavioral,
+                    'child',
+                  ),
+                  
+                  const SizedBox(height: 40),
+                  
+                  // Privacy note
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      'All user data is protected and COPPA/GDPR compliant',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

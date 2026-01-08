@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
+import 'package:kinder_world/core/models/progress_record.dart';
+import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/core/providers/progress_controller.dart';
 
 class ChildHomeScreen extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -21,26 +24,6 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-
-  // Mock child data
-  final ChildProfile _currentChild = ChildProfile(
-    id: 'child1',
-    name: 'Ahmed',
-    age: 8,
-    avatar: 'assets/images/avatars/boy1.png',
-    interests: ['math', 'science'],
-    level: 3,
-    xp: 2500,
-    streak: 5,
-    favorites: ['activity1', 'activity2'],
-    parentId: 'parent1',
-    picturePassword: ['apple', 'ball', 'cat'],
-    createdAt: DateTime(2024, 1, 1),
-    updatedAt: DateTime(2024, 1, 1),
-    totalTimeSpent: 0,
-    activitiesCompleted: 0,
-    currentMood: 'happy',
-  );
 
   @override
   void initState() {
@@ -164,28 +147,76 @@ class ChildHomeContent extends ConsumerStatefulWidget {
 }
 
 class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
-  // Mock child data
-  final ChildProfile _currentChild = ChildProfile(
-    id: 'child1',
-    name: 'Ahmed',
-    age: 8,
-    avatar: 'assets/images/avatars/boy1.png',
-    interests: ['math', 'science'],
-    level: 3,
-    xp: 2500,
-    streak: 5,
-    favorites: ['activity1', 'activity2'],
-    parentId: 'parent1',
-    picturePassword: ['apple', 'ball', 'cat'],
-    createdAt: DateTime(2024, 1, 1),
-    updatedAt: DateTime(2024, 1, 1),
-    totalTimeSpent: 0,
-    activitiesCompleted: 0,
-    currentMood: 'happy',
-  );
+  @override
+  void initState() {
+    super.initState();
+    // Load today's progress when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final childProfile = ref.read(currentChildProvider);
+      if (childProfile != null) {
+        ref.read(progressControllerProvider.notifier).loadTodayProgress(childProfile.id);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final sessionState = ref.watch(childSessionControllerProvider);
+    final childProfile = sessionState.childProfile;
+
+    // Show loading state
+    if (sessionState.isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    // Show error state
+    if (sessionState.error != null || childProfile == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 80,
+                  color: AppColors.error,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  sessionState.error ?? 'No active child session',
+                  style: TextStyle(
+                    fontSize: AppConstants.fontSize,
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: () {
+                    context.go('/child/login');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                  child: const Text('Go to Login'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return CustomScrollView(
       slivers: [
         // App Bar
@@ -205,7 +236,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 ),
                 child: Center(
                   child: Text(
-                    _currentChild.name[0],
+                    childProfile.name[0],
                     style: const TextStyle(
                       color: AppColors.white,
                       fontWeight: FontWeight.bold,
@@ -220,7 +251,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Hello, ${_currentChild.name}!',
+                    'Hello, ${childProfile.name}!',
                     style: TextStyle(
                       fontSize: AppConstants.fontSize,
                       fontWeight: FontWeight.bold,
@@ -249,12 +280,12 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
               child: Row(
                 children: [
                   Text(
-                    MoodTypes.getEmoji(_currentChild.currentMood ?? 'happy'),
+                    MoodTypes.getEmoji(childProfile.currentMood ?? MoodTypes.happy),
                     style: const TextStyle(fontSize: 20),
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Happy',
+                    _getMoodLabel(childProfile.currentMood ?? MoodTypes.happy),
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
@@ -275,7 +306,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Progress Overview
-                _buildProgressOverview(),
+                _buildProgressOverview(childProfile),
                 const SizedBox(height: 24),
                 
                 // Continue Learning
@@ -283,7 +314,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 const SizedBox(height: 24),
                 
                 // Daily Goal
-                _buildDailyGoal(),
+                _buildDailyGoal(childProfile),
                 const SizedBox(height: 24),
                 
                 // Recommended Activities
@@ -301,7 +332,26 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
     );
   }
 
-  Widget _buildProgressOverview() {
+  String _getMoodLabel(String mood) {
+    switch (mood) {
+      case MoodTypes.happy:
+        return 'Happy';
+      case MoodTypes.sad:
+        return 'Sad';
+      case MoodTypes.excited:
+        return 'Excited';
+      case MoodTypes.tired:
+        return 'Tired';
+      case MoodTypes.angry:
+        return 'Angry';
+      case MoodTypes.calm:
+        return 'Calm';
+      default:
+        return 'Good';
+    }
+  }
+
+  Widget _buildProgressOverview(ChildProfile child) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -332,19 +382,19 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildProgressItem(
-                'Level ${_currentChild.level}',
-                '${_currentChild.xpProgress}/1000 XP',
+                'Level ${child.level}',
+                '${child.xpProgress}/1000 XP',
                 AppColors.xpColor,
                 Icons.star,
               ),
               _buildProgressItem(
-                '${_currentChild.streak}',
+                '${child.streak}',
                 'Day Streak',
                 AppColors.streakColor,
                 Icons.local_fire_department,
               ),
               _buildProgressItem(
-                '${_currentChild.activitiesCompleted}',
+                '${child.activitiesCompleted}',
                 'Activities',
                 AppColors.success,
                 Icons.check_circle,
@@ -423,7 +473,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Icons.calculate,
+                  Icons.school,
                   size: 30,
                   color: AppColors.educational,
                 ),
@@ -435,7 +485,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Math Adventure',
+                      'Start Learning',
                       style: TextStyle(
                         fontSize: AppConstants.fontSize,
                         fontWeight: FontWeight.bold,
@@ -443,7 +493,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                       ),
                     ),
                     Text(
-                      'Level 3 • 5 minutes',
+                      'Explore new topics and activities',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
@@ -464,7 +514,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Continue'),
+                child: const Text('Start'),
               ),
             ],
           ),
@@ -473,65 +523,75 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
     );
   }
 
-  Widget _buildDailyGoal() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Daily Goal',
-          style: TextStyle(
-            fontSize: AppConstants.fontSize,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.success.withOpacity(0.3)),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildDailyGoal(ChildProfile child) {
+    return FutureBuilder<List<ProgressRecord>>(
+      future: ref.read(progressControllerProvider.notifier).loadTodayProgress(child.id),
+      builder: (context, snapshot) {
+        final todayActivities = snapshot.hasData ? snapshot.data!.length : 0;
+        final targetActivities = 3; // Default daily goal
+        final progress = targetActivities > 0 ? todayActivities / targetActivities : 0.0;
+        final clampedProgress = progress > 1.0 ? 1.0 : progress;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Daily Goal',
+              style: TextStyle(
+                fontSize: AppConstants.fontSize,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.success.withOpacity(0.3)),
+              ),
+              child: Column(
                 children: [
-                  Text(
-                    'Complete 3 activities',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSize,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Complete $targetActivities activities',
+                        style: TextStyle(
+                          fontSize: AppConstants.fontSize,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        '$todayActivities/$targetActivities',
+                        style: TextStyle(
+                          fontSize: AppConstants.fontSize,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.success,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '2/3',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSize,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.success,
+                  const SizedBox(height: 12),
+                  
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: clampedProgress,
+                      backgroundColor: AppColors.lightGrey,
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.success),
+                      minHeight: 8,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: 2/3,
-                  backgroundColor: AppColors.lightGrey,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
-                  minHeight: 8,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -565,41 +625,46 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
               
               final activity = activities[index];
               
-              return Container(
-                width: 120,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.lightGrey),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: (activity['color'] as Color).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
+              return GestureDetector(
+                onTap: () {
+                  context.go('/child/play');
+                },
+                child: Container(
+                  width: 120,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.lightGrey),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: (activity['color'] as Color).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          activity['icon'] as IconData,
+                          size: 25,
+                          color: activity['color'] as Color,
+                        ),
                       ),
-                      child: Icon(
-                        activity['icon'] as IconData,
-                        size: 25,
-                        color: activity['color'] as Color,
+                      const SizedBox(height: 8),
+                      Text(
+                        activity['title'] as String,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      activity['title'] as String,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -669,7 +734,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Invention Challenge',
+                      'Explore New Activities',
                       style: TextStyle(
                         fontSize: AppConstants.fontSize,
                         fontWeight: FontWeight.bold,
@@ -677,7 +742,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                       ),
                     ),
                     Text(
-                      'Create something amazing!',
+                      'Discover something amazing!',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,

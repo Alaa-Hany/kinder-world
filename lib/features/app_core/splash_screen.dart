@@ -96,10 +96,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
-                    child: Lottie.asset(
-                      'assets/animations/splash_animation.json',
-                      fit: BoxFit.contain,
-                      repeat: true,
+                    child: Icon(
+                      Icons.child_care,
+                      size: 120,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),

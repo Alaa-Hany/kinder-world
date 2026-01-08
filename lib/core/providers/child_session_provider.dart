@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/storage/secure_storage.dart';
+import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
 // Child Session State
@@ -73,7 +74,7 @@ class ChildSessionNotifier extends StateNotifier<ChildSessionState> {
       
       // Mock child profiles - in real app, fetch from repository
       final mockProfiles = {
-        'child1': const ChildProfile(
+        'child1': ChildProfile(
           id: 'child1',
           name: 'Ahmed',
           age: 8,
@@ -85,13 +86,13 @@ class ChildSessionNotifier extends StateNotifier<ChildSessionState> {
           favorites: ['activity1', 'activity2'],
           parentId: 'parent1',
           picturePassword: ['apple', 'ball', 'cat'],
-          createdAt: null,
-          updatedAt: null,
+          createdAt: DateTime(2024, 1, 1),
+          updatedAt: DateTime(2024, 1, 1),
           totalTimeSpent: 0,
           activitiesCompleted: 0,
           currentMood: 'happy',
         ),
-        'child2': const ChildProfile(
+        'child2': ChildProfile(
           id: 'child2',
           name: 'Sara',
           age: 6,
@@ -103,8 +104,8 @@ class ChildSessionNotifier extends StateNotifier<ChildSessionState> {
           favorites: ['activity3', 'activity4'],
           parentId: 'parent1',
           picturePassword: ['dog', 'elephant', 'fish'],
-          createdAt: null,
-          updatedAt: null,
+          createdAt: DateTime(2024, 1, 1),
+          updatedAt: DateTime(2024, 1, 1),
           totalTimeSpent: 0,
           activitiesCompleted: 0,
           currentMood: 'excited',

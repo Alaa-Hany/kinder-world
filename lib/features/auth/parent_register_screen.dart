@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
-import 'package:kinder_world/core/storage/secure_storage.dart';
-import 'package:kinder_world/app.dart';
+import 'package:kinder_world/core/providers/auth_controller.dart';
 
 class ParentRegisterScreen extends ConsumerStatefulWidget {
   const ParentRegisterScreen({super.key});
@@ -49,45 +48,40 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
       return;
     }
     
+    final authController = ref.read(authControllerProvider.notifier);
+    
     setState(() {
       _isLoading = true;
     });
     
-    try {
-      // Simulate registration process
-      await Future.delayed(const Duration(seconds: 2));
+    final success = await authController.registerParent(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      confirmPassword: _confirmPasswordController.text,
+    );
+    
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
       
-      // Store user role and token
-      final secureStorage = ref.read(secureStorageProvider);
-      await secureStorage.saveAuthToken('mock_parent_token');
-      await secureStorage.saveUserRole('parent');
-      
-      if (mounted) {
-        // Show success message
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Registration successful! Welcome to Kinder World!'),
             backgroundColor: AppColors.success,
           ),
         );
-        
-        // Navigate to dashboard
         context.go('/parent/dashboard');
-      }
-    } catch (e) {
-      if (mounted) {
+      } else {
+        final error = ref.read(authControllerProvider).error;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration failed. Please try again.'),
+          SnackBar(
+            content: Text(error ?? 'Registration failed. Please try again.'),
             backgroundColor: AppColors.error,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }

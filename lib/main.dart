@@ -13,7 +13,13 @@ void main() async {
   
   // Initialize Hive for local storage
   await Hive.initFlutter();
-  await Hive.openBox(AppConstants.hiveBoxName);
+  
+  // Open required Hive boxes as untyped for JSON storage
+  // Note: Freezed models don't work directly with Hive TypeAdapters,
+  // so we store as JSON maps and serialize/deserialize in repositories
+  await Hive.openBox('child_profiles');
+  await Hive.openBox('activities');
+  await Hive.openBox('progress_records');
   
   // Initialize secure storage
   final secureStorage = SecureStorage();

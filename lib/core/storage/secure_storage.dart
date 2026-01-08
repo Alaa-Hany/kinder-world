@@ -14,6 +14,7 @@ class SecureStorage {
   // Keys
   static const String _authTokenKey = 'auth_token';
   static const String _parentPinKey = 'parent_pin';
+  static const String _parentIdKey = 'parent_id';
   static const String _childSessionKey = 'child_session';
   static const String _userRoleKey = 'user_role';
   static const String _subscriptionStatusKey = 'subscription_status';
@@ -74,6 +75,26 @@ class SecureStorage {
     } catch (e) {
       _logger.e('Error verifying parent PIN: $e');
       return false;
+    }
+  }
+
+  // Parent ID
+  Future<void> saveParentId(String parentId) async {
+    try {
+      await _storage.write(key: _parentIdKey, value: parentId);
+      _logger.d('Parent ID saved successfully');
+    } catch (e) {
+      _logger.e('Error saving parent ID: $e');
+      rethrow;
+    }
+  }
+
+  Future<String?> getParentId() async {
+    try {
+      return await _storage.read(key: _parentIdKey);
+    } catch (e) {
+      _logger.e('Error reading parent ID: $e');
+      return null;
     }
   }
 

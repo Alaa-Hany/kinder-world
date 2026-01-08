@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/models/user.dart';
 import 'package:kinder_world/core/repositories/auth_repository.dart';
+import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
 /// Authentication state
@@ -31,8 +32,8 @@ class AuthState {
     );
   }
 
-  bool get isParent => user?.role == UserRole.parent;
-  bool get isChild => user?.role == UserRole.child;
+  bool get isParent => user?.role == UserRoles.parent;
+  bool get isChild => user?.role == UserRoles.child;
 }
 
 /// Authentication controller using AuthRepository
@@ -96,7 +97,7 @@ class AuthController extends StateNotifier<AuthState> {
         return false;
       }
     } catch (e, stack) {
-      _logger.e('Parent login error', e, stack);
+      _logger.e('Parent login error: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Login failed. Please try again.',
@@ -139,7 +140,7 @@ class AuthController extends StateNotifier<AuthState> {
         return false;
       }
     } catch (e, stack) {
-      _logger.e('Parent registration error', e, stack);
+      _logger.e('Parent registration error: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Registration failed. Please try again.',
@@ -180,7 +181,7 @@ class AuthController extends StateNotifier<AuthState> {
         return false;
       }
     } catch (e, stack) {
-      _logger.e('Child login error', e, stack);
+      _logger.e('Child login error: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Login failed. Please try again.',
@@ -207,7 +208,7 @@ class AuthController extends StateNotifier<AuthState> {
       
       return isAuthenticated;
     } catch (e, stack) {
-      _logger.e('Error checking authentication', e, stack);
+      _logger.e('Error checking authentication: $e');
       return false;
     }
   }
@@ -217,7 +218,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.getUserRole();
     } catch (e, stack) {
-      _logger.e('Error getting user role', e, stack);
+      _logger.e('Error getting user role: $e');
       return null;
     }
   }
@@ -228,7 +229,7 @@ class AuthController extends StateNotifier<AuthState> {
       final user = await _authRepository.getCurrentUser();
       state = state.copyWith(user: user);
     } catch (e, stack) {
-      _logger.e('Error refreshing user', e, stack);
+      _logger.e('Error refreshing user: $e');
     }
   }
 
@@ -250,7 +251,7 @@ class AuthController extends StateNotifier<AuthState> {
       
       _logger.d('User logged out successfully');
     } catch (e, stack) {
-      _logger.e('Error during logout', e, stack);
+      _logger.e('Error during logout: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Logout failed',
@@ -265,7 +266,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.setParentPin(pin);
     } catch (e, stack) {
-      _logger.e('Error setting parent PIN', e, stack);
+      _logger.e('Error setting parent PIN: $e');
       return false;
     }
   }
@@ -275,7 +276,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.verifyParentPin(enteredPin);
     } catch (e, stack) {
-      _logger.e('Error verifying PIN', e, stack);
+      _logger.e('Error verifying PIN: $e');
       return false;
     }
   }
@@ -285,7 +286,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.isPinRequired();
     } catch (e, stack) {
-      _logger.e('Error checking PIN requirement', e, stack);
+      _logger.e('Error checking PIN requirement: $e');
       return false;
     }
   }
@@ -297,7 +298,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.saveChildSession(childId);
     } catch (e, stack) {
-      _logger.e('Error saving child session', e, stack);
+      _logger.e('Error saving child session: $e');
       return false;
     }
   }
@@ -307,7 +308,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.getChildSession();
     } catch (e, stack) {
-      _logger.e('Error getting child session', e, stack);
+      _logger.e('Error getting child session: $e');
       return null;
     }
   }
@@ -317,7 +318,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.clearChildSession();
     } catch (e, stack) {
-      _logger.e('Error clearing child session', e, stack);
+      _logger.e('Error clearing child session: $e');
       return false;
     }
   }
@@ -336,7 +337,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.refreshToken();
     } catch (e, stack) {
-      _logger.e('Error refreshing token', e, stack);
+      _logger.e('Error refreshing token: $e');
       return null;
     }
   }
@@ -346,7 +347,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       return await _authRepository.validateToken();
     } catch (e, stack) {
-      _logger.e('Error validating token', e, stack);
+      _logger.e('Error validating token: $e');
       return false;
     }
   }

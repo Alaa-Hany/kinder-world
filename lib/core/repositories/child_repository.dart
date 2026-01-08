@@ -5,15 +5,48 @@ import 'package:logger/logger.dart';
 
 /// Repository for child profile operations
 /// Uses Hive for local persistence (offline-first)
+/// Stores data as JSON maps since Freezed models don't support Hive TypeAdapters
 class ChildRepository {
-  final Box<ChildProfile> _childBox;
+  final Box _childBox;
   final Logger _logger;
 
   ChildRepository({
-    required Box<ChildProfile> childBox,
+    required Box childBox,
     required Logger logger,
   })  : _childBox = childBox,
         _logger = logger;
+
+  // Helper methods for JSON serialization
+  ChildProfile? _getChildFromBox(String childId) {
+    final data = _childBox.get(childId);
+    if (data == null) return null;
+    try {
+      final map = data as Map<String, dynamic>;
+      return ChildProfile.fromJson(map);
+    } catch (e) {
+      _logger.e('Error deserializing child profile: $childId, $e');
+      return null;
+    }
+  }
+
+  Future<void> _saveChildToBox(String childId, ChildProfile child) async {
+    await _childBox.put(childId, child.toJson());
+  }
+
+  List<ChildProfile> _getAllChildrenFromBox() {
+    return _childBox.values
+        .map((data) {
+          try {
+            final map = data as Map<String, dynamic>;
+            return ChildProfile.fromJson(map);
+          } catch (e) {
+            _logger.e('Error deserializing child profile from box: $e');
+            return null;
+          }
+        })
+        .whereType<ChildProfile>()
+        .toList();
+  }
 
   // ==================== CRUD OPERATIONS ====================
 
@@ -58,13 +91,13 @@ class ChildRepository {
         accessibilityNeeds: accessibilityNeeds,
       );
       
-      // Save to Hive
-      await _childBox.put(childId, child);
+      // Save to Hive as JSON
+      await _saveChildToBox(childId, child);
       
       _logger.d('Child profile created: $childId');
       return child;
     } catch (e, stack) {
-      _logger.e('Error creating child profile', e, stack);
+      _logger.e('Error creating child profile: $e');
       return null;
     }
   }
@@ -72,9 +105,9 @@ class ChildRepository {
   /// Get child profile by ID
   Future<ChildProfile?> getChildProfile(String childId) async {
     try {
-      return _childBox.get(childId);
+      return _getChildFromBox(childId);
     } catch (e, stack) {
-      _logger.e('Error getting child profile: $childId', e, stack);
+      _logger.e('Error getting child profile: $childId, $e');
       return null;
     }
   }
@@ -82,11 +115,11 @@ class ChildRepository {
   /// Get all child profiles for a parent
   Future<List<ChildProfile>> getChildProfilesForParent(String parentId) async {
     try {
-      return _childBox.values
+      return _getAllChildrenFromBox()
           .where((child) => child.parentId == parentId)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting child profiles for parent: $parentId', e, stack);
+      _logger.e('Error getting child profiles for parent: $parentId, $e');
       return [];
     }
   }
@@ -102,12 +135,12 @@ class ChildRepository {
       );
       
       // Save to Hive
-      await _childBox.put(updated.id, updated);
+      await _saveChildToBox(updated.id, updated);
       
       _logger.d('Child profile updated: ${updated.id}');
       return updated;
     } catch (e, stack) {
-      _logger.e('Error updating child profile: ${updatedProfile.id}', e, stack);
+      _logger.e('Error updating child profile: ${updatedProfile.id}, $e');
       return null;
     }
   }
@@ -120,7 +153,7 @@ class ChildRepository {
       _logger.d('Child profile deleted: $childId');
       return true;
     } catch (e, stack) {
-      _logger.e('Error deleting child profile: $childId', e, stack);
+      _logger.e('Error deleting child profile: $childId, $e');
       return false;
     }
   }
@@ -130,7 +163,7 @@ class ChildRepository {
   /// Add XP to child
   Future<ChildProfile?> addXP(String childId, int xpAmount) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) return null;
       
       final newXP = child.xp + xpAmount;
@@ -151,7 +184,7 @@ class ChildRepository {
       
       return updated;
     } catch (e, stack) {
-      _logger.e('Error adding XP to child: $childId', e, stack);
+      _logger.e('Error adding XP to child: $childId, $e');
       return null;
     }
   }
@@ -159,7 +192,7 @@ class ChildRepository {
   /// Update streak
   Future<ChildProfile?> updateStreak(String childId) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) return null;
       
       final now = DateTime.now();
@@ -193,7 +226,7 @@ class ChildRepository {
       _logger.d('Updated streak for $childId: $newStreak');
       return updated;
     } catch (e, stack) {
-      _logger.e('Error updating streak for child: $childId', e, stack);
+      _logger.e('Error updating streak for child: $childId, $e');
       return null;
     }
   }
@@ -205,7 +238,7 @@ class ChildRepository {
     required int timeSpent,
   }) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) return null;
       
       // Add XP
@@ -223,7 +256,7 @@ class ChildRepository {
       _logger.d('Activity completed for $childId: +$xpEarned XP, +$timeSpent min');
       return updated;
     } catch (e, stack) {
-      _logger.e('Error completing activity for child: $childId', e, stack);
+      _logger.e('Error completing activity for child: $childId, $e');
       return null;
     }
   }
@@ -233,7 +266,7 @@ class ChildRepository {
   /// Add activity to favorites
   Future<ChildProfile?> addToFavorites(String childId, String activityId) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) return null;
       
       if (!child.favorites.contains(activityId)) {
@@ -249,7 +282,7 @@ class ChildRepository {
       
       return child;
     } catch (e, stack) {
-      _logger.e('Error adding to favorites for child: $childId', e, stack);
+      _logger.e('Error adding to favorites for child: $childId, $e');
       return null;
     }
   }
@@ -257,7 +290,7 @@ class ChildRepository {
   /// Remove activity from favorites
   Future<ChildProfile?> removeFromFavorites(String childId, String activityId) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) return null;
       
       final updated = child.copyWith(
@@ -269,7 +302,7 @@ class ChildRepository {
       _logger.d('Removed $activityId from favorites for $childId');
       return updated;
     } catch (e, stack) {
-      _logger.e('Error removing from favorites for child: $childId', e, stack);
+      _logger.e('Error removing from favorites for child: $childId, $e');
       return null;
     }
   }
@@ -277,7 +310,7 @@ class ChildRepository {
   /// Update child interests
   Future<ChildProfile?> updateInterests(String childId, List<String> newInterests) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) return null;
       
       final updated = child.copyWith(
@@ -289,7 +322,7 @@ class ChildRepository {
       _logger.d('Updated interests for $childId: $newInterests');
       return updated;
     } catch (e, stack) {
-      _logger.e('Error updating interests for child: $childId', e, stack);
+      _logger.e('Error updating interests for child: $childId, $e');
       return null;
     }
   }
@@ -299,7 +332,7 @@ class ChildRepository {
   /// Update child mood
   Future<ChildProfile?> updateMood(String childId, String mood) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) return null;
       
       final updated = child.copyWith(
@@ -311,7 +344,7 @@ class ChildRepository {
       _logger.d('Updated mood for $childId: $mood');
       return updated;
     } catch (e, stack) {
-      _logger.e('Error updating mood for child: $childId', e, stack);
+      _logger.e('Error updating mood for child: $childId, $e');
       return null;
     }
   }
@@ -319,7 +352,7 @@ class ChildRepository {
   /// Update learning style
   Future<ChildProfile?> updateLearningStyle(String childId, String learningStyle) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) return null;
       
       final updated = child.copyWith(
@@ -331,7 +364,7 @@ class ChildRepository {
       _logger.d('Updated learning style for $childId: $learningStyle');
       return updated;
     } catch (e, stack) {
-      _logger.e('Error updating learning style for child: $childId', e, stack);
+      _logger.e('Error updating learning style for child: $childId, $e');
       return null;
     }
   }
@@ -341,9 +374,9 @@ class ChildRepository {
   /// Get all child profiles
   Future<List<ChildProfile>> getAllChildProfiles() async {
     try {
-      return _childBox.values.toList();
+      return _getAllChildrenFromBox();
     } catch (e, stack) {
-      _logger.e('Error getting all child profiles', e, stack);
+      _logger.e('Error getting all child profiles: $e');
       return [];
     }
   }
@@ -351,11 +384,11 @@ class ChildRepository {
   /// Get children by age range
   Future<List<ChildProfile>> getChildrenByAgeRange(int minAge, int maxAge) async {
     try {
-      return _childBox.values
+      return _getAllChildrenFromBox()
           .where((child) => child.age >= minAge && child.age <= maxAge)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting children by age range', e, stack);
+      _logger.e('Error getting children by age range: $e');
       return [];
     }
   }
@@ -363,12 +396,12 @@ class ChildRepository {
   /// Get children by interests
   Future<List<ChildProfile>> getChildrenByInterests(List<String> interests) async {
     try {
-      return _childBox.values
+      return _getAllChildrenFromBox()
           .where((child) => 
               child.interests.any((interest) => interests.contains(interest)))
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting children by interests', e, stack);
+      _logger.e('Error getting children by interests: $e');
       return [];
     }
   }
@@ -378,7 +411,7 @@ class ChildRepository {
   /// Get child statistics
   Future<Map<String, dynamic>> getChildStats(String childId) async {
     try {
-      final child = _childBox.get(childId);
+      final child = _getChildFromBox(childId);
       if (child == null) {
         return {};
       }
@@ -396,7 +429,7 @@ class ChildRepository {
             : 0,
       };
     } catch (e, stack) {
-      _logger.e('Error getting child stats: $childId', e, stack);
+      _logger.e('Error getting child stats: $childId, $e');
       return {};
     }
   }
@@ -410,7 +443,7 @@ class ChildRepository {
       _logger.d('Marked child profile for sync: $childId');
       return true;
     } catch (e) {
-      _logger.e('Error marking child for sync: $childId', e);
+      _logger.e('Error marking child for sync: $childId, $e');
       return false;
     }
   }
@@ -423,7 +456,7 @@ class ChildRepository {
       await Future.delayed(const Duration(seconds: 1));
       return true;
     } catch (e) {
-      _logger.e('Error syncing child profile: $childId', e);
+      _logger.e('Error syncing child profile: $childId, $e');
       return false;
     }
   }

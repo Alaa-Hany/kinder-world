@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
-import 'package:kinder_world/core/storage/secure_storage.dart';
-import 'package:kinder_world/app.dart';
+import 'package:kinder_world/core/providers/auth_controller.dart';
 
 class ParentLoginScreen extends ConsumerStatefulWidget {
   const ParentLoginScreen({super.key});
@@ -31,42 +30,41 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     
+    final authController = ref.read(authControllerProvider.notifier);
+    
     setState(() {
       _isLoading = true;
     });
     
-    try {
-      // Simulate login process
-      await Future.delayed(const Duration(seconds: 2));
+    final success = await authController.loginParent(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+    
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
       
-      // Store user role and token
-      final secureStorage = ref.read(secureStorageProvider);
-      await secureStorage.saveAuthToken('mock_parent_token');
-      await secureStorage.saveUserRole('parent');
-      
-      if (mounted) {
+      if (success) {
         context.go('/parent/dashboard');
-      }
-    } catch (e) {
-      if (mounted) {
+      } else {
+        final error = ref.read(authControllerProvider).error;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login failed. Please try again.'),
+          SnackBar(
+            content: Text(error ?? 'Login failed. Please try again.'),
             backgroundColor: AppColors.error,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = _isLoading || authState.isLoading;
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -174,7 +172,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
+                    onPressed: isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.white,
@@ -182,7 +180,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: _isLoading
+                    child: isLoading
                         ? const CircularProgressIndicator(color: AppColors.white)
                         : Text(
                             'Login',

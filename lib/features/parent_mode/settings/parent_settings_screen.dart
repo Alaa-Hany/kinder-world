@@ -106,7 +106,7 @@ class ParentSettingsScreen extends ConsumerWidget {
               'Help & FAQ',
               Icons.help,
               onTap: () {
-                // TODO: Navigate to help
+                context.go('/help');
               },
             ),
             _buildSettingItem(
@@ -132,14 +132,14 @@ class ParentSettingsScreen extends ConsumerWidget {
               'Terms of Service',
               Icons.description,
               onTap: () {
-                // TODO: Navigate to terms
+                context.go('/legal?type=terms');
               },
             ),
             _buildSettingItem(
               'Privacy Policy',
               Icons.security,
               onTap: () {
-                // TODO: Navigate to privacy policy
+                context.go('/legal?type=privacy');
               },
             ),
             _buildSettingItem(

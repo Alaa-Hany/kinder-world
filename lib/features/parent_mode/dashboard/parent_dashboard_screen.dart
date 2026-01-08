@@ -4,6 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
+import 'package:kinder_world/core/models/progress_record.dart';
+import 'package:kinder_world/core/repositories/child_repository.dart';
+import 'package:kinder_world/core/repositories/progress_repository.dart';
+import 'package:kinder_world/core/storage/secure_storage.dart';
+import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/core/providers/progress_controller.dart';
+import 'package:kinder_world/app.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ParentDashboardScreen extends ConsumerStatefulWidget {
@@ -17,46 +24,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-
-  // Mock child profiles
-  final List<ChildProfile> _children = [
-    ChildProfile(
-      id: 'child1',
-      name: 'Ahmed',
-      age: 8,
-      avatar: 'assets/images/avatars/boy1.png',
-      interests: ['math', 'science'],
-      level: 3,
-      xp: 2500,
-      streak: 5,
-      favorites: ['activity1', 'activity2'],
-      parentId: 'parent1',
-      picturePassword: ['apple', 'ball', 'cat'],
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime(2024, 1, 1),
-      totalTimeSpent: 120,
-      activitiesCompleted: 25,
-      currentMood: 'happy',
-    ),
-    ChildProfile(
-      id: 'child2',
-      name: 'Sara',
-      age: 6,
-      avatar: 'assets/images/avatars/girl1.png',
-      interests: ['reading', 'art'],
-      level: 2,
-      xp: 1800,
-      streak: 3,
-      favorites: ['activity3', 'activity4'],
-      parentId: 'parent1',
-      picturePassword: ['dog', 'elephant', 'fish'],
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime(2024, 1, 1),
-      totalTimeSpent: 90,
-      activitiesCompleted: 18,
-      currentMood: 'excited',
-    ),
-  ];
 
   @override
   void initState() {
@@ -96,85 +63,108 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              // App Bar
-              SliverAppBar(
-                backgroundColor: AppColors.background,
-                elevation: 0,
-                floating: true,
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Parent Dashboard',
-                      style: TextStyle(
-                        fontSize: AppConstants.largeFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+          child: FutureBuilder<String?>(
+            future: ref.read(secureStorageProvider).getParentId(),
+            builder: (context, parentIdSnapshot) {
+              if (!parentIdSnapshot.hasData || parentIdSnapshot.data == null) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
+
+              final parentId = parentIdSnapshot.data!;
+
+              return FutureBuilder<List<ChildProfile>>(
+                future: ref.read(childRepositoryProvider).getChildProfilesForParent(parentId),
+                builder: (context, childrenSnapshot) {
+                  if (childrenSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
+                    );
+                  }
+
+                  final children = childrenSnapshot.data ?? [];
+
+                  return CustomScrollView(
+                    slivers: [
+                      // App Bar
+                      SliverAppBar(
+                        backgroundColor: AppColors.background,
+                        elevation: 0,
+                        floating: true,
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Parent Dashboard',
+                              style: TextStyle(
+                                fontSize: AppConstants.largeFontSize,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              'Welcome back! Here\'s what\'s happening',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          IconButton(
+                            icon: const Icon(Icons.notifications),
+                            color: AppColors.textPrimary,
+                            onPressed: () {
+                              context.go('/parent/notifications');
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.settings),
+                            color: AppColors.textPrimary,
+                            onPressed: () {
+                              context.go('/parent/settings');
+                            },
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      'Welcome back! Here\'s what\'s happening',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
+                      
+                      // Content
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Children Overview
+                              _buildChildrenOverview(children),
+                              const SizedBox(height: 24),
+                              
+                              // Quick Stats
+                              _buildQuickStats(children),
+                              const SizedBox(height: 24),
+                              
+                              // AI Insights
+                              _buildAiInsights(children),
+                              const SizedBox(height: 24),
+                              
+                              // Recent Activities
+                              _buildRecentActivities(children),
+                              const SizedBox(height: 24),
+                              
+                              // Weekly Progress Chart
+                              _buildWeeklyProgressChart(children),
+                              const SizedBox(height: 40),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  // Notifications
-                  IconButton(
-                    icon: const Icon(Icons.notifications),
-                    color: AppColors.textPrimary,
-                    onPressed: () {
-                      // TODO: Navigate to notifications
-                    },
-                  ),
-                  
-                  // Settings
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    color: AppColors.textPrimary,
-                    onPressed: () {
-                      context.go('/parent/settings');
-                    },
-                  ),
-                ],
-              ),
-              
-              // Content
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Children Overview
-                      _buildChildrenOverview(),
-                      const SizedBox(height: 24),
-                      
-                      // Quick Stats
-                      _buildQuickStats(),
-                      const SizedBox(height: 24),
-                      
-                      // AI Insights
-                      _buildAiInsights(),
-                      const SizedBox(height: 24),
-                      
-                      // Recent Activities
-                      _buildRecentActivities(),
-                      const SizedBox(height: 24),
-                      
-                      // Weekly Progress Chart
-                      _buildWeeklyProgressChart(),
-                      const SizedBox(height: 40),
                     ],
-                  ),
-                ),
-              ),
-            ],
+                  );
+                },
+              );
+            },
           ),
         ),
         
@@ -191,7 +181,46 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     );
   }
 
-  Widget _buildChildrenOverview() {
+  Widget _buildChildrenOverview(List<ChildProfile> children) {
+    if (children.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.child_care, size: 64, color: AppColors.grey),
+            const SizedBox(height: 16),
+            Text(
+              'No children added yet',
+              style: TextStyle(
+                fontSize: AppConstants.fontSize,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Add your first child to get started',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                context.go('/parent/child-management');
+              },
+              child: const Text('Add Child'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -205,7 +234,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
         ),
         const SizedBox(height: 16),
         
-        ..._children.map((child) => _buildChildCard(child)),
+        ...children.map((child) => _buildChildCard(child)),
       ],
     );
   }
@@ -227,7 +256,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
       ),
       child: Row(
         children: [
-          // Avatar
           Container(
             width: 60,
             height: 60,
@@ -248,7 +276,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           ),
           const SizedBox(width: 16),
           
-          // Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,12 +297,12 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                 ),
                 const SizedBox(height: 8),
                 
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     _buildInfoChip('${child.activitiesCompleted} activities', AppColors.success),
-                    const SizedBox(width: 8),
                     _buildInfoChip('${child.totalTimeSpent} min today', AppColors.info),
-                    const SizedBox(width: 8),
                     _buildInfoChip('${child.streak} day streak', AppColors.streakColor),
                   ],
                 ),
@@ -283,7 +310,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             ),
           ),
           
-          // Mood
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -291,7 +317,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              MoodTypes.getEmoji(child.currentMood ?? 'happy'),
+              MoodTypes.getEmoji(child.currentMood ?? MoodTypes.happy),
               style: const TextStyle(fontSize: 24),
             ),
           ),
@@ -318,7 +344,16 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     );
   }
 
-  Widget _buildQuickStats() {
+  Widget _buildQuickStats(List<ChildProfile> children) {
+    if (children.isEmpty) {
+      return const SizedBox();
+    }
+
+    // Calculate totals
+    final totalTime = children.fold<int>(0, (sum, child) => sum + child.totalTimeSpent);
+    final totalActivities = children.fold<int>(0, (sum, child) => sum + child.activitiesCompleted);
+    final avgScore = 85; // Placeholder - would come from progress records
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -337,7 +372,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             Expanded(
               child: _buildStatCard(
                 'Total Time',
-                '3h 25m',
+                '${totalTime} min',
                 Icons.timer,
                 AppColors.info,
               ),
@@ -346,7 +381,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             Expanded(
               child: _buildStatCard(
                 'Activities',
-                '12',
+                '$totalActivities',
                 Icons.check_circle,
                 AppColors.success,
               ),
@@ -355,7 +390,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             Expanded(
               child: _buildStatCard(
                 'Avg Score',
-                '85%',
+                '$avgScore%',
                 Icons.star,
                 AppColors.xpColor,
               ),
@@ -416,7 +451,11 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     );
   }
 
-  Widget _buildAiInsights() {
+  Widget _buildAiInsights(List<ChildProfile> children) {
+    if (children.isEmpty) {
+      return const SizedBox();
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -456,7 +495,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           const SizedBox(height: 16),
           
           Text(
-            'Ahmed is showing great progress in mathematics! Sara enjoys creative activities. Consider adding more art-based learning to her routine.',
+            _generateInsightMessage(children),
             style: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
@@ -483,41 +522,114 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     );
   }
 
-  Widget _buildRecentActivities() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  String _generateInsightMessage(List<ChildProfile> children) {
+    if (children.isEmpty) return '';
+    
+    final names = children.map((c) => c.name).join(' and ');
+    final totalActivities = children.fold<int>(0, (sum, child) => sum + child.activitiesCompleted);
+    
+    return '$names ${children.length > 1 ? 'are' : 'is'} showing great progress! '
+           'Total of $totalActivities activities completed. '
+           'Keep up the excellent work!';
+  }
+
+  Widget _buildRecentActivities(List<ChildProfile> children) {
+    if (children.isEmpty) {
+      return const SizedBox();
+    }
+
+    return FutureBuilder<List<ProgressRecord>>(
+      future: _getRecentActivitiesForAllChildren(children),
+      builder: (context, snapshot) {
+        final activities = snapshot.data ?? [];
+        final displayActivities = activities.take(4).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Recent Activities',
-              style: TextStyle(
-                fontSize: AppConstants.fontSize,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent Activities',
+                  style: TextStyle(
+                    fontSize: AppConstants.fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    context.go('/parent/reports');
+                  },
+                  child: const Text('View All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            if (displayActivities.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'No recent activities',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              )
+            else
+              Column(
+                children: displayActivities.map((record) {
+                  final child = children.firstWhere(
+                    (c) => c.id == record.childId,
+                    orElse: () => children.first,
+                  );
+                  return _buildActivityItem(
+                    '${child.name} completed activity',
+                    _formatTimeAgo(record.createdAt),
+                    AppColors.educational,
+                  );
+                }).toList(),
               ),
-            ),
-            TextButton(
-              onPressed: () {
-                context.go('/parent/reports');
-              },
-              child: const Text('View All'),
-            ),
           ],
-        ),
-        const SizedBox(height: 16),
-        
-        Column(
-          children: [
-            _buildActivityItem('Ahmed completed Math Adventure', '2 hours ago', AppColors.educational),
-            _buildActivityItem('Sara finished Reading Time', '3 hours ago', AppColors.behavioral),
-            _buildActivityItem('Ahmed earned 50 XP', '5 hours ago', AppColors.xpColor),
-            _buildActivityItem('Sara started Art & Craft', '1 day ago', AppColors.skillful),
-          ],
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  Future<List<ProgressRecord>> _getRecentActivitiesForAllChildren(List<ChildProfile> children) async {
+    final progressRepository = ref.read(progressRepositoryProvider);
+    final allRecords = <ProgressRecord>[];
+    
+    for (final child in children) {
+      final records = await progressRepository.getProgressForChild(child.id);
+      allRecords.addAll(records);
+    }
+    
+    // Sort by date, most recent first
+    allRecords.sort((a, b) => b.date.compareTo(a.date));
+    
+    return allRecords.take(10).toList();
+  }
+
+  String _formatTimeAgo(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
+    }
+    return 'Just now';
   }
 
   Widget _buildActivityItem(String text, String time, Color color) {
@@ -561,7 +673,14 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     );
   }
 
-  Widget _buildWeeklyProgressChart() {
+  Widget _buildWeeklyProgressChart(List<ChildProfile> children) {
+    if (children.isEmpty) {
+      return const SizedBox();
+    }
+
+    // Placeholder data - in real app, would calculate from progress records
+    final weekData = [3, 5, 2, 4, 6, 3, 2];
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -588,7 +707,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           ),
           const SizedBox(height: 20),
           
-          Container(
+          SizedBox(
             height: 200,
             child: BarChart(
               BarChartData(
@@ -599,44 +718,36 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
                         const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                        return Text(days[value.toInt()]);
+                        if (value.toInt() >= 0 && value.toInt() < days.length) {
+                          return Text(days[value.toInt()]);
+                        }
+                        return const Text('');
                       },
                     ),
                   ),
-                  leftTitles: AxisTitles(
+                  leftTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
-                  topTitles: AxisTitles(
+                  topTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
-                  rightTitles: AxisTitles(
+                  rightTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
                 ),
                 borderData: FlBorderData(show: false),
-                barGroups: [
-                  BarChartGroupData(x: 0, barRods: [
-                    BarChartRodData(toY: 3, color: AppColors.educational, width: 16),
-                  ]),
-                  BarChartGroupData(x: 1, barRods: [
-                    BarChartRodData(toY: 5, color: AppColors.educational, width: 16),
-                  ]),
-                  BarChartGroupData(x: 2, barRods: [
-                    BarChartRodData(toY: 2, color: AppColors.educational, width: 16),
-                  ]),
-                  BarChartGroupData(x: 3, barRods: [
-                    BarChartRodData(toY: 4, color: AppColors.educational, width: 16),
-                  ]),
-                  BarChartGroupData(x: 4, barRods: [
-                    BarChartRodData(toY: 6, color: AppColors.educational, width: 16),
-                  ]),
-                  BarChartGroupData(x: 5, barRods: [
-                    BarChartRodData(toY: 3, color: AppColors.educational, width: 16),
-                  ]),
-                  BarChartGroupData(x: 6, barRods: [
-                    BarChartRodData(toY: 2, color: AppColors.educational, width: 16),
-                  ]),
-                ],
+                barGroups: weekData.asMap().entries.map((entry) {
+                  return BarChartGroupData(
+                    x: entry.key,
+                    barRods: [
+                      BarChartRodData(
+                        toY: entry.value.toDouble(),
+                        color: AppColors.educational,
+                        width: 16,
+                      ),
+                    ],
+                  );
+                }).toList(),
               ),
             ),
           ),

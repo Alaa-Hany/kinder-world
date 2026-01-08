@@ -143,6 +143,27 @@ class ActivityCategories {
     socialSkills, emotionalIntelligence, creativity, motorSkills,
     problemSolving, music, games, stories, videos
   ];
+
+  static String getDisplayName(String category) {
+    switch (category) {
+      case mathematics: return 'Mathematics';
+      case science: return 'Science';
+      case reading: return 'Reading';
+      case history: return 'History';
+      case geography: return 'Geography';
+      case languages: return 'Languages';
+      case socialSkills: return 'Social Skills';
+      case emotionalIntelligence: return 'Emotional Intelligence';
+      case creativity: return 'Creativity';
+      case motorSkills: return 'Motor Skills';
+      case problemSolving: return 'Problem Solving';
+      case music: return 'Music';
+      case games: return 'Games';
+      case stories: return 'Stories';
+      case videos: return 'Videos';
+      default: return category;
+    }
+  }
 }
 
 // Activity types
@@ -162,6 +183,22 @@ class ActivityTypes {
     lesson, game, quiz, story, video, interactiveStory,
     craft, song, challenge, simulation
   ];
+
+  static String getDisplayName(String type) {
+    switch (type) {
+      case lesson: return 'Lesson';
+      case game: return 'Game';
+      case quiz: return 'Quiz';
+      case story: return 'Story';
+      case video: return 'Video';
+      case interactiveStory: return 'Interactive Story';
+      case craft: return 'Craft';
+      case song: return 'Song';
+      case challenge: return 'Challenge';
+      case simulation: return 'Simulation';
+      default: return type;
+    }
+  }
 }
 
 // Activity aspects (from SRS)

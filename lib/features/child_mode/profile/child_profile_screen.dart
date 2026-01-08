@@ -11,7 +11,7 @@ class ChildProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Mock child data
-    const child = ChildProfile(
+    final child = ChildProfile(
       id: 'child1',
       name: 'Ahmed',
       age: 8,
@@ -23,8 +23,8 @@ class ChildProfileScreen extends ConsumerWidget {
       favorites: ['math_game', 'science_lab', 'story_time'],
       parentId: 'parent1',
       picturePassword: ['apple', 'ball', 'cat'],
-      createdAt: null,
-      updatedAt: null,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
       totalTimeSpent: 240,
       activitiesCompleted: 25,
       currentMood: 'happy',

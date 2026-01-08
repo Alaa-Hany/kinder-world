@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kinder_world/core/models/progress_record.dart';
 import 'package:kinder_world/core/repositories/progress_repository.dart';
 import 'package:kinder_world/core/repositories/child_repository.dart';
+import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
 /// Progress state
@@ -121,7 +124,7 @@ class ProgressController extends StateNotifier<ProgressState> {
         return null;
       }
     } catch (e, stack) {
-      _logger.e('Error recording activity completion', e, stack);
+      _logger.e('Error recording activity completion: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to record activity completion',
@@ -141,7 +144,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       
       _logger.d('Loaded ${records.length} progress records for child: $childId');
     } catch (e, stack) {
-      _logger.e('Error loading recent records for child: $childId', e, stack);
+      _logger.e('Error loading recent records for child: $childId, $e');
     }
   }
 
@@ -152,7 +155,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       _logger.d('Loaded ${records.length} records for today');
       return records;
     } catch (e, stack) {
-      _logger.e('Error loading today\'s progress for child: $childId', e, stack);
+      _logger.e('Error loading today\'s progress for child: $childId, $e');
       return [];
     }
   }
@@ -173,7 +176,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       
       _logger.d('Loaded stats for child: $childId');
     } catch (e, stack) {
-      _logger.e('Error loading child stats: $childId', e, stack);
+      _logger.e('Error loading child stats: $childId, $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load child statistics',
@@ -188,7 +191,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       _logger.d('Generated weekly summary for child: $childId');
       return summary;
     } catch (e, stack) {
-      _logger.e('Error getting weekly summary for child: $childId', e, stack);
+      _logger.e('Error getting weekly summary for child: $childId, $e');
       return {};
     }
   }
@@ -200,7 +203,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       _logger.d('Generated monthly summary for child: $childId');
       return summary;
     } catch (e, stack) {
-      _logger.e('Error getting monthly summary for child: $childId', e, stack);
+      _logger.e('Error getting monthly summary for child: $childId, $e');
       return {};
     }
   }
@@ -214,7 +217,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       _logger.d('Generated performance trends for child: $childId');
       return trends;
     } catch (e, stack) {
-      _logger.e('Error getting performance trends for child: $childId', e, stack);
+      _logger.e('Error getting performance trends for child: $childId, $e');
       return {};
     }
   }
@@ -226,7 +229,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       _logger.d('Generated mood analysis for child: $childId');
       return analysis;
     } catch (e, stack) {
-      _logger.e('Error getting mood analysis for child: $childId', e, stack);
+      _logger.e('Error getting mood analysis for child: $childId, $e');
       return {};
     }
   }
@@ -237,9 +240,9 @@ class ProgressController extends StateNotifier<ProgressState> {
   Future<int> calculateStreak(String childId) async {
     try {
       final records = await _progressRepository.getProgressForChild(childId);
-      return await _progressRepository._calculateStreakDays(records);
+      return await _progressRepository.calculateStreakDays(records);
     } catch (e, stack) {
-      _logger.e('Error calculating streak for child: $childId', e, stack);
+      _logger.e('Error calculating streak for child: $childId, $e');
       return 0;
     }
   }
@@ -266,7 +269,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       _logger.d('Daily goal check for $childId: $goalAchieved');
       return goalAchieved;
     } catch (e, stack) {
-      _logger.e('Error checking daily goal for child: $childId', e, stack);
+      _logger.e('Error checking daily goal for child: $childId, $e');
       return false;
     }
   }
@@ -290,7 +293,7 @@ class ProgressController extends StateNotifier<ProgressState> {
         'streakAchievements': _calculateStreakAchievements(streak),
       };
     } catch (e, stack) {
-      _logger.e('Error getting achievement progress for child: $childId', e, stack);
+      _logger.e('Error getting achievement progress for child: $childId, $e');
       return {};
     }
   }
@@ -351,7 +354,7 @@ class ProgressController extends StateNotifier<ProgressState> {
         'generatedAt': DateTime.now(),
       };
     } catch (e, stack) {
-      _logger.e('Error generating parent report for child: $childId', e, stack);
+      _logger.e('Error generating parent report for child: $childId, $e');
       return {};
     }
   }
@@ -376,7 +379,7 @@ class ProgressController extends StateNotifier<ProgressState> {
       
       return success;
     } catch (e, stack) {
-      _logger.e('Error syncing progress with server', e, stack);
+      _logger.e('Error syncing progress with server: $e');
       return false;
     }
   }
@@ -386,7 +389,7 @@ class ProgressController extends StateNotifier<ProgressState> {
     try {
       return await _progressRepository.getRecordsNeedingSync();
     } catch (e, stack) {
-      _logger.e('Error getting records needing sync', e, stack);
+      _logger.e('Error getting records needing sync: $e');
       return [];
     }
   }
@@ -407,7 +410,7 @@ final progressControllerProvider = StateNotifierProvider<ProgressController, Pro
 
 // Repository provider
 final progressRepositoryProvider = Provider<ProgressRepository>((ref) {
-  final progressBox = Hive.box<ProgressRecord>('progress_records');
+  final progressBox = Hive.box('progress_records');
   final logger = ref.watch(loggerProvider);
   
   return ProgressRepository(

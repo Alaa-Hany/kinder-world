@@ -5,15 +5,53 @@ import 'package:logger/logger.dart';
 
 /// Repository for progress tracking
 /// Manages XP, levels, streaks, and activity completion records
+/// Stores data as JSON maps since Freezed models don't support Hive TypeAdapters
 class ProgressRepository {
-  final Box<ProgressRecord> _progressBox;
+  final Box _progressBox;
   final Logger _logger;
 
   ProgressRepository({
-    required Box<ProgressRecord> progressBox,
+    required Box progressBox,
     required Logger logger,
   })  : _progressBox = progressBox,
         _logger = logger;
+
+  // Helper methods for JSON serialization
+  ProgressRecord? _getProgressFromBox(String recordId) {
+    final data = _progressBox.get(recordId);
+    if (data == null) return null;
+    try {
+      final map = data as Map<String, dynamic>;
+      return ProgressRecord.fromJson(map);
+    } catch (e) {
+      _logger.e('Error deserializing progress record: $recordId, $e');
+      return null;
+    }
+  }
+
+  Future<void> _saveProgressToBox(String recordId, ProgressRecord record) async {
+    await _progressBox.put(recordId, record.toJson());
+  }
+
+  List<ProgressRecord> _getAllProgressFromBox() {
+    try {
+      return _progressBox.values
+          .map((data) {
+            try {
+              final map = data as Map<String, dynamic>;
+              return ProgressRecord.fromJson(map);
+            } catch (e) {
+              _logger.e('Error deserializing progress record from box: $e');
+              return null;
+            }
+          })
+          .whereType<ProgressRecord>()
+          .toList();
+    } catch (e) {
+      _logger.e('Error getting all progress records from box: $e');
+      return [];
+    }
+  }
 
   // ==================== PROGRESS RECORDS ====================
 
@@ -61,11 +99,11 @@ class ProgressRepository {
         updatedAt: DateTime.now(),
       );
       
-      await _progressBox.put(recordId, record);
+      await _saveProgressToBox(recordId, record);
       _logger.d('Progress record created: $recordId');
       return record;
     } catch (e, stack) {
-      _logger.e('Error creating progress record', e, stack);
+      _logger.e('Error creating progress record: $e');
       return null;
     }
   }
@@ -73,9 +111,9 @@ class ProgressRepository {
   /// Get progress record by ID
   Future<ProgressRecord?> getProgressRecord(String recordId) async {
     try {
-      return _progressBox.get(recordId);
+      return _getProgressFromBox(recordId);
     } catch (e, stack) {
-      _logger.e('Error getting progress record: $recordId', e, stack);
+      _logger.e('Error getting progress record: $recordId, $e');
       return null;
     }
   }
@@ -83,12 +121,13 @@ class ProgressRepository {
   /// Get all progress records for a child
   Future<List<ProgressRecord>> getProgressForChild(String childId) async {
     try {
-      return _progressBox.values
+      final records = _getAllProgressFromBox()
           .where((record) => record.childId == childId)
-          .toList()
-        ..sort((a, b) => b.date.compareTo(a.date));
+          .toList();
+      records.sort((a, b) => b.date.compareTo(a.date));
+      return records;
     } catch (e, stack) {
-      _logger.e('Error getting progress for child: $childId', e, stack);
+      _logger.e('Error getting progress for child: $childId, $e');
       return [];
     }
   }
@@ -96,12 +135,13 @@ class ProgressRepository {
   /// Get progress records for specific activity
   Future<List<ProgressRecord>> getProgressForActivity(String activityId) async {
     try {
-      return _progressBox.values
+      final records = _getAllProgressFromBox()
           .where((record) => record.activityId == activityId)
-          .toList()
-        ..sort((a, b) => b.date.compareTo(a.date));
+          .toList();
+      records.sort((a, b) => b.date.compareTo(a.date));
+      return records;
     } catch (e, stack) {
-      _logger.e('Error getting progress for activity: $activityId', e, stack);
+      _logger.e('Error getting progress for activity: $activityId, $e');
       return [];
     }
   }
@@ -113,15 +153,16 @@ class ProgressRepository {
     required DateTime endDate,
   }) async {
     try {
-      return _progressBox.values
+      final records = _getAllProgressFromBox()
           .where((record) => 
               record.childId == childId &&
               record.date.isAfter(startDate) &&
               record.date.isBefore(endDate))
-          .toList()
-        ..sort((a, b) => b.date.compareTo(a.date));
+          .toList();
+      records.sort((a, b) => b.date.compareTo(a.date));
+      return records;
     } catch (e, stack) {
-      _logger.e('Error getting progress for date range', e, stack);
+      _logger.e('Error getting progress for date range: $e');
       return [];
     }
   }
@@ -133,14 +174,14 @@ class ProgressRepository {
       final startOfDay = DateTime(today.year, today.month, today.day);
       final endOfDay = startOfDay.add(const Duration(days: 1));
       
-      return _progressBox.values
+      return _getAllProgressFromBox()
           .where((record) => 
               record.childId == childId &&
               record.date.isAfter(startOfDay) &&
               record.date.isBefore(endOfDay))
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting today\'s progress for child: $childId', e, stack);
+      _logger.e('Error getting today\'s progress for child: $childId, $e');
       return [];
     }
   }
@@ -180,7 +221,7 @@ class ProgressRepository {
       String? favoriteCategory;
       
       // Calculate streak
-      final streakDays = await _calculateStreakDays(records);
+      final streakDays = await calculateStreakDays(records);
       
       // Last activity
       final lastActivity = records.isNotEmpty ? records.first.date : null;
@@ -196,13 +237,13 @@ class ProgressRepository {
         'lastActivity': lastActivity,
       };
     } catch (e, stack) {
-      _logger.e('Error getting child stats: $childId', e, stack);
+      _logger.e('Error getting child stats: $childId, $e');
       return {};
     }
   }
 
   /// Calculate streak days from progress records
-  Future<int> _calculateStreakDays(List<ProgressRecord> records) async {
+  Future<int> calculateStreakDays(List<ProgressRecord> records) async {
     if (records.isEmpty) return 0;
     
     // Group by date
@@ -289,7 +330,7 @@ class ProgressRepository {
         'totalTime': records.fold(0, (sum, r) => sum + r.duration),
       };
     } catch (e, stack) {
-      _logger.e('Error getting weekly summary for child: $childId', e, stack);
+      _logger.e('Error getting weekly summary for child: $childId, $e');
       return {};
     }
   }
@@ -333,7 +374,7 @@ class ProgressRepository {
         'totalTime': records.fold(0, (sum, r) => sum + r.duration),
       };
     } catch (e, stack) {
-      _logger.e('Error getting monthly summary for child: $childId', e, stack);
+      _logger.e('Error getting monthly summary for child: $childId, $e');
       return {};
     }
   }
@@ -387,7 +428,7 @@ class ProgressRepository {
         'olderAverage': olderAverage,
       };
     } catch (e, stack) {
-      _logger.e('Error getting performance trends for child: $childId', e, stack);
+      _logger.e('Error getting performance trends for child: $childId, $e');
       return {};
     }
   }
@@ -428,7 +469,7 @@ class ProgressRepository {
         'mostCommonAfter': _getMostCommonMood(moodAfterCounts),
       };
     } catch (e, stack) {
-      _logger.e('Error getting mood analysis for child: $childId', e, stack);
+      _logger.e('Error getting mood analysis for child: $childId, $e');
       return {};
     }
   }
@@ -454,11 +495,11 @@ class ProgressRepository {
   /// Get records that need sync
   Future<List<ProgressRecord>> getRecordsNeedingSync() async {
     try {
-      return _progressBox.values
+      return _getAllProgressFromBox()
           .where((record) => record.needsSync)
           .toList();
     } catch (e, stack) {
-      _logger.e('Error getting records needing sync', e, stack);
+      _logger.e('Error getting records needing sync: $e');
       return [];
     }
   }
@@ -466,7 +507,7 @@ class ProgressRepository {
   /// Mark record as synced
   Future<bool> markAsSynced(String recordId) async {
     try {
-      final record = _progressBox.get(recordId);
+      final record = _getProgressFromBox(recordId);
       if (record == null) return false;
       
       final updated = record.copyWith(
@@ -474,10 +515,10 @@ class ProgressRepository {
         updatedAt: DateTime.now(),
       );
       
-      await _progressBox.put(recordId, updated);
+      await _saveProgressToBox(recordId, updated);
       return true;
     } catch (e, stack) {
-      _logger.e('Error marking record as synced: $recordId', e, stack);
+      _logger.e('Error marking record as synced: $recordId, $e');
       return false;
     }
   }
@@ -490,7 +531,7 @@ class ProgressRepository {
       await Future.delayed(const Duration(seconds: 2));
       return true;
     } catch (e, stack) {
-      _logger.e('Error syncing progress with server', e, stack);
+      _logger.e('Error syncing progress with server: $e');
       return false;
     }
   }

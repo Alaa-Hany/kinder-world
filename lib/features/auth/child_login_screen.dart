@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
-import 'package:kinder_world/core/storage/secure_storage.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
-import 'package:kinder_world/app.dart';
+import 'package:kinder_world/core/providers/auth_controller.dart';
+import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/core/repositories/child_repository.dart';
 
 class ChildLoginScreen extends ConsumerStatefulWidget {
   const ChildLoginScreen({super.key});
@@ -14,48 +15,11 @@ class ChildLoginScreen extends ConsumerStatefulWidget {
   ConsumerState<ChildLoginScreen> createState() => _ChildLoginScreenState();
 }
 
-class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> 
-    with SingleTickerProviderStateMixin {
+class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
   final List<String> _selectedPictures = [];
+  String? _selectedChildId;
   bool _isLoading = false;
-  
-  // Mock child profiles for demo
-  final List<ChildProfile> _mockChildren = [
-    ChildProfile(
-      id: 'child1',
-      name: 'Ahmed',
-      age: 8,
-      avatar: 'assets/images/avatars/boy1.png',
-      interests: ['math', 'science'],
-      level: 3,
-      xp: 2500,
-      streak: 5,
-      favorites: ['activity1', 'activity2'],
-      parentId: 'parent1',
-      picturePassword: ['apple', 'ball', 'cat'],
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime(2024, 1, 1),
-      totalTimeSpent: 0,
-      activitiesCompleted: 0,
-    ),
-    ChildProfile(
-      id: 'child2',
-      name: 'Sara',
-      age: 6,
-      avatar: 'assets/images/avatars/girl1.png',
-      interests: ['reading', 'art'],
-      level: 2,
-      xp: 1800,
-      streak: 3,
-      favorites: ['activity3', 'activity4'],
-      parentId: 'parent1',
-      picturePassword: ['dog', 'elephant', 'fish'],
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime(2024, 1, 1),
-      totalTimeSpent: 0,
-      activitiesCompleted: 0,
-    ),
-  ];
+  String? _error;
 
   // Available picture options for password
   final List<Map<String, dynamic>> _pictureOptions = [
@@ -73,8 +37,137 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen>
     {'id': 'lion', 'icon': '🦁', 'name': 'Lion'},
   ];
 
+
+  Future<void> _login() async {
+    if (_selectedChildId == null || _selectedPictures.length != 3) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final childRepository = ref.read(childRepositoryProvider);
+      final child = await childRepository.getChildProfile(_selectedChildId!);
+
+      if (child == null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _error = 'Child profile not found';
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Child profile not found'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Verify picture password
+      final storedPassword = child.picturePassword;
+      if (storedPassword.length != 3 || 
+          !_listsEqual(_selectedPictures, storedPassword)) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _error = 'Incorrect picture password';
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Incorrect picture password. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          _selectedPictures.clear();
+        }
+        return;
+      }
+
+      // Authenticate using auth_controller
+      final authController = ref.read(authControllerProvider.notifier);
+      final authSuccess = await authController.loginChild(
+        childId: _selectedChildId!,
+        picturePassword: _selectedPictures,
+      );
+
+      if (!authSuccess) {
+        final authError = ref.read(authControllerProvider).error;
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _error = authError ?? 'Authentication failed';
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authError ?? 'Authentication failed. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Start child session using child_session_controller
+      final sessionController = ref.read(childSessionControllerProvider.notifier);
+      final sessionSuccess = await sessionController.startChildSession(
+        childId: _selectedChildId!,
+        childProfile: child,
+      );
+
+      if (!sessionSuccess) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _error = 'Failed to start session';
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to start session. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Navigate to child home
+      if (mounted) {
+        context.go('/child/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Login failed. Please try again.';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login failed. Please try again.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  bool _listsEqual(List<String> list1, List<String> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = _isLoading || authState.isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -87,266 +180,401 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen>
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              const SizedBox(height: 20),
-              Text(
-                'Child Login',
-                style: TextStyle(
-                  fontSize: AppConstants.largeFontSize * 1.2,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        const SizedBox(height: 20),
+                        Text(
+                          'Child Login',
+                          style: TextStyle(
+                            fontSize: AppConstants.largeFontSize * 1.2,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _selectedChildId == null
+                              ? 'Choose your profile to continue'
+                              : 'Select your picture password',
+                          style: TextStyle(
+                            fontSize: AppConstants.fontSize,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+
+                        // Child Selection
+                        if (_selectedChildId == null) _buildChildSelection(),
+                        if (_selectedChildId != null) _buildPasswordSelection(),
+                      ],
+                    ),
+                  ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.child_care_outlined,
+              size: 80,
+              color: AppColors.grey,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              _error ?? 'No child profiles found',
+              style: TextStyle(
+                fontSize: AppConstants.fontSize,
+                color: AppColors.textSecondary,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Select your picture password to continue',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSize,
-                  color: AppColors.textSecondary,
-                ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {
+                context.go('/select-user-type');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
-              const SizedBox(height: 40),
-              
-              // Child Selection (for demo)
-              Text(
-                'Choose Your Profile:',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSize,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
+              child: const Text('Go Back'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChildSelection() {
+    return FutureBuilder<List<ChildProfile>>(
+      future: ref.read(childRepositoryProvider).getAllChildProfiles(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40.0),
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return _buildErrorState();
+        }
+
+        final children = snapshot.data!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Choose Your Profile:',
+              style: TextStyle(
+                fontSize: AppConstants.fontSize,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
-              const SizedBox(height: 16),
-              
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: _mockChildren.map((child) => 
-                  _buildChildCard(child)
-                ).toList(),
-              ),
-              const SizedBox(height: 40),
-              
-              // Picture Password Selection
-              Text(
-                'Select Your Picture Password:',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSize,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Selected pictures display
-              Container(
-                height: 80,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.lightGrey),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(3, (index) {
-                    return Container(
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              alignment: WrapAlignment.center,
+              children: children.map((child) => _buildChildCard(child)).toList(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPasswordSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Selected child info
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+          ),
+          child: FutureBuilder<ChildProfile?>(
+            future: ref.read(childRepositoryProvider).getChildProfile(_selectedChildId!),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data != null) {
+                final child = snapshot.data!;
+                return Row(
+                  children: [
+                    Container(
                       width: 50,
                       height: 50,
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.lightGrey,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.grey),
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(25),
                       ),
-                      child: _selectedPictures.length > index
-                          ? Center(
-                              child: Text(
-                                _pictureOptions.firstWhere(
-                                  (p) => p['id'] == _selectedPictures[index]
-                                )['icon'],
-                                style: const TextStyle(fontSize: 24),
-                              ),
-                            )
-                          : null,
-                    );
-                  }),
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Picture options grid
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1,
-                ),
-                itemCount: _pictureOptions.length,
-                itemBuilder: (context, index) {
-                  final picture = _pictureOptions[index];
-                  final isSelected = _selectedPictures.contains(picture['id']);
-                  
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (_selectedPictures.length < 3 && !isSelected) {
-                          _selectedPictures.add(picture['id']);
-                        } else if (isSelected) {
-                          _selectedPictures.remove(picture['id']);
-                        }
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected 
-                            ? AppColors.primary.withOpacity(0.2)
-                            : AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isSelected ? AppColors.primary : AppColors.lightGrey,
-                          width: 2,
+                      child: Center(
+                        child: Text(
+                          child.name[0],
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            picture['icon'],
-                            style: const TextStyle(fontSize: 32),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            picture['name'],
+                            child.name,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: AppConstants.fontSize,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Level ${child.level} • ${child.xp} XP',
+                            style: TextStyle(
+                              fontSize: 14,
                               color: AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
-              
-              // Clear button
-              if (_selectedPictures.isNotEmpty)
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedPictures.clear();
-                    });
-                  },
-                  child: const Text('Clear Selection'),
-                ),
-              
-              // Login button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _selectedPictures.length == 3 ? _login : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.behavioral,
-                    foregroundColor: AppColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                      onPressed: () {
+                        setState(() {
+                          _selectedChildId = null;
+                          _selectedPictures.clear();
+                        });
+                      },
                     ),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: AppColors.white)
-                      : Text(
-                          'Login',
-                          style: TextStyle(
-                            fontSize: AppConstants.fontSize,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              
-              // Demo note
-              Container(
-                padding: const EdgeInsets.all(16),
+                  ],
+                );
+              }
+              return const SizedBox();
+            },
+          ),
+        ),
+        const SizedBox(height: 32),
+
+        // Picture Password Selection
+        Text(
+          'Select Your Picture Password:',
+          style: TextStyle(
+            fontSize: AppConstants.fontSize,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Selected pictures display
+        Container(
+          height: 80,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.lightGrey),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(3, (index) {
+              final pictureId = _selectedPictures.length > index ? _selectedPictures[index] : null;
+              final picture = pictureId != null
+                  ? _pictureOptions.firstWhere(
+                      (p) => p['id'] == pictureId,
+                      orElse: () => {'icon': '', 'name': ''},
+                    )
+                  : null;
+
+              return Container(
+                width: 56,
+                height: 56,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.1),
+                  color: picture != null ? AppColors.primary.withOpacity(0.1) : AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.info.withOpacity(0.3)),
+                  border: Border.all(
+                    color: picture != null ? AppColors.primary : AppColors.grey,
+                    width: 2,
+                  ),
+                ),
+                child: picture != null && picture['icon'] != null
+                    ? Center(
+                        child: Text(
+                          picture['icon'] as String,
+                          style: const TextStyle(fontSize: 28),
+                        ),
+                      )
+                    : null,
+              );
+            }),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Picture options grid
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1,
+          ),
+          itemCount: _pictureOptions.length,
+          itemBuilder: (context, index) {
+            final picture = _pictureOptions[index];
+            final isSelected = _selectedPictures.contains(picture['id']);
+
+            return InkWell(
+              onTap: () {
+                setState(() {
+                  if (_selectedPictures.length < 3 && !isSelected) {
+                    _selectedPictures.add(picture['id'] as String);
+                  } else if (isSelected) {
+                    _selectedPictures.remove(picture['id']);
+                  }
+                });
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withOpacity(0.2)
+                      : AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : AppColors.lightGrey,
+                    width: 2,
+                  ),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Demo Passwords:',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.info,
-                      ),
+                      picture['icon'] as String,
+                      style: const TextStyle(fontSize: 32),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(
-                      'Ahmed: 🍎⚽🐱\nSara: 🐶🐘🐠',
+                      picture['name'] as String,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
+            );
+          },
+        ),
+        const SizedBox(height: 32),
+
+        // Clear button
+        if (_selectedPictures.isNotEmpty)
+          Center(
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  _selectedPictures.clear();
+                });
+              },
+              child: const Text('Clear Selection'),
+            ),
+          ),
+
+        const SizedBox(height: 24),
+
+        // Login button
+        SizedBox(
+          width: double.infinity,
+          height: 64,
+          child: ElevatedButton(
+            onPressed: (_selectedPictures.length == 3 && !_isLoading) ? _login : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.behavioral,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: _isLoading
+                ? const CircularProgressIndicator(color: AppColors.white)
+                : Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSize,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildChildCard(ChildProfile child) {
+    final isSelected = _selectedChildId == child.id;
+
     return InkWell(
       onTap: () {
-        // For demo, we'll just show the child is selected
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Selected ${child.name}'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        setState(() {
+          _selectedChildId = child.id;
+          _selectedPictures.clear();
+        });
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        width: 120,
+        width: 140,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: isSelected
+              ? AppColors.primary.withOpacity(0.1)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.lightGrey),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.lightGrey,
+            width: isSelected ? 2 : 1,
+          ),
         ),
         child: Column(
           children: [
-            // Avatar placeholder
+            // Avatar
             Container(
-              width: 60,
-              height: 60,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 color: AppColors.behavioral.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(32),
               ),
               child: Center(
                 child: Text(
                   child.name[0],
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: AppColors.behavioral,
                   ),
@@ -390,41 +618,5 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen>
         ),
       ),
     );
-  }
-
-  Future<void> _login() async {
-    setState(() {
-      _isLoading = true;
-    });
-    
-    try {
-      // Simulate login process
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Store child session
-      final secureStorage = ref.read(secureStorageProvider);
-      await secureStorage.saveAuthToken('mock_child_token');
-      await secureStorage.saveUserRole('child');
-      await secureStorage.saveChildSession('child1');
-      
-      if (mounted) {
-        context.go('/child/home');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login failed. Please try again.'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
   }
 }
