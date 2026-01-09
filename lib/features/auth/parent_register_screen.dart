@@ -108,7 +108,7 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
               children: [
                 // Header
                 const SizedBox(height: 20),
-                Text(
+                const Text(
                   'Create Account',
                   style: TextStyle(
                     fontSize: AppConstants.largeFontSize * 1.2,
@@ -117,7 +117,7 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'Join Kinder World and start your child\'s learning journey',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
@@ -251,13 +251,13 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                     ),
                     Expanded(
                       child: RichText(
-                        text: TextSpan(
+                        text: const TextSpan(
                           style: TextStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
                           ),
                           children: [
-                            const TextSpan(text: 'I agree to the '),
+                            TextSpan(text: 'I agree to the '),
                             TextSpan(
                               text: 'Terms of Service',
                               style: TextStyle(
@@ -265,7 +265,7 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                                 decoration: TextDecoration.underline,
                               ),
                             ),
-                            const TextSpan(text: ' and '),
+                            TextSpan(text: ' and '),
                             TextSpan(
                               text: 'Privacy Policy',
                               style: TextStyle(
@@ -296,7 +296,7 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: AppColors.white)
-                        : Text(
+                        : const Text(
                             'Create Account',
                             style: TextStyle(
                               fontSize: AppConstants.fontSize,
@@ -311,7 +311,7 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       'Already have an account? ',
                       style: TextStyle(
                         color: AppColors.textSecondary,

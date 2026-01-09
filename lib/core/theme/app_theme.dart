@@ -17,12 +17,10 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
-        background: AppColors.background,
         error: AppColors.error,
         onPrimary: AppColors.white,
         onSecondary: AppColors.white,
         onSurface: AppColors.textPrimary,
-        onBackground: AppColors.textPrimary,
         onError: AppColors.white,
       ),
       
@@ -145,12 +143,10 @@ class AppTheme {
         primary: AppColors.primaryLight,
         secondary: AppColors.secondaryLight,
         surface: AppColors.nightModeSurface,
-        background: AppColors.nightModeBackground,
         error: AppColors.error,
         onPrimary: AppColors.nightModeText,
         onSecondary: AppColors.nightModeText,
         onSurface: AppColors.nightModeText,
-        onBackground: AppColors.nightModeText,
         onError: AppColors.nightModeText,
       ),
       
@@ -187,16 +183,14 @@ class AppTheme {
       primaryColor: AppColors.eyeFriendlyText,
       scaffoldBackgroundColor: AppColors.eyeFriendlyBackground,
       
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.eyeFriendlyText,
         secondary: AppColors.secondary,
         surface: AppColors.eyeFriendlyBackground,
-        background: AppColors.eyeFriendlyBackground,
         error: AppColors.error,
         onPrimary: AppColors.eyeFriendlyBackground,
         onSecondary: AppColors.eyeFriendlyBackground,
         onSurface: AppColors.eyeFriendlyText,
-        onBackground: AppColors.eyeFriendlyText,
       ),
       
       textTheme: TextTheme(

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
 
 class ParentNotificationsScreen extends ConsumerWidget {
   const ParentNotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifications = _getMockNotifications();
+    final l10n = AppLocalizations.of(context)!;
+    final notifications = _getMockNotifications(l10n);
     
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -16,8 +18,8 @@ class ParentNotificationsScreen extends ConsumerWidget {
         backgroundColor: AppColors.background,
         elevation: 0,
         title: Text(
-          'Notifications',
-          style: TextStyle(
+          l10n.notifications,
+          style: const TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -29,8 +31,8 @@ class ParentNotificationsScreen extends ConsumerWidget {
               // Mark all as read
             },
             child: Text(
-              'Mark All Read',
-              style: TextStyle(
+              l10n.markAllRead,
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.primary,
               ),
@@ -57,61 +59,61 @@ class ParentNotificationsScreen extends ConsumerWidget {
     );
   }
 
-  List<Map<String, dynamic>> _getMockNotifications() {
+  List<Map<String, dynamic>> _getMockNotifications(AppLocalizations l10n) {
     return [
       {
         'id': '1',
-        'title': 'Daily Goal Achieved',
-        'message': 'Ahmed completed 3 activities today!',
-        'time': '2 hours ago',
+        'title': l10n.dailyGoal,
+        'message': l10n.notificationDailyGoal('Lina', 3),
+        'time': '2 ${l10n.hoursAgo}',
         'type': 'achievement',
         'isRead': false,
-        'childName': 'Ahmed',
+        'childName': 'Lina',
       },
       {
         'id': '2',
-        'title': 'Screen Time Alert',
-        'message': 'Sara has reached her daily limit of 2 hours.',
-        'time': '4 hours ago',
+        'title': l10n.screenTime,
+        'message': l10n.notificationScreenTime('Omar', 2),
+        'time': '4 ${l10n.hoursAgo}',
         'type': 'warning',
         'isRead': false,
-        'childName': 'Sara',
+        'childName': 'Omar',
       },
       {
         'id': '3',
-        'title': 'New Achievement',
-        'message': 'Ahmed unlocked the "Math Master" badge!',
-        'time': '1 day ago',
+        'title': l10n.achievements,
+        'message': l10n.notificationAchievement('Lina', 'Math Master'),
+        'time': '1 ${l10n.daysAgo}',
         'type': 'achievement',
         'isRead': true,
-        'childName': 'Ahmed',
+        'childName': 'Lina',
       },
       {
         'id': '4',
-        'title': 'Weekly Report Ready',
-        'message': 'Your child\'s progress report for this week is available.',
-        'time': '2 days ago',
+        'title': l10n.weeklyProgress,
+        'message': l10n.notificationWeeklyReport,
+        'time': '2 ${l10n.daysAgo}',
         'type': 'report',
         'isRead': true,
-        'childName': 'All Children',
+        'childName': l10n.childProfiles,
       },
       {
         'id': '5',
-        'title': 'Learning Milestone',
-        'message': 'Sara completed her 50th activity!',
-        'time': '3 days ago',
+        'title': l10n.learningProgress,
+        'message': l10n.notificationMilestone('Omar', 50),
+        'time': '3 ${l10n.daysAgo}',
         'type': 'milestone',
         'isRead': true,
-        'childName': 'Sara',
+        'childName': 'Omar',
       },
       {
         'id': '6',
-        'title': 'Content Recommendation',
-        'message': 'New educational content available for Ahmed based on his interests.',
-        'time': '1 week ago',
+        'title': l10n.recommendedForYou,
+        'message': l10n.notificationRecommendation('Lina'),
+        'time': '1 ${l10n.week}',
         'type': 'recommendation',
         'isRead': true,
-        'childName': 'Ahmed',
+        'childName': 'Lina',
       },
     ];
   }
@@ -134,14 +136,14 @@ class _NotificationCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: notification['isRead'] ? AppColors.white : AppColors.primary.withOpacity(0.05),
+          color: notification['isRead'] ? AppColors.white : AppColors.primary.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: notification['isRead'] ? AppColors.lightGrey : AppColors.primary.withOpacity(0.2),
+            color: notification['isRead'] ? AppColors.lightGrey : AppColors.primary.withValues(alpha: 0.2),
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -155,7 +157,7 @@ class _NotificationCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _getTypeColor(notification['type']).withOpacity(0.1),
+                color: _getTypeColor(notification['type']).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Icon(
@@ -187,7 +189,7 @@ class _NotificationCard extends StatelessWidget {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
@@ -198,7 +200,7 @@ class _NotificationCard extends StatelessWidget {
                   
                   Text(
                     notification['message'],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -209,15 +211,15 @@ class _NotificationCard extends StatelessWidget {
                     children: [
                       Text(
                         notification['childName'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '•',
+                      const Text(
+                        '-',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -226,7 +228,7 @@ class _NotificationCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         notification['time'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),

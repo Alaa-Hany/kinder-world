@@ -38,9 +38,11 @@ class ParentalControlsState {
     return ParentalControlsState(
       dailyLimitEnabled: dailyLimitEnabled ?? this.dailyLimitEnabled,
       hoursPerDay: hoursPerDay ?? this.hoursPerDay,
-      breakRemindersEnabled: breakRemindersEnabled ?? this.breakRemindersEnabled,
+      breakRemindersEnabled:
+          breakRemindersEnabled ?? this.breakRemindersEnabled,
       ageAppropriateOnly: ageAppropriateOnly ?? this.ageAppropriateOnly,
-      blockEducationalContent: blockEducationalContent ?? this.blockEducationalContent,
+      blockEducationalContent:
+          blockEducationalContent ?? this.blockEducationalContent,
       requireApproval: requireApproval ?? this.requireApproval,
       sleepModeEnabled: sleepModeEnabled ?? this.sleepModeEnabled,
       bedtime: bedtime ?? this.bedtime,

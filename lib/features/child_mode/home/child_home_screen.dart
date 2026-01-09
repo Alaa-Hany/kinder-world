@@ -76,7 +76,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withOpacity(0.1),
+                color: AppColors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, -5),
               ),
@@ -111,7 +111,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -184,7 +184,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.error_outline,
                   size: 80,
                   color: AppColors.error,
@@ -192,7 +192,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 const SizedBox(height: 24),
                 Text(
                   sessionState.error ?? 'No active child session',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: AppConstants.fontSize,
                     color: AppColors.textSecondary,
                   ),
@@ -252,13 +252,13 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 children: [
                   Text(
                     'Hello, ${childProfile.name}!',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSize,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  Text(
+                  const Text(
                     'Ready to learn today?',
                     style: TextStyle(
                       fontSize: 14,
@@ -286,7 +286,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                   const SizedBox(width: 4),
                   Text(
                     _getMoodLabel(childProfile.currentMood ?? MoodTypes.happy),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -359,7 +359,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -368,7 +368,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Your Progress',
             style: TextStyle(
               fontSize: AppConstants.fontSize,
@@ -413,7 +413,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(30),
           ),
           child: Icon(
@@ -425,7 +425,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
         const SizedBox(height: 8),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -433,7 +433,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
         ),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             color: AppColors.textSecondary,
           ),
@@ -446,7 +446,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Continue Learning',
           style: TextStyle(
             fontSize: AppConstants.fontSize,
@@ -459,9 +459,9 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.educational.withOpacity(0.1),
+            color: AppColors.educational.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.educational.withOpacity(0.3)),
+            border: Border.all(color: AppColors.educational.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -469,10 +469,10 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: AppColors.educational.withOpacity(0.2),
+                  color: AppColors.educational.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.school,
                   size: 30,
                   color: AppColors.educational,
@@ -480,7 +480,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
               ),
               const SizedBox(width: 16),
               
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -528,14 +528,14 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
       future: ref.read(progressControllerProvider.notifier).loadTodayProgress(child.id),
       builder: (context, snapshot) {
         final todayActivities = snapshot.hasData ? snapshot.data!.length : 0;
-        final targetActivities = 3; // Default daily goal
+        const targetActivities = 3; // Default daily goal
         final progress = targetActivities > 0 ? todayActivities / targetActivities : 0.0;
         final clampedProgress = progress > 1.0 ? 1.0 : progress;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Daily Goal',
               style: TextStyle(
                 fontSize: AppConstants.fontSize,
@@ -548,16 +548,16 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.success.withOpacity(0.3)),
+                border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Complete $targetActivities activities',
                         style: TextStyle(
                           fontSize: AppConstants.fontSize,
@@ -567,7 +567,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                       ),
                       Text(
                         '$todayActivities/$targetActivities',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSize,
                           fontWeight: FontWeight.bold,
                           color: AppColors.success,
@@ -599,7 +599,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Recommended for You',
           style: TextStyle(
             fontSize: AppConstants.fontSize,
@@ -644,7 +644,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                         width: 50,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: (activity['color'] as Color).withOpacity(0.1),
+                          color: (activity['color'] as Color).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -656,7 +656,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                       const SizedBox(height: 8),
                       Text(
                         activity['title'] as String,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -678,9 +678,9 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.1),
+        color: AppColors.secondary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -690,7 +690,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.2),
+                  color: AppColors.secondary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -700,7 +700,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
+              const Text(
                 'Activity of the Day',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -718,7 +718,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.2),
+                  color: AppColors.secondary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
@@ -729,7 +729,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
               ),
               const SizedBox(width: 16),
               
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -748,7 +748,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                         color: AppColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       '+50 XP Bonus',
                       style: TextStyle(

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -16,34 +17,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  
-  // Onboarding pages
-  final List<OnboardingPage> pages = [
-    OnboardingPage(
-      title: 'Learn',
-      subtitle: 'Educational content tailored for your child',
-      description: 'Discover interactive lessons in math, science, reading, and more. Each activity is designed to make learning fun and engaging.',
-      icon: Icons.school,
-      color: AppColors.educational,
-      animation: 'learn.json',
-    ),
-    OnboardingPage(
-      title: 'Play',
-      subtitle: 'Fun games that develop skills',
-      description: 'Enjoy educational games, puzzles, and creative activities that help your child grow while having fun.',
-      icon: Icons.games,
-      color: AppColors.entertaining,
-      animation: 'play.json',
-    ),
-    OnboardingPage(
-      title: 'Grow',
-      subtitle: 'AI-powered personalized learning',
-      description: 'Our AI assistant adapts to your child\'s learning style and provides personalized recommendations for optimal growth.',
-      icon: Icons.psychology,
-      color: AppColors.behavioral,
-      animation: 'grow.json',
-    ),
-  ];
+  static const int _pageCount = 3;
 
   @override
   void dispose() {
@@ -52,7 +26,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   void _nextPage() {
-    if (_currentPage < pages.length - 1) {
+    if (_currentPage < _pageCount - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
@@ -69,6 +43,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final pages = [
+      OnboardingPage(
+        title: l10n.learn,
+        subtitle: l10n.onboardingLearnSubtitle,
+        description: l10n.onboardingLearnDescription,
+        icon: Icons.school,
+        color: AppColors.educational,
+        animation: 'learn.json',
+      ),
+      OnboardingPage(
+        title: l10n.play,
+        subtitle: l10n.onboardingPlaySubtitle,
+        description: l10n.onboardingPlayDescription,
+        icon: Icons.games,
+        color: AppColors.entertaining,
+        animation: 'play.json',
+      ),
+      OnboardingPage(
+        title: l10n.onboardingGrow,
+        subtitle: l10n.onboardingGrowSubtitle,
+        description: l10n.onboardingGrowDescription,
+        icon: Icons.psychology,
+        color: AppColors.behavioral,
+        animation: 'grow.json',
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -82,8 +84,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 child: TextButton(
                   onPressed: _skip,
                   child: Text(
-                    'Skip',
-                    style: TextStyle(
+                    l10n.skip,
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSize,
                       color: AppColors.textSecondary,
                     ),
@@ -137,8 +139,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   ),
                 ),
                 child: Text(
-                  _currentPage == pages.length - 1 ? 'Get Started' : 'Next',
-                  style: TextStyle(
+                  _currentPage == pages.length - 1 ? l10n.getStarted : l10n.next,
+                  style: const TextStyle(
                     fontSize: AppConstants.fontSize,
                     fontWeight: FontWeight.w600,
                   ),
@@ -153,62 +155,69 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   Widget _buildOnboardingPage(OnboardingPage page) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icon/Animation
-          Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              color: page.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(40),
-            ),
-            child: Icon(
-              page.icon,
-              size: 80,
-              color: page.color,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon/Animation
+                Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: page.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(40),
+                  ),
+                  child: Icon(
+                    page.icon,
+                    size: 80,
+                    color: page.color,
+                  ),
+                ),
+                const SizedBox(height: 48),
+                
+                // Title
+                Text(
+                  page.title,
+                  style: TextStyle(
+                    fontSize: AppConstants.largeFontSize * 1.5,
+                    fontWeight: FontWeight.bold,
+                    color: page.color,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Subtitle
+                Text(
+                  page.subtitle,
+                  style: const TextStyle(
+                    fontSize: AppConstants.fontSize,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                
+                // Description
+                Text(
+                  page.description,
+                  style: const TextStyle(
+                    fontSize: AppConstants.fontSize,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 48),
-          
-          // Title
-          Text(
-            page.title,
-            style: TextStyle(
-              fontSize: AppConstants.largeFontSize * 1.5,
-              fontWeight: FontWeight.bold,
-              color: page.color,
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Subtitle
-          Text(
-            page.subtitle,
-            style: TextStyle(
-              fontSize: AppConstants.fontSize,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          
-          // Description
-          Text(
-            page.description,
-            style: TextStyle(
-              fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

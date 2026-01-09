@@ -1,34 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
+import 'package:kinder_world/core/providers/auth_controller.dart';
+import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
 
 class ChildProfileScreen extends ConsumerWidget {
   const ChildProfileScreen({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Mock child data
-    final child = ChildProfile(
-      id: 'child1',
-      name: 'Ahmed',
-      age: 8,
-      avatar: 'assets/images/avatars/boy1.png',
-      interests: ['math', 'science', 'reading'],
-      level: 3,
-      xp: 2500,
-      streak: 5,
-      favorites: ['math_game', 'science_lab', 'story_time'],
-      parentId: 'parent1',
-      picturePassword: ['apple', 'ball', 'cat'],
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime(2024, 1, 1),
-      totalTimeSpent: 240,
-      activitiesCompleted: 25,
+  ChildProfile _demoChild() {
+    final now = DateTime.now();
+    return ChildProfile(
+      id: 'demo_child',
+      name: 'Lina',
+      age: 7,
+      avatar: 'assets/images/avatars/girl1.png',
+      interests: const ['math', 'science', 'reading'],
+      level: 1,
+      xp: 120,
+      streak: 1,
+      favorites: const [],
+      parentId: 'demo-parent',
+      picturePassword: const ['apple', 'ball', 'cat'],
+      createdAt: now,
+      updatedAt: now,
+      totalTimeSpent: 30,
+      activitiesCompleted: 3,
       currentMood: 'happy',
     );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final child = ref.watch(currentChildProvider) ?? _demoChild();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -46,7 +54,7 @@ class ChildProfileScreen extends ConsumerWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(60),
                   border: Border.all(
                     color: AppColors.primary,
@@ -56,7 +64,7 @@ class ChildProfileScreen extends ConsumerWidget {
                 child: Center(
                   child: Text(
                     child.name[0],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
@@ -69,15 +77,15 @@ class ChildProfileScreen extends ConsumerWidget {
               // Name and Level
               Text(
                 child.name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: AppConstants.largeFontSize * 1.2,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
               Text(
-                'Level ${child.level} Explorer',
-                style: TextStyle(
+                l10n.levelExplorer(child.level),
+                style: const TextStyle(
                   fontSize: AppConstants.fontSize,
                   color: AppColors.textSecondary,
                 ),
@@ -88,9 +96,9 @@ class ChildProfileScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildStatItem('${child.xp}', 'XP', AppColors.xpColor, Icons.star),
-                  _buildStatItem('${child.streak}', 'Streak', AppColors.streakColor, Icons.local_fire_department),
-                  _buildStatItem('${child.activitiesCompleted}', 'Activities', AppColors.success, Icons.check_circle),
+                  _buildStatItem('${child.xp}', l10n.xp, AppColors.xpColor, Icons.star),
+                  _buildStatItem('${child.streak}', l10n.streak, AppColors.streakColor, Icons.local_fire_department),
+                  _buildStatItem('${child.activitiesCompleted}', l10n.activities, AppColors.success, Icons.check_circle),
                 ],
               ),
               const SizedBox(height: 30),
@@ -103,7 +111,7 @@ class ChildProfileScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
+                      color: AppColors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -113,8 +121,8 @@ class ChildProfileScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Your Progress',
-                      style: TextStyle(
+                      l10n.yourProgress,
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSize,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -124,7 +132,7 @@ class ChildProfileScreen extends ConsumerWidget {
                     
                     // XP Progress
                     _buildProgressBar(
-                      'XP to Level ${child.level + 1}',
+                      l10n.xpToLevel(child.level + 1),
                       child.xpProgress / 1000,
                       AppColors.xpColor,
                       '${child.xpProgress}/1000',
@@ -133,19 +141,19 @@ class ChildProfileScreen extends ConsumerWidget {
                     
                     // Daily Goal
                     _buildProgressBar(
-                      'Daily Goal',
+                      l10n.dailyGoal,
                       0.7,
                       AppColors.success,
-                      '7/10 activities',
+                      '7/10 ${l10n.activities}',
                     ),
                     const SizedBox(height: 16),
                     
                     // Weekly Challenge
                     _buildProgressBar(
-                      'Weekly Challenge',
+                      l10n.weeklyChallenge,
                       0.5,
                       AppColors.secondary,
-                      '3/6 days',
+                      '3/6',
                     ),
                   ],
                 ),
@@ -160,7 +168,7 @@ class ChildProfileScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
+                      color: AppColors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -170,8 +178,8 @@ class ChildProfileScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Your Interests',
-                      style: TextStyle(
+                      l10n.yourInterests,
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSize,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -199,7 +207,7 @@ class ChildProfileScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
+                      color: AppColors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -209,8 +217,8 @@ class ChildProfileScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Recent Achievements',
-                      style: TextStyle(
+                      l10n.recentAchievements,
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSize,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -237,7 +245,7 @@ class ChildProfileScreen extends ConsumerWidget {
                   // TODO: Navigate to child settings
                 },
                 icon: const Icon(Icons.settings),
-                label: const Text('Settings'),
+                label: Text(l10n.settings),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.grey,
                   foregroundColor: AppColors.white,
@@ -251,12 +259,14 @@ class ChildProfileScreen extends ConsumerWidget {
               
               // Logout Button
               OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: Implement logout
+                onPressed: () async {
+                  await ref.read(childSessionControllerProvider.notifier).endChildSession();
+                  await ref.read(authControllerProvider.notifier).logout();
+                  if (!context.mounted) return;
                   context.go('/welcome');
                 },
                 icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
+                label: Text(l10n.logout),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
@@ -279,7 +289,7 @@ class ChildProfileScreen extends ConsumerWidget {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -291,7 +301,7 @@ class ChildProfileScreen extends ConsumerWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -299,7 +309,7 @@ class ChildProfileScreen extends ConsumerWidget {
         ),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             color: AppColors.textSecondary,
           ),
@@ -317,7 +327,7 @@ class ChildProfileScreen extends ConsumerWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -325,7 +335,7 @@ class ChildProfileScreen extends ConsumerWidget {
             ),
             Text(
               valueText,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
               ),
@@ -350,12 +360,12 @@ class ChildProfileScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         interest,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14,
           color: AppColors.primary,
           fontWeight: FontWeight.w600,
@@ -371,7 +381,7 @@ class ChildProfileScreen extends ConsumerWidget {
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: AppColors.xpColor.withOpacity(0.1),
+            color: AppColors.xpColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -384,7 +394,7 @@ class ChildProfileScreen extends ConsumerWidget {
         const SizedBox(height: 8),
         Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -392,7 +402,7 @@ class ChildProfileScreen extends ConsumerWidget {
         ),
         Text(
           description,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 10,
             color: AppColors.textSecondary,
           ),

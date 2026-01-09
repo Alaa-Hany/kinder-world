@@ -61,7 +61,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Animation
-                Container(
+                SizedBox(
                   width: 200,
                   height: 200,
                   child: Lottie.asset(
@@ -73,7 +73,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                 const SizedBox(height: 40),
                 
                 // Title
-                Text(
+                const Text(
                   'No Internet Connection',
                   style: TextStyle(
                     fontSize: AppConstants.largeFontSize * 1.2,
@@ -85,7 +85,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                 const SizedBox(height: 16),
                 
                 // Description
-                Text(
+                const Text(
                   'Don\'t worry! You can still use offline features. Some content may be limited until you\'re back online.',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
@@ -107,7 +107,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Available Offline:',
                         style: TextStyle(
                           fontSize: AppConstants.fontSize,
@@ -132,8 +132,9 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                 // Retry Button
                 ElevatedButton.icon(
                   onPressed: () {
+                    final messenger = ScaffoldMessenger.of(context);
                     // Simulate checking connection
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(
                         content: Text('Checking connection...'),
                         backgroundColor: AppColors.info,
@@ -141,8 +142,11 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                     );
                     
                     Future.delayed(const Duration(seconds: 2), () {
+                      if (!mounted) {
+                        return;
+                      }
                       // For demo, just show a message
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      messenger.showSnackBar(
                         const SnackBar(
                           content: Text('Still no connection. Please check your internet.'),
                           backgroundColor: AppColors.warning,
@@ -169,13 +173,13 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                     // Navigate back to the app in offline mode
                     context.go('/child/home');
                   },
-                  child: const Text('Continue Offline'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 56),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
+                  child: const Text('Continue Offline'),
                 ),
                 const SizedBox(height: 40),
               ],
@@ -193,7 +197,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.1),
+            color: AppColors.success.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -205,7 +209,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
         const SizedBox(width: 12),
         Text(
           text,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: AppConstants.fontSize,
             color: AppColors.textSecondary,
           ),

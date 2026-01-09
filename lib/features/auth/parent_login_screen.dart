@@ -85,7 +85,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
               children: [
                 // Header
                 const SizedBox(height: 20),
-                Text(
+                const Text(
                   'Parent Login',
                   style: TextStyle(
                     fontSize: AppConstants.largeFontSize * 1.2,
@@ -94,7 +94,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'Welcome back! Please sign in to continue.',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
@@ -182,7 +182,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                     ),
                     child: isLoading
                         ? const CircularProgressIndicator(color: AppColors.white)
-                        : Text(
+                        : const Text(
                             'Login',
                             style: TextStyle(
                               fontSize: AppConstants.fontSize,
@@ -197,10 +197,10 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Divider(color: AppColors.grey.withOpacity(0.3)),
+                      child: Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
                         'OR',
                         style: TextStyle(
@@ -210,7 +210,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                       ),
                     ),
                     Expanded(
-                      child: Divider(color: AppColors.grey.withOpacity(0.3)),
+                      child: Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                     ),
                   ],
                 ),
@@ -225,12 +225,12 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                       context.go('/parent/register');
                     },
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.primary),
+                      side: const BorderSide(color: AppColors.primary),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Create Account',
                       style: TextStyle(
                         fontSize: AppConstants.fontSize,
@@ -246,11 +246,11 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.info.withOpacity(0.1),
+                    color: AppColors.info.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.info.withOpacity(0.3)),
+                    border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
                   ),
-                  child: Column(
+                  child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -261,7 +261,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                           color: AppColors.info,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         'Email: parent@demo.com\nPassword: demo123',
                         style: TextStyle(

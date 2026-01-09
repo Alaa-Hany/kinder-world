@@ -83,11 +83,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   width: 200,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(40),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.black.withOpacity(0.2),
+                        color: AppColors.black.withValues(alpha: 0.2),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -95,17 +94,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
-                    child: Icon(
-                      Icons.child_care,
-                      size: 120,
-                      color: AppColors.primary,
+                    child: Image.asset(
+                      'assets/images/splash_child.png',
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 const SizedBox(height: 40),
                 
                 // App Title
-                Text(
+                const Text(
                   'Kinder World',
                   style: TextStyle(
                     fontSize: AppConstants.largeFontSize,
@@ -121,7 +119,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   'Learn. Play. Grow.',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.white.withOpacity(0.8),
+                    color: AppColors.white.withValues(alpha: 0.8),
                   ),
                 ),
                 const SizedBox(height: 60),
@@ -138,7 +136,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   'Loading...',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.white.withOpacity(0.7),
+                    color: AppColors.white.withValues(alpha: 0.7),
                   ),
                 ),
               ],

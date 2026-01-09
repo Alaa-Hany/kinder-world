@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:kinder_world/core/providers/auth_controller.dart';
+import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:kinder_world/router.dart';
 
 class ParentSettingsScreen extends ConsumerWidget {
   const ParentSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settings),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
       ),
@@ -23,130 +28,130 @@ class ParentSettingsScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             
             // Account Section
-            _buildSectionHeader('Account'),
+            _buildSectionHeader(l10n.accountSection),
             _buildSettingItem(
-              'Profile',
+              l10n.profileLabel,
               Icons.person,
               onTap: () {
-                // TODO: Navigate to profile settings
+                _showComingSoon(context, l10n.profileLabel, l10n);
               },
             ),
             _buildSettingItem(
-              'Change Password',
+              l10n.changePassword,
               Icons.lock,
               onTap: () {
-                // TODO: Navigate to password change
+                _showComingSoon(context, l10n.changePassword, l10n);
               },
             ),
             _buildSettingItem(
-              'Notifications',
+              l10n.notifications,
               Icons.notifications,
               onTap: () {
-                // TODO: Navigate to notification settings
+                context.go(Routes.parentNotifications);
               },
             ),
             
             const SizedBox(height: 24),
             
             // Family Section
-            _buildSectionHeader('Family'),
+            _buildSectionHeader(l10n.familySection),
             _buildSettingItem(
-              'Child Profiles',
+              l10n.childProfiles,
               Icons.child_care,
               onTap: () {
-                context.go('/parent/child-management');
+                context.go(Routes.parentChildManagement);
               },
             ),
             _buildSettingItem(
-              'Subscription',
+              l10n.subscription,
               Icons.payment,
               onTap: () {
-                context.go('/parent/subscription');
+                context.go(Routes.parentSubscription);
               },
             ),
             _buildSettingItem(
-              'Parental Controls',
+              l10n.parentalControls,
               Icons.security,
               onTap: () {
-                context.go('/parent/controls');
+                context.go(Routes.parentControls);
               },
             ),
             
             const SizedBox(height: 24),
             
             // Preferences Section
-            _buildSectionHeader('Preferences'),
+            _buildSectionHeader(l10n.preferencesSection),
             _buildSettingItem(
-              'Language',
+              l10n.language,
               Icons.language,
               onTap: () {
-                // TODO: Navigate to language settings
+                context.go(Routes.language);
               },
             ),
             _buildSettingItem(
-              'Theme',
+              l10n.theme,
               Icons.palette,
               onTap: () {
-                // TODO: Navigate to theme settings
+                _showComingSoon(context, l10n.theme, l10n);
               },
             ),
             _buildSettingItem(
-              'Privacy Settings',
+              l10n.privacySettings,
               Icons.privacy_tip,
               onTap: () {
-                // TODO: Navigate to privacy settings
+                context.go('${Routes.legal}?type=privacy');
               },
             ),
             
             const SizedBox(height: 24),
             
             // Support Section
-            _buildSectionHeader('Support'),
+            _buildSectionHeader(l10n.supportSection),
             _buildSettingItem(
-              'Help & FAQ',
+              l10n.helpFaq,
               Icons.help,
               onTap: () {
-                context.go('/help');
+                context.go(Routes.help);
               },
             ),
             _buildSettingItem(
-              'Contact Us',
+              l10n.contactUs,
               Icons.contact_mail,
               onTap: () {
-                // TODO: Navigate to contact
+                context.go(Routes.help);
               },
             ),
             _buildSettingItem(
-              'About',
+              l10n.about,
               Icons.info,
               onTap: () {
-                // TODO: Navigate to about
+                _showComingSoon(context, l10n.about, l10n);
               },
             ),
             
             const SizedBox(height: 24),
             
             // Legal Section
-            _buildSectionHeader('Legal'),
+            _buildSectionHeader(l10n.legalSection),
             _buildSettingItem(
-              'Terms of Service',
+              l10n.termsOfService,
               Icons.description,
               onTap: () {
-                context.go('/legal?type=terms');
+                context.go('${Routes.legal}?type=terms');
               },
             ),
             _buildSettingItem(
-              'Privacy Policy',
+              l10n.privacyPolicy,
               Icons.security,
               onTap: () {
-                context.go('/legal?type=privacy');
+                context.go('${Routes.legal}?type=privacy');
               },
             ),
             _buildSettingItem(
-              'COPPA Compliance',
+              l10n.coppaCompliance,
               Icons.child_care,
               onTap: () {
-                // TODO: Navigate to COPPA info
+                context.go('${Routes.legal}?type=coppa');
               },
             ),
             
@@ -154,12 +159,14 @@ class ParentSettingsScreen extends ConsumerWidget {
             
             // Logout Button
             ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Implement logout
-                context.go('/welcome');
+              onPressed: () async {
+                await ref.read(childSessionControllerProvider.notifier).endChildSession();
+                await ref.read(authControllerProvider.notifier).logout();
+                if (!context.mounted) return;
+                context.go(Routes.welcome);
               },
               icon: const Icon(Icons.logout),
-              label: const Text('Logout'),
+              label: Text(l10n.logout),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: AppColors.white,
@@ -180,11 +187,23 @@ class ParentSettingsScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: AppConstants.fontSize,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
+      ),
+    );
+  }
+
+  void _showComingSoon(
+    BuildContext context,
+    String title,
+    AppLocalizations l10n,
+  ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.comingSoon(title)),
       ),
     );
   }
@@ -195,14 +214,14 @@ class ParentSettingsScreen extends ConsumerWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, color: AppColors.primary, size: 20),
       ),
       title: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: AppConstants.fontSize,
           color: AppColors.textPrimary,
         ),

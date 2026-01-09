@@ -27,7 +27,7 @@ class CategoryScreen extends ConsumerWidget {
         ),
         title: Text(
           _getCategoryDisplayName(category),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -53,7 +53,7 @@ class CategoryScreen extends ConsumerWidget {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.2),
+                        color: AppColors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: Icon(
@@ -69,7 +69,7 @@ class CategoryScreen extends ConsumerWidget {
                         children: [
                           Text(
                             _getCategoryDisplayName(category),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: AppConstants.largeFontSize,
                               fontWeight: FontWeight.bold,
                               color: AppColors.white,
@@ -79,7 +79,7 @@ class CategoryScreen extends ConsumerWidget {
                             '${activities.length} activities available',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.white.withOpacity(0.8),
+                              color: AppColors.white.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -91,7 +91,7 @@ class CategoryScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Activities list
-              Text(
+              const Text(
                 'Choose an Activity',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -343,7 +343,7 @@ class _ActivityCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -359,7 +359,7 @@ class _ActivityCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               activity['title'],
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -369,7 +369,7 @@ class _ActivityCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               activity['description'],
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -379,7 +379,7 @@ class _ActivityCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.access_time,
                   size: 16,
                   color: AppColors.textSecondary,
@@ -387,13 +387,13 @@ class _ActivityCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   '${activity['duration']} min',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 12),
-                Icon(
+                const Icon(
                   Icons.star,
                   size: 16,
                   color: AppColors.xpColor,
@@ -401,7 +401,7 @@ class _ActivityCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   '${activity['xp']} XP',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.xpColor,
                   ),

@@ -89,7 +89,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                         backgroundColor: AppColors.background,
                         elevation: 0,
                         floating: true,
-                        title: Column(
+                        title: const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
@@ -188,9 +188,9 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
         ),
         child: Column(
           children: [
-            Icon(Icons.child_care, size: 64, color: AppColors.grey),
+            const Icon(Icons.child_care, size: 64, color: AppColors.grey),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'No children added yet',
               style: TextStyle(
                 fontSize: AppConstants.fontSize,
@@ -199,7 +199,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Add your first child to get started',
               style: TextStyle(
                 fontSize: 14,
@@ -221,7 +221,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Your Children',
           style: TextStyle(
             fontSize: AppConstants.fontSize,
@@ -245,7 +245,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -257,13 +257,13 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Center(
               child: Text(
                 child.name[0],
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
@@ -279,7 +279,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
               children: [
                 Text(
                   child.name,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: AppConstants.fontSize,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -287,7 +287,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                 ),
                 Text(
                   '${child.age} years old • Level ${child.level}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -327,7 +327,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -349,12 +349,12 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     // Calculate totals
     final totalTime = children.fold<int>(0, (sum, child) => sum + child.totalTimeSpent);
     final totalActivities = children.fold<int>(0, (sum, child) => sum + child.activitiesCompleted);
-    final avgScore = 85; // Placeholder - would come from progress records
+    const avgScore = 85; // Placeholder - would come from progress records
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Today\'s Overview',
           style: TextStyle(
             fontSize: AppConstants.fontSize,
@@ -369,7 +369,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             Expanded(
               child: _buildStatCard(
                 'Total Time',
-                '${totalTime} min',
+                '$totalTime min',
                 Icons.timer,
                 AppColors.info,
               ),
@@ -406,7 +406,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -418,7 +418,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -430,7 +430,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSize,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -438,7 +438,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           ),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
             ),
@@ -456,9 +456,9 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,7 +469,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
@@ -479,7 +479,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
+              const Text(
                 'AI Insights',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -493,7 +493,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           
           Text(
             _generateInsightMessage(children),
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
               height: 1.5,
@@ -547,7 +547,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Recent Activities',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
@@ -572,7 +572,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
+                child: const Text(
                   'No recent activities',
                   style: TextStyle(
                     fontSize: 14,
@@ -652,7 +652,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textPrimary,
               ),
@@ -660,7 +660,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           ),
           Text(
             time,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
             ),
@@ -685,7 +685,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -694,7 +694,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Weekly Progress',
             style: TextStyle(
               fontSize: AppConstants.fontSize,

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/app.dart';
 
 class LanguageSelectionScreen extends ConsumerStatefulWidget {
@@ -23,13 +24,13 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
     {
       'code': 'en',
       'name': 'English',
-      'flag': '🇬🇧',
+      'flag': 'EN',
       'rtl': false,
     },
     {
       'code': 'ar',
-      'name': 'العربية',
-      'flag': '🇸🇦',
+      'name': '???????',
+      'flag': 'AR',
       'rtl': true,
     },
   ];
@@ -73,6 +74,7 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -105,7 +107,7 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
+                            color: AppColors.primary.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -121,8 +123,8 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                     
                     // Title
                     Text(
-                      'Choose Your Language',
-                      style: TextStyle(
+                      l10n.chooseLanguageTitle,
+                      style: const TextStyle(
                         fontSize: AppConstants.largeFontSize,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -131,7 +133,7 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                     const SizedBox(height: 12),
                     
                     // Subtitle
-                    Text(
+                    const Text(
                       'اختر لغتك',
                       style: TextStyle(
                         fontSize: AppConstants.fontSize,
@@ -161,7 +163,7 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Continue',
                         style: TextStyle(
                           fontSize: AppConstants.fontSize,
@@ -201,7 +203,7 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withOpacity(0.05),
+                color: AppColors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),

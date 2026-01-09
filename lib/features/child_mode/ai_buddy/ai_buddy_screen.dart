@@ -241,7 +241,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
+                                color: AppColors.primary.withValues(alpha: 0.3),
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
                               ),
@@ -257,7 +257,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
                       const SizedBox(width: 16),
                       
                       // Title
-                      Column(
+                      const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -282,7 +282,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
                   const SizedBox(height: 24),
                   
                   // Quick Actions
-                  Text(
+                  const Text(
                     'Quick Actions',
                     style: TextStyle(
                       fontSize: AppConstants.fontSize,
@@ -293,7 +293,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
                   const SizedBox(height: 12),
                   
                   SizedBox(
-                    height: 80,
+                    height: 110,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: _quickActions.length,
@@ -330,7 +330,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withOpacity(0.1),
+                    color: AppColors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, -5),
                   ),
@@ -389,7 +389,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
       borderRadius: BorderRadius.circular(16),
       child: Container(
         width: 100,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
@@ -402,7 +402,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -414,7 +414,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
             const SizedBox(height: 8),
             Text(
               action.title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -450,7 +450,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
           ),
           boxShadow: message.isUser ? [] : [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 5,
               offset: const Offset(0, 2),
             ),
@@ -478,7 +478,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 5,
               offset: const Offset(0, 2),
             ),

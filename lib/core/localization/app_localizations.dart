@@ -193,6 +193,18 @@ abstract class AppLocalizations {
 
   // Settings
   String get settings;
+  String get accountSection;
+  String get familySection;
+  String get preferencesSection;
+  String get supportSection;
+  String get legalSection;
+  String get profileLabel;
+  String get changePassword;
+  String get helpFaq;
+  String get about;
+  String get coppaCompliance;
+  String get logout;
+  String comingSoon(String title);
   String get notifications;
   String get privacySettings;
   String get dataSharing;
@@ -211,6 +223,83 @@ abstract class AppLocalizations {
   String get sound;
   String get soundEffects;
   String get voiceGuidance;
+
+  // General Labels
+  String get week;
+  String get month;
+  String get year;
+  String get yearlyProgress;
+  String get recentAchievements;
+  String get activityBreakdown;
+  String get learningProgressReports;
+  String get trackChildDevelopment;
+  String get reportsAndAnalytics;
+  String get noChildSelected;
+  String get addChildToViewReports;
+
+  // Parental Controls (extended)
+  String get contentRestrictionsAndScreenTime;
+  String get manageChildAccess;
+  String get screenTimeLimits;
+  String get timeRestrictions;
+  String get emergencyControls;
+  String get lockAppNow;
+  String get hoursPerDay;
+  String get requireApproval;
+  String get bedtime;
+  String get wakeTime;
+
+  // Child Management (extended)
+  String get childManagement;
+  String get manageChildProfiles;
+  String get addEditManageChildren;
+  String get yourChildren;
+  String get noChildProfilesYet;
+  String get tapToAddChild;
+  String get addChildProfiles;
+  String get editProfiles;
+  String get picturePasswords;
+  String get configurePreferences;
+  String get deactivateProfiles;
+
+  // Notifications (extended)
+  String get markAllRead;
+  String notificationDailyGoal(String name, int activities);
+  String notificationScreenTime(String name, int hours);
+  String notificationAchievement(String name, String badge);
+  String get notificationWeeklyReport;
+  String notificationMilestone(String name, int count);
+  String notificationRecommendation(String name);
+  String get hoursAgo;
+  String get daysAgo;
+  String get justNow;
+
+  // Welcome & Onboarding
+  String get welcomeTitle;
+  String get welcomeSubtitle;
+  String get chooseLanguageTitle;
+  String get chooseLanguageSubtitle;
+  String get educational;
+  String get funGames;
+  String get aiPowered;
+  String get safe;
+  String get getStarted;
+  String get coppaGdprNote;
+  String get onboardingGrow;
+  String get onboardingLearnSubtitle;
+  String get onboardingLearnDescription;
+  String get onboardingPlaySubtitle;
+  String get onboardingPlayDescription;
+  String get onboardingGrowSubtitle;
+  String get onboardingGrowDescription;
+
+  // Child Profile
+  String get yourProgress;
+  String get yourInterests;
+  String get weeklyChallenge;
+  String get activities;
+  String levelExplorer(int level);
+  String xpToLevel(int level);
 
   // Subscription
   String get subscription;

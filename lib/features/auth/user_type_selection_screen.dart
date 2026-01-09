@@ -79,7 +79,7 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
+                          color: AppColors.primary.withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -94,7 +94,7 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   const SizedBox(height: 32),
                   
                   // Title
-                  Text(
+                  const Text(
                     'Who are you?',
                     style: TextStyle(
                       fontSize: AppConstants.largeFontSize * 1.2,
@@ -105,7 +105,7 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   const SizedBox(height: 12),
                   
                   // Subtitle
-                  Text(
+                  const Text(
                     'Choose how you want to use Kinder World',
                     style: TextStyle(
                       fontSize: AppConstants.fontSize,
@@ -134,8 +134,8 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   const SizedBox(height: 40),
                   
                   // Privacy note
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
                       'All user data is protected and COPPA/GDPR compliant',
                       style: TextStyle(
@@ -171,13 +171,13 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
           ],
           border: Border.all(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             width: 2,
           ),
         ),
@@ -188,7 +188,7 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Icon(
@@ -206,7 +206,7 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.largeFontSize,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -215,7 +215,7 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   const SizedBox(height: 8),
                   Text(
                     description,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSize,
                       color: AppColors.textSecondary,
                       height: 1.4,

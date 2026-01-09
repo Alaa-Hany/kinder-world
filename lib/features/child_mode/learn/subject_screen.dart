@@ -28,7 +28,7 @@ class SubjectScreen extends ConsumerWidget {
         ),
         title: Text(
           _getSubjectDisplayName(subject),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -54,7 +54,7 @@ class SubjectScreen extends ConsumerWidget {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.2),
+                        color: AppColors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: Icon(
@@ -70,7 +70,7 @@ class SubjectScreen extends ConsumerWidget {
                         children: [
                           Text(
                             _getSubjectDisplayName(subject),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: AppConstants.largeFontSize,
                               fontWeight: FontWeight.bold,
                               color: AppColors.white,
@@ -80,7 +80,7 @@ class SubjectScreen extends ConsumerWidget {
                             '${lessons.length} lessons available',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.white.withOpacity(0.8),
+                              color: AppColors.white.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -92,7 +92,7 @@ class SubjectScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Lessons list
-              Text(
+              const Text(
                 'Available Lessons',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -291,7 +291,7 @@ class _LessonCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -304,7 +304,7 @@ class _LessonCard extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -322,7 +322,7 @@ class _LessonCard extends StatelessWidget {
                 children: [
                   Text(
                     lesson['title'],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSize,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -331,7 +331,7 @@ class _LessonCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     lesson['description'],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -339,7 +339,7 @@ class _LessonCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.access_time,
                         size: 16,
                         color: AppColors.textSecondary,
@@ -347,13 +347,13 @@ class _LessonCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         '${lesson['duration']} min',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Icon(
+                      const Icon(
                         Icons.star,
                         size: 16,
                         color: AppColors.xpColor,
@@ -361,7 +361,7 @@ class _LessonCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         '${lesson['xp']} XP',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.xpColor,
                         ),
@@ -381,7 +381,7 @@ class _LessonCard extends StatelessWidget {
               ),
               child: Text(
                 lesson['difficulty'],
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                 ),

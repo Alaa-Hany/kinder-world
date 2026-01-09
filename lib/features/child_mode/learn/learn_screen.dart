@@ -1,12 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/models/activity.dart';
-import 'package:kinder_world/core/providers/content_controller.dart';
 import 'package:kinder_world/core/providers/activity_filter_controller.dart';
+import 'package:kinder_world/core/providers/content_controller.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
 
 class LearnScreen extends ConsumerStatefulWidget {
   const LearnScreen({super.key});
@@ -15,11 +14,11 @@ class LearnScreen extends ConsumerStatefulWidget {
   ConsumerState<LearnScreen> createState() => _LearnScreenState();
 }
 
-class _LearnScreenState extends ConsumerState<LearnScreen> 
+class _LearnScreenState extends ConsumerState<LearnScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _slideAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -27,7 +26,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    
+
     _slideAnimation = Tween<double>(
       begin: 0.3,
       end: 1.0,
@@ -35,10 +34,10 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
       parent: _controller,
       curve: Curves.easeOutCubic,
     ));
-    
+
     _controller.forward();
 
-    // Load activities when screen loads
+    // Load activities when screen loads.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(contentControllerProvider.notifier).loadAllActivities();
     });
@@ -55,7 +54,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
     final contentState = ref.watch(contentControllerProvider);
     final filteredActivities = ref.watch(filteredActivitiesProvider);
     final filters = ref.watch(activityFilterControllerProvider);
-    
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -78,7 +77,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        const Text(
                           'Learn',
                           style: TextStyle(
                             fontSize: AppConstants.largeFontSize * 1.5,
@@ -99,7 +98,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    const Text(
                       'Choose what you want to learn today!',
                       style: TextStyle(
                         fontSize: AppConstants.fontSize,
@@ -109,7 +108,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                   ],
                 ),
               ),
-              
+
               // Aspect Tabs
               Container(
                 height: 60,
@@ -120,16 +119,21 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                   separatorBuilder: (context, index) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final aspect = ActivityAspects.all[index];
-                    final isSelected = aspect == filters.selectedAspect;                    final color = _getAspectColor(aspect);
-                    
+                    final isSelected = aspect == filters.selectedAspect;
+                    final color = _getAspectColor(aspect);
+
                     return InkWell(
-                      onTap: () {                        ref
+                      onTap: () {
+                        ref
                             .read(activityFilterControllerProvider.notifier)
                             .selectAspect(aspect);
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected ? color : AppColors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -149,8 +153,11 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                               ActivityAspects.getDisplayName(aspect),
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                color: isSelected ? AppColors.white : AppColors.textPrimary,
+                                fontWeight:
+                                    isSelected ? FontWeight.w600 : FontWeight.normal,
+                                color: isSelected
+                                    ? AppColors.white
+                                    : AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -160,21 +167,23 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                   },
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Activities Grid
               Expanded(
                 child: contentState.isLoading
                     ? const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
                       )
                     : contentState.error != null
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.error_outline,
                                   size: 64,
                                   color: AppColors.error,
@@ -182,7 +191,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                                 const SizedBox(height: 16),
                                 Text(
                                   contentState.error!,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: AppConstants.fontSize,
                                     color: AppColors.textSecondary,
                                   ),
@@ -191,7 +200,9 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                                 const SizedBox(height: 16),
                                 ElevatedButton(
                                   onPressed: () {
-                                    ref.read(contentControllerProvider.notifier).loadAllActivities();
+                                    ref
+                                        .read(contentControllerProvider.notifier)
+                                        .loadAllActivities();
                                   },
                                   child: const Text('Retry'),
                                 ),
@@ -199,7 +210,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                             ),
                           )
                         : filteredActivities.isEmpty
-                            ? Center(
+                            ? const Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -208,7 +219,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                                       size: 64,
                                       color: AppColors.grey,
                                     ),
-                                    const SizedBox(height: 16),
+                                    SizedBox(height: 16),
                                     Text(
                                       'No activities available',
                                       style: TextStyle(
@@ -216,7 +227,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                                         color: AppColors.textSecondary,
                                       ),
                                     ),
-                                     const SizedBox(height: 8),
+                                    SizedBox(height: 8),
                                     Text(
                                       'Try adjusting your filters.',
                                       style: TextStyle(
@@ -229,7 +240,8 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                               )
                             : GridView.builder(
                                 padding: const EdgeInsets.all(16),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
                                   crossAxisSpacing: 16,
                                   mainAxisSpacing: 16,
@@ -248,6 +260,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
       ),
     );
   }
+
   void _showFiltersSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
@@ -275,7 +288,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             'Filters',
                             style: TextStyle(
                               fontSize: AppConstants.largeFontSize,
@@ -294,7 +307,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                         ],
                       ),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         'Category',
                         style: TextStyle(
                           fontSize: AppConstants.fontSize,
@@ -332,7 +345,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                         ],
                       ),
                       const SizedBox(height: 24),
-                      Text(
+                      const Text(
                         'Difficulty',
                         style: TextStyle(
                           fontSize: AppConstants.fontSize,
@@ -396,36 +409,6 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
     );
   }
 
-  Color _getAspectColor(String aspect) {
-    switch (aspect) {
-      case ActivityAspects.behavioral:
-        return AppColors.behavioral;
-      case ActivityAspects.skillful:
-        return AppColors.skillful;
-      case ActivityAspects.educational:
-        return AppColors.educational;
-      case ActivityAspects.entertaining:
-        return AppColors.entertaining;
-      default:
-        return AppColors.primary;
-    }
-  }
-
-  IconData _getAspectIcon(String aspect) {
-    switch (aspect) {
-      case ActivityAspects.behavioral:
-        return Icons.emoji_people;
-      case ActivityAspects.skillful:
-        return Icons.handyman;
-      case ActivityAspects.educational:
-        return Icons.school;
-      case ActivityAspects.entertaining:
-        return Icons.videogame_asset;
-      default:
-        return Icons.extension;
-    }
-  }
-
   Widget _buildActivityCard(Activity activity) {
     return InkWell(
       onTap: () => context.go('/child/learn/lesson/${activity.id}'),
@@ -436,7 +419,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.04),
+              color: AppColors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -479,7 +462,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
               activity.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: AppConstants.fontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -493,21 +476,28 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
               children: [
                 Row(
                   children: [
-                    Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
+                    const Icon(Icons.access_time,
+                        size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       activity.estimatedTime,
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
                 Row(
                   children: [
-                    Icon(Icons.star, size: 14, color: AppColors.xpColor),
+                    const Icon(Icons.star, size: 14, color: AppColors.xpColor),
                     const SizedBox(width: 4),
                     Text(
                       '${activity.xpReward} XP',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -517,5 +507,35 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
         ),
       ),
     );
+  }
+
+  Color _getAspectColor(String aspect) {
+    switch (aspect) {
+      case ActivityAspects.behavioral:
+        return AppColors.behavioral;
+      case ActivityAspects.skillful:
+        return AppColors.skillful;
+      case ActivityAspects.educational:
+        return AppColors.educational;
+      case ActivityAspects.entertaining:
+        return AppColors.entertaining;
+      default:
+        return AppColors.primary;
+    }
+  }
+
+  IconData _getAspectIcon(String aspect) {
+    switch (aspect) {
+      case ActivityAspects.behavioral:
+        return Icons.emoji_people;
+      case ActivityAspects.skillful:
+        return Icons.handyman;
+      case ActivityAspects.educational:
+        return Icons.school;
+      case ActivityAspects.entertaining:
+        return Icons.videogame_asset;
+      default:
+        return Icons.extension;
+    }
   }
 }

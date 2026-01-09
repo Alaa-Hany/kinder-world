@@ -23,7 +23,7 @@ class LegalScreen extends ConsumerWidget {
         elevation: 0,
         title: Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -43,7 +43,7 @@ class LegalScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
+                      color: AppColors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -51,7 +51,7 @@ class LegalScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   content,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary,
                     height: 1.6,
@@ -62,7 +62,7 @@ class LegalScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Last updated
-              Center(
+              const Center(
                 child: Text(
                   'Last updated: January 2026',
                   style: TextStyle(
@@ -104,11 +104,11 @@ Welcome to Kinder World! These Terms of Service ("Terms") govern your use of the
 By downloading, installing, or using the Kinder World App, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy.
 
 2. ELIGIBILITY
-The App is designed for use by children aged 5-12 under parental supervision. Parents or legal guardians must create accounts and manage their children\'s use of the App.
+The App is designed for use by children aged 5-12 under parental supervision. Parents or legal guardians must create accounts and manage their children's use of the App.
 
 3. PARENTAL RESPONSIBILITY
 Parents are responsible for:
-- Monitoring their child\'s use of the App
+- Monitoring their child's use of the App
 - Setting appropriate screen time limits
 - Reviewing content accessed by their child
 - Managing privacy settings
@@ -122,12 +122,12 @@ All content, features, and functionality of the App are owned by Kinder World an
 6. USER CONDUCT
 You agree not to:
 - Use the App for any unlawful purpose
-- Interfere with or disrupt the App\'s functionality
+- Interfere with or disrupt the App's functionality
 - Attempt to gain unauthorized access to our systems
 - Upload or transmit any harmful content
 
 7. PRIVACY
-We are committed to protecting children\'s privacy. Our data collection and use practices are described in our Privacy Policy, which is incorporated into these Terms.
+We are committed to protecting children's privacy. Our data collection and use practices are described in our Privacy Policy, which is incorporated into these Terms.
 
 8. DISCLAIMER
 The App is provided "as is" without warranties of any kind. We do not guarantee that the App will be error-free or uninterrupted.
@@ -177,12 +177,12 @@ We use collected information to:
 - Track educational progress
 - Enable parental controls and monitoring
 - Improve app functionality and content
-- Communicate with parents about their child\'s progress
+- Communicate with parents about their child's progress
 - Ensure app security and stability
 
 3. DATA PROTECTION FOR CHILDREN
 
-We comply with the Children\'s Online Privacy Protection Act (COPPA) and follow these principles:
+We comply with the Children's Online Privacy Protection Act (COPPA) and follow these principles:
 - Minimal data collection
 - Parental consent required
 - No behavioral advertising to children
@@ -192,8 +192,8 @@ We comply with the Children\'s Online Privacy Protection Act (COPPA) and follow 
 4. PARENTAL CONTROLS
 
 Parents can:
-- Access and update their child\'s information
-- Delete their child\'s account and data
+- Access and update their child's information
+- Delete their child's account and data
 - Modify privacy settings
 - Opt out of data collection (with limited functionality)
 
@@ -259,7 +259,7 @@ GETTING STARTED
 3. Set Up Child Profiles
 - Go to Child Management in Parent Mode
 - Tap "Add New Profile"
-- Enter your child\'s name and age
+- Enter your child's name and age
 - Choose an avatar
 - Select interests (optional)
 - Create a picture password with your child
@@ -273,7 +273,7 @@ GETTING STARTED
 PARENT MODE FEATURES
 
 Dashboard:
-- View all children\'s progress at a glance
+- View all children's progress at a glance
 - See recent activities and achievements
 - Access AI insights and recommendations
 
@@ -304,7 +304,7 @@ Settings:
 CHILD MODE FEATURES
 
 Home Dashboard:
-- Personalized greeting with child\'s name
+- Personalized greeting with child's name
 - Progress overview (level, XP, streak)
 - Daily goal tracking
 - Continue learning shortcut
@@ -367,7 +367,7 @@ TIPS FOR PARENTS
 
 TROUBLESHOOTING
 
-App Won\'t Load:
+App Won't Load:
 - Check internet connection
 - Restart the app
 - Update to latest version
@@ -394,7 +394,7 @@ Need more help? Contact us at:
 - Live Chat: Available 24/7 in the app
 - Phone: 1-800-KINDER
 
-Thank you for choosing Kinder World for your child\'s learning journey!'''
+Thank you for choosing Kinder World for your child's learning journey!'''
       .replaceAll('\n', '\n\n');
 
       default:

@@ -27,9 +27,9 @@ class SubscriptionScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
+                  color: AppColors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.success.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -37,7 +37,7 @@ class SubscriptionScreen extends ConsumerWidget {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.2),
+                        color: AppColors.success.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -47,7 +47,7 @@ class SubscriptionScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
+                    const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -90,7 +90,7 @@ class SubscriptionScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Features
-              Text(
+              const Text(
                 'Your Plan Includes:',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -117,7 +117,7 @@ class SubscriptionScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
+                      color: AppColors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -126,7 +126,7 @@ class SubscriptionScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Billing Information',
                       style: TextStyle(
                         fontSize: AppConstants.fontSize,
@@ -146,10 +146,10 @@ class SubscriptionScreen extends ConsumerWidget {
                       onPressed: () {
                         // TODO: Manage billing
                       },
-                      child: const Text('Manage Billing'),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
                       ),
+                      child: const Text('Manage Billing'),
                     ),
                   ],
                 ),
@@ -158,7 +158,7 @@ class SubscriptionScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Available Plans
-              Text(
+              const Text(
                 'Available Plans',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -213,7 +213,7 @@ class SubscriptionScreen extends ConsumerWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, size: 16, color: AppColors.success),
@@ -221,7 +221,7 @@ class SubscriptionScreen extends ConsumerWidget {
           const SizedBox(width: 12),
           Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSize,
               color: AppColors.textSecondary,
             ),
@@ -239,14 +239,14 @@ class SubscriptionScreen extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSize,
               color: AppColors.textSecondary,
             ),
           ),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSize,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -275,7 +275,7 @@ class SubscriptionScreen extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -306,7 +306,7 @@ class SubscriptionScreen extends ConsumerWidget {
             children: [
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -318,7 +318,7 @@ class SubscriptionScreen extends ConsumerWidget {
                 children: [
                   Text(
                     price,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -326,7 +326,7 @@ class SubscriptionScreen extends ConsumerWidget {
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -368,7 +368,7 @@ class SubscriptionScreen extends ConsumerWidget {
           const SizedBox(width: 8),
           Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),

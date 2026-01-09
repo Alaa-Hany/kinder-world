@@ -47,7 +47,7 @@ class KinderWorldApp extends ConsumerWidget {
       themeMode: themeMode,
       
       // Localization
-      localizationsDelegates: [
+      localizationsDelegates: const [
         custom_localizations.AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

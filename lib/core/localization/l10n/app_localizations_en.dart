@@ -663,7 +663,251 @@ class AppLocalizationsEn extends AppLocalizations {
   String yearsOld(int age) => '$age years old';
 
   @override
-  String levelXp(int level, int xp) => 'Level $level • $xp XP';
+  String levelXp(int level, int xp) => 'Level $level - $xp XP';
 
-  
-  }
+  @override
+  String get accountSection => 'Account';
+
+  @override
+  String get familySection => 'Family';
+
+  @override
+  String get preferencesSection => 'Preferences';
+
+  @override
+  String get supportSection => 'Support';
+
+  @override
+  String get legalSection => 'Legal';
+
+  @override
+  String get profileLabel => 'Profile';
+
+  @override
+  String get changePassword => 'Change Password';
+
+  @override
+  String get helpFaq => 'Help & FAQ';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get coppaCompliance => 'COPPA Compliance';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String comingSoon(String title) => '$title is coming soon';
+
+  @override
+  String get week => 'Week';
+
+  @override
+  String get month => 'Month';
+
+  @override
+  String get year => 'Year';
+
+  @override
+  String get yearlyProgress => 'Yearly Progress';
+
+  @override
+  String get recentAchievements => 'Recent Achievements';
+
+  @override
+  String get activityBreakdown => 'Activity Breakdown';
+
+  @override
+  String get learningProgressReports => 'Learning Progress Reports';
+
+  @override
+  String get trackChildDevelopment =>
+      'Track your child\'s development and achievements';
+
+  @override
+  String get reportsAndAnalytics => 'Reports & Analytics';
+
+  @override
+  String get noChildSelected => 'No child selected';
+
+  @override
+  String get addChildToViewReports => 'Add a child to view reports';
+
+  @override
+  String get contentRestrictionsAndScreenTime =>
+      'Content Restrictions & Screen Time';
+
+  @override
+  String get manageChildAccess =>
+      'Manage what your child can access and for how long';
+
+  @override
+  String get screenTimeLimits => 'Screen Time Limits';
+
+  @override
+  String get timeRestrictions => 'Time Restrictions';
+
+  @override
+  String get emergencyControls => 'Emergency Controls';
+
+  @override
+  String get lockAppNow => 'Lock App Now';
+
+  @override
+  String get hoursPerDay => 'Hours per day';
+
+  @override
+  String get requireApproval => 'Require Approval';
+
+  @override
+  String get bedtime => 'Bedtime';
+
+  @override
+  String get wakeTime => 'Wake Time';
+
+  @override
+  String get childManagement => 'Child Management';
+
+  @override
+  String get manageChildProfiles => 'Manage Child Profiles';
+
+  @override
+  String get addEditManageChildren =>
+      'Add, edit, or manage your children\'s profiles';
+
+  @override
+  String get yourChildren => 'Your Children';
+
+  @override
+  String get noChildProfilesYet => 'No child profiles yet';
+
+  @override
+  String get tapToAddChild => 'Tap + to add a child profile.';
+
+  @override
+  String get addChildProfiles => 'Add new child profiles';
+
+  @override
+  String get editProfiles => 'Edit existing profiles';
+
+  @override
+  String get picturePasswords => 'Set picture passwords';
+
+  @override
+  String get configurePreferences => 'Configure preferences';
+
+  @override
+  String get deactivateProfiles => 'Deactivate profiles';
+
+  @override
+  String get markAllRead => 'Mark All Read';
+
+  @override
+  String notificationDailyGoal(String name, int activities) =>
+      '$name completed $activities activities today!';
+
+  @override
+  String notificationScreenTime(String name, int hours) =>
+      '$name has reached the daily limit of $hours hours.';
+
+  @override
+  String notificationAchievement(String name, String badge) =>
+      '$name unlocked the "$badge" badge!';
+
+  @override
+  String get notificationWeeklyReport =>
+      'Your child\'s progress report for this week is available.';
+
+  @override
+  String notificationMilestone(String name, int count) =>
+      '$name completed $count activities!';
+
+  @override
+  String notificationRecommendation(String name) =>
+      'New educational content available for $name based on interests.';
+
+  @override
+  String get hoursAgo => 'hours ago';
+
+  @override
+  String get daysAgo => 'days ago';
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String get welcomeTitle => 'Welcome to Kinder World!';
+
+  @override
+  String get welcomeSubtitle =>
+      'A safe and fun learning environment for children';
+
+  @override
+  String get chooseLanguageTitle => 'Choose Your Language';
+
+  @override
+  String get chooseLanguageSubtitle => 'Select your preferred language';
+
+  @override
+  String get educational => 'Educational';
+
+  @override
+  String get funGames => 'Fun Games';
+
+  @override
+  String get aiPowered => 'AI Powered';
+
+  @override
+  String get safe => 'Safe';
+
+  @override
+  String get getStarted => 'Get Started';
+
+  @override
+  String get coppaGdprNote => 'COPPA & GDPR Compliant - Child Safe';
+
+  @override
+  String get onboardingGrow => 'Grow';
+
+  @override
+  String get onboardingLearnSubtitle =>
+      'Educational content tailored for your child';
+
+  @override
+  String get onboardingLearnDescription =>
+      'Discover interactive lessons in math, science, reading, and more. Each activity is designed to make learning fun and engaging.';
+
+  @override
+  String get onboardingPlaySubtitle => 'Fun games that develop skills';
+
+  @override
+  String get onboardingPlayDescription =>
+      'Enjoy educational games, puzzles, and creative activities that help your child grow while having fun.';
+
+  @override
+  String get onboardingGrowSubtitle => 'AI-powered personalized learning';
+
+  @override
+  String get onboardingGrowDescription =>
+      'Our AI assistant adapts to your child\'s learning style and provides personalized recommendations for optimal growth.';
+
+  @override
+  String get yourProgress => 'Your Progress';
+
+  @override
+  String get yourInterests => 'Your Interests';
+
+  @override
+  String get weeklyChallenge => 'Weekly Challenge';
+
+  @override
+  String get activities => 'Activities';
+
+  @override
+  String levelExplorer(int level) => 'Level $level Explorer';
+
+  @override
+  String xpToLevel(int level) => 'XP to Level $level';
+}

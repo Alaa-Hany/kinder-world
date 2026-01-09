@@ -97,7 +97,7 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.go('/parent/settings'),
         ),
-        title: Text(
+        title: const Text(
           'Data Sync',
           style: TextStyle(
             fontSize: AppConstants.fontSize,
@@ -128,8 +128,8 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
                   height: 120,
                   decoration: BoxDecoration(
                     color: _isSyncing 
-                        ? AppColors.primary.withOpacity(0.1)
-                        : AppColors.success.withOpacity(0.1),
+                        ? AppColors.primary.withValues(alpha: 0.1)
+                        : AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(60),
                   ),
                   child: Icon(
@@ -144,7 +144,7 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
               // Sync status
               Text(
                 _syncStatus,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: AppConstants.largeFontSize,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -160,14 +160,14 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
                   child: LinearProgressIndicator(
                     value: _syncProgress,
                     backgroundColor: AppColors.lightGrey,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                     minHeight: 8,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '${(_syncProgress * 100).toInt()}%',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary,
                   ),
@@ -184,13 +184,13 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
+                      color: AppColors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-                child: Column(
+                child: const Column(
                   children: [
                     _SyncDetailItem(
                       icon: Icons.person,
@@ -198,21 +198,21 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
                       value: '2 synced',
                       isSynced: true,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _SyncDetailItem(
                       icon: Icons.analytics,
                       label: 'Progress Data',
                       value: '15 activities',
                       isSynced: true,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _SyncDetailItem(
                       icon: Icons.settings,
                       label: 'Settings',
                       value: 'Synced',
                       isSynced: true,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _SyncDetailItem(
                       icon: Icons.cloud,
                       label: 'Last Sync',
@@ -239,7 +239,7 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
                   ),
                   child: _isSyncing
                       ? const CircularProgressIndicator(color: AppColors.white)
-                      : Text(
+                      : const Text(
                           'Sync Now',
                           style: TextStyle(
                             fontSize: AppConstants.fontSize,
@@ -278,7 +278,7 @@ class _SyncDetailItem extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Icon(
@@ -292,7 +292,7 @@ class _SyncDetailItem extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               color: AppColors.textPrimary,
             ),
@@ -300,13 +300,13 @@ class _SyncDetailItem extends StatelessWidget {
         ),
         
         if (isSynced == true)
-          Icon(
+          const Icon(
             Icons.check_circle,
             size: 20,
             color: AppColors.success,
           )
         else if (isSynced == false)
-          Icon(
+          const Icon(
             Icons.error,
             size: 20,
             color: AppColors.error,
@@ -318,7 +318,7 @@ class _SyncDetailItem extends StatelessWidget {
         
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             color: AppColors.textSecondary,
           ),

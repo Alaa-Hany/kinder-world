@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -56,6 +57,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -84,7 +86,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
+                        color: AppColors.primary.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -100,8 +102,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 
                 // Welcome Title
                 Text(
-                  'Welcome to Kinder World!',
-                  style: TextStyle(
+                  l10n.welcomeTitle,
+                  style: const TextStyle(
                     fontSize: AppConstants.largeFontSize * 1.2,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -112,8 +114,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 
                 // Subtitle
                 Text(
-                  'A safe and fun learning environment for children',
-                  style: TextStyle(
+                  l10n.welcomeSubtitle,
+                  style: const TextStyle(
                     fontSize: AppConstants.fontSize,
                     color: AppColors.textSecondary,
                     height: 1.5,
@@ -128,22 +130,22 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                   children: [
                     _buildFeatureItem(
                       Icons.school,
-                      'Educational',
+                      l10n.educational,
                       AppColors.educational,
                     ),
                     _buildFeatureItem(
                       Icons.games,
-                      'Fun Games',
+                      l10n.funGames,
                       AppColors.entertaining,
                     ),
                     _buildFeatureItem(
                       Icons.psychology,
-                      'AI Powered',
+                      l10n.aiPowered,
                       AppColors.behavioral,
                     ),
                     _buildFeatureItem(
                       Icons.security,
-                      'Safe',
+                      l10n.safe,
                       AppColors.success,
                     ),
                   ],
@@ -162,8 +164,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     ),
                   ),
                   child: Text(
-                    'Get Started',
-                    style: TextStyle(
+                    l10n.getStarted,
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSize,
                       fontWeight: FontWeight.w600,
                     ),
@@ -173,8 +175,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 
                 // Privacy note
                 Text(
-                  'COPPA & GDPR Compliant • Child Safe',
-                  style: TextStyle(
+                  l10n.coppaGdprNote,
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -194,7 +196,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(
@@ -206,7 +208,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         const SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             color: AppColors.textSecondary,
           ),

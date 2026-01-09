@@ -18,7 +18,7 @@ class HelpSupportScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.go('/parent/settings'),
         ),
-        title: Text(
+        title: const Text(
           'Help & Support',
           style: TextStyle(
             fontSize: AppConstants.fontSize,
@@ -37,9 +37,9 @@ class HelpSupportScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -57,7 +57,7 @@ class HelpSupportScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
+                    const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -85,7 +85,7 @@ class HelpSupportScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // FAQ Section
-              Text(
+              const Text(
                 'Frequently Asked Questions',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -95,31 +95,31 @@ class HelpSupportScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               
-              _FAQItem(
+              const _FAQItem(
                 question: 'How do I set up a child profile?',
                 answer: 'Go to Parent Mode → Child Management and tap "Add New Profile". Follow the step-by-step guide to create a personalized profile for your child.',
               ),
               const SizedBox(height: 12),
               
-              _FAQItem(
+              const _FAQItem(
                 question: 'Can I limit my child\'s screen time?',
                 answer: 'Yes! In Parent Mode, go to Parental Controls → Screen Time to set daily limits, break intervals, and allowed hours.',
               ),
               const SizedBox(height: 12),
               
-              _FAQItem(
+              const _FAQItem(
                 question: 'How does the AI assistant work?',
                 answer: 'The AI assistant uses your child\'s age, interests, and learning progress to provide personalized recommendations and guidance.',
               ),
               const SizedBox(height: 12),
               
-              _FAQItem(
+              const _FAQItem(
                 question: 'Is my child\'s data safe?',
                 answer: 'Absolutely! We follow strict privacy policies and comply with COPPA and GDPR regulations to protect your child\'s information.',
               ),
               const SizedBox(height: 12),
               
-              _FAQItem(
+              const _FAQItem(
                 question: 'Can my child use the app offline?',
                 answer: 'Yes, many activities are available offline. Download content in advance for uninterrupted learning.',
               ),
@@ -127,7 +127,7 @@ class HelpSupportScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Contact Support
-              Text(
+              const Text(
                 'Contact Support',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -144,7 +144,7 @@ class HelpSupportScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
+                      color: AppColors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -185,7 +185,7 @@ class HelpSupportScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Additional Resources
-              Text(
+              const Text(
                 'Additional Resources',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -202,7 +202,7 @@ class HelpSupportScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
+                      color: AppColors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -248,7 +248,7 @@ class HelpSupportScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // App version
-              Center(
+              const Center(
                 child: Text(
                   'Kinder World v${AppConstants.appVersion}',
                   style: TextStyle(
@@ -289,7 +289,7 @@ class _FAQItemState extends State<_FAQItem> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -311,7 +311,7 @@ class _FAQItemState extends State<_FAQItem> {
                   Expanded(
                     child: Text(
                       widget.question,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -333,7 +333,7 @@ class _FAQItemState extends State<_FAQItem> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Text(
                 widget.answer,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
                 ),
@@ -369,7 +369,7 @@ class _ContactOption extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Icon(
@@ -386,7 +386,7 @@ class _ContactOption extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -394,7 +394,7 @@ class _ContactOption extends StatelessWidget {
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -403,7 +403,7 @@ class _ContactOption extends StatelessWidget {
             ),
           ),
           
-          Icon(
+          const Icon(
             Icons.chevron_right,
             size: 24,
             color: AppColors.textSecondary,
@@ -436,7 +436,7 @@ class _ResourceItem extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.1),
+              color: AppColors.secondary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(
@@ -450,14 +450,14 @@ class _ResourceItem extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 color: AppColors.textPrimary,
               ),
             ),
           ),
           
-          Icon(
+          const Icon(
             Icons.chevron_right,
             size: 24,
             color: AppColors.textSecondary,

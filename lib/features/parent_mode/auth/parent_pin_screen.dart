@@ -118,7 +118,7 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
               ),
               const SizedBox(height: 32),
               
-              Text(
+              const Text(
                 'Parent Access',
                 style: TextStyle(
                   fontSize: AppConstants.largeFontSize * 1.2,
@@ -128,7 +128,7 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
               ),
               const SizedBox(height: 8),
               
-              Text(
+              const Text(
                 'Enter your PIN to continue',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -168,7 +168,7 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
                 const SizedBox(height: 24),
                 Text(
                   pinState.error!,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     color: AppColors.error,
                   ),
@@ -234,7 +234,7 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
                     ),
                   );
                 },
-                child: Text(
+                child: const Text(
                   'Forgot PIN?',
                   style: TextStyle(
                     fontSize: 16,
@@ -272,7 +272,7 @@ class _NumberButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.1),
+              color: AppColors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -287,7 +287,7 @@ class _NumberButton extends StatelessWidget {
                 )
               : Text(
                   number!,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: AppConstants.largeFontSize,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,

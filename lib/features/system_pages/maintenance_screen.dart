@@ -63,7 +63,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.1),
+                    color: AppColors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: const Icon(
@@ -76,7 +76,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
               const SizedBox(height: 40),
               
               // Title
-              Text(
+              const Text(
                 'Under Maintenance',
                 style: TextStyle(
                   fontSize: AppConstants.largeFontSize * 1.2,
@@ -88,7 +88,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
               const SizedBox(height: 16),
               
               // Description
-              Text(
+              const Text(
                 'We\'re making Kinder World even better for you and your children! Please try again in a few minutes.',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -107,7 +107,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.lightGrey),
                 ),
-                child: Column(
+                child: const Column(
                   children: [
                     Text(
                       'Estimated Completion',
@@ -117,7 +117,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       '30 minutes',
                       style: TextStyle(
@@ -126,7 +126,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
                         color: AppColors.warning,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       '2:30 PM - 3:00 PM UTC',
                       style: TextStyle(
@@ -150,7 +150,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'What\'s Coming:',
                       style: TextStyle(
                         fontSize: AppConstants.fontSize,
@@ -173,7 +173,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
               const SizedBox(height: 32),
               
               // Social Media Links
-              Text(
+              const Text(
                 'Follow us for updates:',
                 style: TextStyle(
                   fontSize: 14,
@@ -207,7 +207,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.1),
+            color: AppColors.success.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -219,7 +219,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
         const SizedBox(width: 12),
         Text(
           text,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: AppConstants.fontSize,
             color: AppColors.textSecondary,
           ),
@@ -233,7 +233,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: IconButton(

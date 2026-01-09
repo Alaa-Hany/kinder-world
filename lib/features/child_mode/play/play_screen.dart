@@ -19,7 +19,7 @@ class PlayScreen extends ConsumerWidget {
             children: [
               // Header
               const SizedBox(height: 20),
-              Text(
+              const Text(
                 'Play & Fun',
                 style: TextStyle(
                   fontSize: AppConstants.largeFontSize * 1.5,
@@ -28,7 +28,7 @@ class PlayScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'Enjoy games, stories, and entertainment!',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
@@ -99,7 +99,7 @@ class PlayScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -112,7 +112,7 @@ class PlayScreen extends ConsumerWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
@@ -124,7 +124,7 @@ class PlayScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: AppConstants.fontSize,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -134,7 +134,7 @@ class PlayScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),

@@ -72,7 +72,7 @@ class _ErrorScreenState extends ConsumerState<ErrorScreen>
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppColors.error.withOpacity(0.1),
+                    color: AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: const Icon(
@@ -84,7 +84,7 @@ class _ErrorScreenState extends ConsumerState<ErrorScreen>
                 const SizedBox(height: 40),
                 
                 // Title
-                Text(
+                const Text(
                   'Oops! Something went wrong',
                   style: TextStyle(
                     fontSize: AppConstants.largeFontSize * 1.2,
@@ -105,7 +105,7 @@ class _ErrorScreenState extends ConsumerState<ErrorScreen>
                   ),
                   child: Column(
                     children: [
-                      Text(
+                      const Text(
                         'Error Details:',
                         style: TextStyle(
                           fontSize: AppConstants.fontSize,
@@ -116,7 +116,7 @@ class _ErrorScreenState extends ConsumerState<ErrorScreen>
                       const SizedBox(height: 8),
                       Text(
                         widget.error,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),
