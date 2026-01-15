@@ -692,7 +692,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get childRegisterLimitReached =>
-      'You reached the maximum number of children in the free plan. Upgrade for \$10/month.';
+      'You\'ve reached the maximum number of childrens. Upgrade now.';
 
   @override
   String get childRegisterForbidden => 'Not allowed';

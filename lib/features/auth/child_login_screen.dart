@@ -44,6 +44,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
   ChildProfile? _selectedChildProfile;
   bool _isLoading = false;
   String? _error;
+  bool _showCreateInline = false;
+  OverlayEntry? _topMessageEntry;
 
   final List<_AvatarOption> _avatarOptions = const [
     _AvatarOption(
@@ -86,17 +88,115 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
   @override
   void dispose() {
+    _topMessageEntry?.remove();
+    _topMessageEntry = null;
     _childIdController.dispose();
     super.dispose();
   }
 
   Future<List<ChildProfile>> _loadChildren() async {
-    return ref.read(childRepositoryProvider).getAllChildProfiles();
+    final repo = ref.read(childRepositoryProvider);
+    final localChildren = await repo.getAllChildProfiles();
+    final childrenById = {
+      for (final child in localChildren) child.id: child,
+    };
+
+    final token = await ref.read(secureStorageProvider).getAuthToken();
+    if (token == null || token.startsWith('child_session_')) {
+      return childrenById.values.toList();
+    }
+
+    final parentId = await ref.read(secureStorageProvider).getParentId();
+    final parentEmail = await ref.read(secureStorageProvider).getParentEmail();
+
+    try {
+      final response = await ref.read(networkServiceProvider).get<dynamic>(
+        '/children',
+      );
+      final apiChildren = _extractChildrenList(response.data);
+      for (final childData in apiChildren) {
+        final childId = _parseChildId(childData);
+        if (childId == null || childId.isEmpty) continue;
+        final existing = childrenById[childId];
+        final merged = _mergeChildProfileFromApi(
+          childData,
+          existing: existing,
+          parentId: parentId ?? 'local',
+          parentEmail: parentEmail,
+        );
+        if (merged == null) continue;
+        childrenById[childId] = merged;
+        if (existing == null) {
+          await repo.createChildProfile(merged);
+        } else {
+          await repo.updateChildProfile(merged);
+        }
+      }
+    } catch (_) {
+      return childrenById.values.toList();
+    }
+
+    return childrenById.values.toList();
   }
 
   void _refreshChildren() {
     setState(() {
       _childrenFuture = _loadChildren();
+    });
+  }
+
+  void _showTopMessage(String message, {bool isError = true}) {
+    if (!mounted) return;
+    _topMessageEntry?.remove();
+    final textDirection = Directionality.of(context);
+    _topMessageEntry = OverlayEntry(
+      builder: (overlayContext) {
+        return Positioned(
+          top: MediaQuery.of(overlayContext).padding.top + 12,
+          left: 16,
+          right: 16,
+          child: Directionality(
+            textDirection: textDirection,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isError ? AppColors.error : AppColors.success,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    final overlay = Overlay.of(context, rootOverlay: true);
+    if (overlay == null) return;
+    final entry = _topMessageEntry!;
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (_topMessageEntry == entry) {
+        entry.remove();
+        _topMessageEntry = null;
+      }
     });
   }
 
@@ -107,13 +207,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       _isLoading = false;
       _error = message;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-      ),
-    );
+    _showTopMessage(message);
   }
 
   void _resetSelection() {
@@ -220,6 +314,138 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       if (a[i] != b[i]) return false;
     }
     return true;
+  }
+
+  List<Map<String, dynamic>> _extractChildrenList(dynamic data) {
+    if (data is List) {
+      return data
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+    if (data is Map) {
+      final listData =
+          data['children'] ?? data['data'] ?? data['results'] ?? data['items'];
+      if (listData is List) {
+        return listData
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+      }
+    }
+    return [];
+  }
+
+  String? _parseChildId(Map<String, dynamic> data) {
+    final raw = data['id'] ?? data['child_id'] ?? data['childId'];
+    return raw?.toString();
+  }
+
+  int _parseInt(dynamic value, int fallback) {
+    if (value is int) return value;
+    if (value is double) return value.round();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  DateTime _parseDate(dynamic value, DateTime fallback) {
+    if (value is DateTime) return value;
+    if (value is String) {
+      final parsed = DateTime.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
+    return fallback;
+  }
+
+  DateTime? _parseNullableDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
+    return null;
+  }
+
+  List<String> _parseStringList(dynamic value) {
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return const [];
+  }
+
+  List<String>? _parseNullableStringList(dynamic value) {
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return null;
+  }
+
+  ChildProfile? _mergeChildProfileFromApi(
+    Map<String, dynamic> data, {
+    ChildProfile? existing,
+    String? parentId,
+    String? parentEmail,
+  }) {
+    final childId = _parseChildId(data);
+    if (childId == null || childId.isEmpty) return null;
+
+    final now = DateTime.now();
+    final apiName = data['name']?.toString().trim();
+    final resolvedName =
+        (apiName != null && apiName.isNotEmpty) ? apiName : (existing?.name ?? childId);
+    final existingAge = existing?.age ?? 0;
+    final age = existingAge > 0 ? existingAge : _parseInt(data['age'], 0);
+    final existingLevel = existing?.level ?? 0;
+    final level = existingLevel > 0 ? existingLevel : _parseInt(data['level'], 1);
+    final avatar = existing?.avatar ?? data['avatar']?.toString() ?? _avatarOptions.first.id;
+    final picturePassword = (existing?.picturePassword.isNotEmpty ?? false)
+        ? existing!.picturePassword
+        : _parseStringList(data['picture_password']);
+    final createdAt = existing?.createdAt ?? _parseDate(data['created_at'], now);
+    final updatedAt = _parseDate(data['updated_at'], now);
+    final lastSession =
+        existing?.lastSession ?? _parseNullableDate(data['last_session']);
+
+    return ChildProfile(
+      id: childId,
+      name: resolvedName,
+      age: age,
+      avatar: avatar,
+      interests: existing?.interests ?? _parseStringList(data['interests']),
+      level: level,
+      xp: existing?.xp ?? _parseInt(data['xp'], 0),
+      streak: existing?.streak ?? _parseInt(data['streak'], 0),
+      favorites: existing?.favorites ?? _parseStringList(data['favorites']),
+      parentId: parentId ?? existing?.parentId ?? 'local',
+      parentEmail: existing?.parentEmail ??
+          parentEmail ??
+          data['parent_email']?.toString(),
+      picturePassword: picturePassword,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      lastSession: lastSession,
+      totalTimeSpent:
+          existing?.totalTimeSpent ?? _parseInt(data['total_time_spent'], 0),
+      activitiesCompleted: existing?.activitiesCompleted ??
+          _parseInt(data['activities_completed'], 0),
+      currentMood: existing?.currentMood ?? data['current_mood']?.toString(),
+      learningStyle:
+          existing?.learningStyle ?? data['learning_style']?.toString(),
+      specialNeeds:
+          existing?.specialNeeds ?? _parseNullableStringList(data['special_needs']),
+      accessibilityNeeds: existing?.accessibilityNeeds ??
+          _parseNullableStringList(data['accessibility_needs']),
+    );
   }
 
   List<ChildProfile> _dedupeChildren(List<ChildProfile> children) {
@@ -355,7 +581,6 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     final parentEmailController =
         TextEditingController(text: storedParentEmail ?? '');
     final childNameController = TextEditingController();
-    final messenger = ScaffoldMessenger.of(context);
     final repo = ref.read(childRepositoryProvider);
     int? age;
     String selectedAvatar = _avatarOptions.first.id;
@@ -407,14 +632,30 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
             final showPasswordError =
                 passwordTouched && selectedPassword.length != 3;
 
-            return AlertDialog(
-              title: Text(l10n.createChildProfile),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextField(
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: SingleChildScrollView(
+                    child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.createChildProfile,
+                        style: const TextStyle(
+                          fontSize: AppConstants.fontSize,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
                       controller: childNameController,
                       decoration: InputDecoration(
                         labelText: l10n.childName,
@@ -537,6 +778,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                       ),
                     ],
                     const SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     SizedBox(
                       width: 320,
                       child: Wrap(
@@ -572,180 +814,189 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                         }).toList(),
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: isSaving
+                                ? null
+                                : () => Navigator.of(dialogContext).pop(),
+                            child: Text(l10n.cancel),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: canSave
+                                ? () async {
+                                    setDialogState(() {
+                                      isSaving = true;
+                                      nameTouched = true;
+                                      emailTouched = true;
+                                      passwordTouched = true;
+                                    });
+
+                                    final trimmedName =
+                                        childNameController.text.trim();
+                                    final trimmedEmail =
+                                        parentEmailController.text.trim();
+
+                                    if (trimmedName.isEmpty ||
+                                        !isValidEmail(trimmedEmail) ||
+                                        selectedPassword.length != 3) {
+                                      setDialogState(() {
+                                        isSaving = false;
+                                      });
+                                      _showTopMessage(
+                                        l10n.childLoginMissingData,
+                                      );
+                                      return;
+                                    }
+
+                                    final authController = ref
+                                        .read(authControllerProvider.notifier);
+                                    var response =
+                                        await authController.registerChild(
+                                      name: trimmedName,
+                                      picturePassword:
+                                          List<String>.from(selectedPassword),
+                                      parentEmail: trimmedEmail,
+                                    );
+
+                                    if (response == null &&
+                                        ref.read(authControllerProvider).error ==
+                                            'child_register_limit') {
+                                      setDialogState(() {
+                                        isSaving = false;
+                                      });
+                                      _showTopMessage(
+                                        l10n.childRegisterLimitReached,
+                                      );
+                                      final upgraded = await _openPaywall();
+                                      if (!upgraded) {
+                                        return;
+                                      }
+                                      if (!mounted) return;
+                                      setDialogState(() {
+                                        isSaving = true;
+                                      });
+                                      response = await authController.registerChild(
+                                        name: trimmedName,
+                                        picturePassword: List<String>.from(
+                                          selectedPassword,
+                                        ),
+                                        parentEmail: trimmedEmail,
+                                      );
+                                    }
+
+                                    if (response == null) {
+                                      setDialogState(() {
+                                        isSaving = false;
+                                      });
+                                      final error =
+                                          ref.read(authControllerProvider).error;
+                                      _showTopMessage(
+                                        _mapChildRegisterError(l10n, error),
+                                      );
+                                      return;
+                                    }
+
+                                    await ref
+                                        .read(secureStorageProvider)
+                                        .saveUserEmail(trimmedEmail);
+
+                                    final resolvedName = response.name
+                                                ?.trim()
+                                                .isNotEmpty ==
+                                            true
+                                        ? response.name!.trim()
+                                        : trimmedName;
+                                    final now = DateTime.now();
+                                    final existing = await repo.getChildProfile(
+                                      response.childId,
+                                    );
+                                    final updatedProfile = (existing ??
+                                            ChildProfile(
+                                              id: response.childId,
+                                              name: resolvedName,
+                                              age: age ?? 0,
+                                              avatar: selectedAvatar,
+                                              interests: const [],
+                                              level: 1,
+                                              xp: 0,
+                                              streak: 0,
+                                              favorites: const [],
+                                              parentId: trimmedEmail,
+                                              parentEmail: trimmedEmail,
+                                              picturePassword: List<String>.from(
+                                                selectedPassword,
+                                              ),
+                                              createdAt: now,
+                                              updatedAt: now,
+                                              lastSession: null,
+                                              totalTimeSpent: 0,
+                                              activitiesCompleted: 0,
+                                              currentMood: null,
+                                              learningStyle: null,
+                                              specialNeeds: null,
+                                              accessibilityNeeds: null,
+                                            ))
+                                        .copyWith(
+                                      name: resolvedName,
+                                      age: age ?? existing?.age ?? 0,
+                                      avatar: selectedAvatar,
+                                      parentId: trimmedEmail,
+                                      parentEmail: trimmedEmail,
+                                      picturePassword: List<String>.from(
+                                        selectedPassword,
+                                      ),
+                                      updatedAt: now,
+                                    );
+
+                                    final saved = existing == null
+                                        ? await repo.createChildProfile(
+                                            updatedProfile,
+                                          )
+                                        : await repo.updateChildProfile(
+                                            updatedProfile,
+                                          );
+
+                                    if (saved == null) {
+                                      setDialogState(() {
+                                        isSaving = false;
+                                      });
+                                      _showTopMessage(l10n.childProfileAddFailed);
+                                      return;
+                                    }
+
+                                    if (mounted) {
+                                      Navigator.of(dialogContext).pop();
+                                      _refreshChildren();
+                                      _selectChild(saved);
+                                    }
+                                  }
+                                : null,
+                            child: isSaving
+                                ? const SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(l10n.save),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed:
-                      isSaving ? null : () => Navigator.of(dialogContext).pop(),
-                  child: Text(l10n.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: canSave
-                      ? () async {
-                          setDialogState(() {
-                            isSaving = true;
-                            nameTouched = true;
-                            emailTouched = true;
-                            passwordTouched = true;
-                          });
-
-                          final trimmedName = childNameController.text.trim();
-                          final trimmedEmail =
-                              parentEmailController.text.trim();
-
-                          if (trimmedName.isEmpty ||
-                              !isValidEmail(trimmedEmail) ||
-                              selectedPassword.length != 3) {
-                            setDialogState(() {
-                              isSaving = false;
-                            });
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.childLoginMissingData),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                            return;
-                          }
-
-                          final authController =
-                              ref.read(authControllerProvider.notifier);
-                          var response = await authController.registerChild(
-                            name: trimmedName,
-                            picturePassword:
-                                List<String>.from(selectedPassword),
-                            parentEmail: trimmedEmail,
-                          );
-
-                          if (response == null &&
-                              ref.read(authControllerProvider).error ==
-                                  'child_register_limit') {
-                            setDialogState(() {
-                              isSaving = false;
-                            });
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.childRegisterLimitReached),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                            final upgraded = await _openPaywall();
-                            if (!upgraded) {
-                              return;
-                            }
-                            if (!mounted) return;
-                            setDialogState(() {
-                              isSaving = true;
-                            });
-                            response = await authController.registerChild(
-                              name: trimmedName,
-                              picturePassword:
-                                  List<String>.from(selectedPassword),
-                              parentEmail: trimmedEmail,
-                            );
-                          }
-
-                          if (response == null) {
-                            setDialogState(() {
-                              isSaving = false;
-                            });
-                            final error =
-                                ref.read(authControllerProvider).error;
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(_mapChildRegisterError(l10n, error)),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                            return;
-                          }
-
-                          await ref
-                              .read(secureStorageProvider)
-                              .saveUserEmail(trimmedEmail);
-
-                          final resolvedName = response.name?.trim().isNotEmpty ==
-                                  true
-                              ? response.name!.trim()
-                              : trimmedName;
-                          final now = DateTime.now();
-                          final existing =
-                              await repo.getChildProfile(response.childId);
-                          final updatedProfile = (existing ??
-                                  ChildProfile(
-                                    id: response.childId,
-                                    name: resolvedName,
-                                    age: age ?? 0,
-                                    avatar: selectedAvatar,
-                                    interests: const [],
-                                    level: 1,
-                                    xp: 0,
-                                    streak: 0,
-                                    favorites: const [],
-                                    parentId: trimmedEmail,
-                                    parentEmail: trimmedEmail,
-                                    picturePassword:
-                                        List<String>.from(selectedPassword),
-                                    createdAt: now,
-                                    updatedAt: now,
-                                    lastSession: null,
-                                    totalTimeSpent: 0,
-                                    activitiesCompleted: 0,
-                                    currentMood: null,
-                                    learningStyle: null,
-                                    specialNeeds: null,
-                                    accessibilityNeeds: null,
-                                  ))
-                              .copyWith(
-                            name: resolvedName,
-                            age: age ?? existing?.age ?? 0,
-                            avatar: selectedAvatar,
-                            parentId: trimmedEmail,
-                            parentEmail: trimmedEmail,
-                            picturePassword:
-                                List<String>.from(selectedPassword),
-                            updatedAt: now,
-                          );
-
-                          final saved = existing == null
-                              ? await repo.createChildProfile(updatedProfile)
-                              : await repo.updateChildProfile(updatedProfile);
-
-                          if (saved == null) {
-                            setDialogState(() {
-                              isSaving = false;
-                            });
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.childProfileAddFailed),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                            return;
-                          }
-
-                          if (mounted) {
-                            Navigator.of(dialogContext).pop();
-                            _refreshChildren();
-                            _selectChild(saved);
-                          }
-                        }
-                      : null,
-                  child: isSaving
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                            color: AppColors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Text(l10n.save),
-                ),
-              ],
-            );
+            ),
+          ),
+        );
           },
         );
       },
@@ -894,6 +1145,9 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
   }
 
   Widget _buildManualLogin(AppLocalizations l10n) {
+    final canLogin = !_isLoading &&
+        _childIdController.text.trim().isNotEmpty &&
+        _selectedPictures.length == 3;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -917,6 +1171,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_-]')),
           ],
+          onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 24),
         _buildPicturePasswordPicker(l10n),
@@ -925,9 +1180,9 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: _isLoading
-                ? null
-                : () => _loginWithChildId(childId: _childIdController.text),
+            onPressed: canLogin
+                ? () => _loginWithChildId(childId: _childIdController.text)
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.behavioral,
               foregroundColor: AppColors.white,
@@ -999,6 +1254,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     required bool canChangeChild,
   }) {
     final fallback = child.name.isNotEmpty ? child.name[0] : '?';
+    final canLogin = !_isLoading && _selectedPictures.length == 3;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1058,12 +1314,12 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: _isLoading
-                ? null
-                : () => _loginWithChildId(
+            onPressed: canLogin
+                ? () => _loginWithChildId(
                       childId: child.id,
                       childProfile: child,
-                    ),
+                    )
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.behavioral,
               foregroundColor: AppColors.white,

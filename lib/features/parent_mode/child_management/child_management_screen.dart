@@ -7,7 +7,6 @@ import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/app.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
-import 'package:kinder_world/core/providers/auth_controller.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
 import 'package:kinder_world/core/widgets/picture_password_row.dart';
 
@@ -67,6 +66,258 @@ class _ChildManagementScreenState
       iconColor: Color(0xFFFB8C00),
     ),
   ];
+  Future<List<ChildProfile>>? _childrenFuture;
+  String? _cachedParentId;
+  OverlayEntry? _topMessageEntry;
+
+  List<Map<String, dynamic>> _extractChildrenList(dynamic data) {
+    if (data is List) {
+      return data
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+    if (data is Map) {
+      final listData =
+          data['children'] ?? data['data'] ?? data['results'] ?? data['items'];
+      if (listData is List) {
+        return listData
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+      }
+    }
+    return [];
+  }
+
+  String? _parseChildId(Map<String, dynamic> data) {
+    final raw = data['id'] ?? data['child_id'] ?? data['childId'];
+    return raw?.toString();
+  }
+
+  int _parseInt(dynamic value, int fallback) {
+    if (value is int) return value;
+    if (value is double) return value.round();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  DateTime _parseDate(dynamic value, DateTime fallback) {
+    if (value is DateTime) return value;
+    if (value is String) {
+      final parsed = DateTime.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
+    return fallback;
+  }
+
+  DateTime? _parseNullableDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
+    return null;
+  }
+
+  List<String> _parseStringList(dynamic value) {
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return const [];
+  }
+
+  List<String>? _parseNullableStringList(dynamic value) {
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return null;
+  }
+
+  ChildProfile? _mergeChildProfileFromApi(
+    Map<String, dynamic> data, {
+    required String parentId,
+    String? parentEmail,
+    ChildProfile? existing,
+  }) {
+    final childId = _parseChildId(data);
+    if (childId == null || childId.isEmpty) return null;
+
+    final now = DateTime.now();
+    final apiName = data['name']?.toString().trim();
+    final resolvedName =
+        (apiName != null && apiName.isNotEmpty) ? apiName : (existing?.name ?? childId);
+    final existingAge = existing?.age ?? 0;
+    final age = existingAge > 0 ? existingAge : _parseInt(data['age'], 0);
+    final existingLevel = existing?.level ?? 0;
+    final level = existingLevel > 0 ? existingLevel : _parseInt(data['level'], 1);
+    final avatar = existing?.avatar ?? data['avatar']?.toString() ?? _avatarOptions.first.id;
+    final picturePassword = (existing?.picturePassword.isNotEmpty ?? false)
+        ? existing!.picturePassword
+        : _parseStringList(data['picture_password']);
+    final createdAt = existing?.createdAt ?? _parseDate(data['created_at'], now);
+    final updatedAt = _parseDate(data['updated_at'], now);
+    final lastSession =
+        existing?.lastSession ?? _parseNullableDate(data['last_session']);
+
+    return ChildProfile(
+      id: childId,
+      name: resolvedName,
+      age: age,
+      avatar: avatar,
+      interests: existing?.interests ?? _parseStringList(data['interests']),
+      level: level,
+      xp: existing?.xp ?? _parseInt(data['xp'], 0),
+      streak: existing?.streak ?? _parseInt(data['streak'], 0),
+      favorites: existing?.favorites ?? _parseStringList(data['favorites']),
+      parentId: parentId,
+      parentEmail: existing?.parentEmail ??
+          parentEmail ??
+          data['parent_email']?.toString(),
+      picturePassword: picturePassword,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      lastSession: lastSession,
+      totalTimeSpent:
+          existing?.totalTimeSpent ?? _parseInt(data['total_time_spent'], 0),
+      activitiesCompleted: existing?.activitiesCompleted ??
+          _parseInt(data['activities_completed'], 0),
+      currentMood: existing?.currentMood ?? data['current_mood']?.toString(),
+      learningStyle:
+          existing?.learningStyle ?? data['learning_style']?.toString(),
+      specialNeeds:
+          existing?.specialNeeds ?? _parseNullableStringList(data['special_needs']),
+      accessibilityNeeds: existing?.accessibilityNeeds ??
+          _parseNullableStringList(data['accessibility_needs']),
+    );
+  }
+
+  String? _extractChildIdFromResponse(dynamic data) {
+    if (data is Map) {
+      final child = data['child'];
+      if (child is Map) {
+        return _parseChildId(Map<String, dynamic>.from(child)) ??
+            _parseChildId(Map<String, dynamic>.from(data));
+      }
+      return _parseChildId(Map<String, dynamic>.from(data));
+    }
+    return null;
+  }
+
+  Future<List<ChildProfile>> _loadChildrenForParent(String parentId) async {
+    final repo = ref.read(childRepositoryProvider);
+    final localChildren = await repo.getChildProfilesForParent(parentId);
+    final childrenById = {
+      for (final child in localChildren) child.id: child,
+    };
+
+    final token = await ref.read(secureStorageProvider).getAuthToken();
+    if (token == null || token.startsWith('child_session_')) {
+      return childrenById.values.toList();
+    }
+
+    final parentEmail = await ref.read(secureStorageProvider).getParentEmail();
+    try {
+      final response = await ref.read(networkServiceProvider).get<dynamic>(
+        '/children',
+      );
+      final apiChildren = _extractChildrenList(response.data);
+      for (final childData in apiChildren) {
+        final childId = _parseChildId(childData);
+        if (childId == null || childId.isEmpty) continue;
+        final existing = childrenById[childId];
+        final merged = _mergeChildProfileFromApi(
+          childData,
+          parentId: parentId,
+          parentEmail: parentEmail,
+          existing: existing,
+        );
+        if (merged == null) continue;
+        childrenById[childId] = merged;
+        if (existing == null) {
+          await repo.createChildProfile(merged);
+        } else {
+          await repo.updateChildProfile(merged);
+        }
+      }
+    } catch (_) {
+      return childrenById.values.toList();
+    }
+
+    return childrenById.values.toList();
+  }
+
+  void _showTopMessage(String message, {bool isError = true}) {
+    if (!mounted) return;
+    _topMessageEntry?.remove();
+    final textDirection = Directionality.of(context);
+    _topMessageEntry = OverlayEntry(
+      builder: (overlayContext) {
+        return Positioned(
+          top: MediaQuery.of(overlayContext).padding.top + 12,
+          left: 16,
+          right: 16,
+          child: Directionality(
+            textDirection: textDirection,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isError ? AppColors.error : AppColors.success,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    final overlay = Overlay.of(context, rootOverlay: true);
+    if (overlay == null) return;
+    final entry = _topMessageEntry!;
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (_topMessageEntry == entry) {
+        entry.remove();
+        _topMessageEntry = null;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _topMessageEntry?.remove();
+    _topMessageEntry = null;
+    super.dispose();
+  }
 
   _AvatarOption? _avatarForValue(String? value) {
     if (value == null || value.isEmpty) return null;
@@ -184,10 +435,12 @@ class _ChildManagementScreenState
                   future: ref.read(secureStorageProvider).getParentId(),
                   builder: (context, parentIdSnapshot) {
                     final parentId = parentIdSnapshot.data ?? '';
+                    if (_childrenFuture == null || _cachedParentId != parentId) {
+                      _cachedParentId = parentId;
+                      _childrenFuture = _loadChildrenForParent(parentId);
+                    }
                     return FutureBuilder<List<ChildProfile>>(
-                      future: ref
-                          .read(childRepositoryProvider)
-                          .getChildProfilesForParent(parentId),
+                      future: _childrenFuture,
                       builder: (context, childrenSnapshot) {
                         final repoChildren = childrenSnapshot.data ?? [];
                         final children = repoChildren;
@@ -286,68 +539,21 @@ class _ChildManagementScreenState
         onPressed: () async {
           final parentContext = context;
           final messenger = ScaffoldMessenger.of(parentContext);
-          final storedParentEmail =
-              await ref.read(secureStorageProvider).getParentEmail();
-          final authEmail = ref.read(authControllerProvider).user?.email;
-          final fallbackEmail =
-              authEmail != null && authEmail != 'user@example.com'
-                  ? authEmail
-                  : null;
-          String? normalizeParentEmail(String? value) {
-            final trimmed = value?.trim();
-            if (trimmed == null ||
-                trimmed.isEmpty ||
-                trimmed == 'user@example.com') {
-              return null;
-            }
-            return trimmed;
-          }
-
-          final knownParentEmail = normalizeParentEmail(fallbackEmail) ??
-              normalizeParentEmail(storedParentEmail);
-          final parentEmailController = TextEditingController(
-            text: knownParentEmail ?? '',
-          );
           String name = '';
           int? age;
           String selectedAvatar = _avatarOptions.first.id;
           final List<String> picturePassword = [];
-          bool emailTouched = false;
           bool passwordTouched = false;
-
-          bool isValidEmail(String value) {
-            final trimmed = value.trim();
-            if (trimmed.isEmpty) return false;
-            return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                .hasMatch(trimmed);
-          }
+          bool isSaving = false;
 
           await showDialog<void>(
             context: parentContext,
             builder: (dialogContext) {
               return StatefulBuilder(
                 builder: (context, setDialogState) {
-                  final emailValue = parentEmailController.text.trim();
-                  final emailValid = isValidEmail(emailValue);
-                  final matchesKnownParent = knownParentEmail != null &&
-                      knownParentEmail!.isNotEmpty &&
-                      emailValue.toLowerCase() ==
-                          knownParentEmail!.toLowerCase();
-                  final canSave =
-                      name.trim().isNotEmpty &&
-                      age != null &&
-                      emailValid &&
-                      matchesKnownParent &&
-                      picturePassword.length == 3;
-                  final String? emailError = emailTouched
-                      ? (emailValue.isEmpty
-                          ? l10n.fieldRequired
-                          : (!emailValid
-                              ? l10n.invalidEmail
-                              : (matchesKnownParent
-                                  ? null
-                                  : l10n.parentEmailNotFound)))
-                      : null;
+                  final canSave = name.trim().isNotEmpty &&
+                      picturePassword.length == 3 &&
+                      !isSaving;
                   final showPasswordError =
                       passwordTouched && picturePassword.length != 3;
                   void togglePicture(String pictureId) {
@@ -377,21 +583,6 @@ class _ChildManagementScreenState
                             ],
                             onChanged: (v) => setDialogState(() {
                               name = v;
-                            }),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: parentEmailController,
-                            decoration: InputDecoration(
-                              labelText: l10n.parentEmail,
-                              errorText: emailError,
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                            textCapitalization: TextCapitalization.none,
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            onChanged: (_) => setDialogState(() {
-                              emailTouched = true;
                             }),
                           ),
                           const SizedBox(height: 12),
@@ -526,96 +717,125 @@ class _ChildManagementScreenState
                       ElevatedButton(
                         onPressed: canSave
                             ? () async {
-                                if (!isValidEmail(
-                                    parentEmailController.text.trim())) {
+                                setDialogState(() {
+                                  isSaving = true;
+                                  passwordTouched = true;
+                                });
+
+                                final trimmedName = name.trim();
+                                if (trimmedName.isEmpty ||
+                                    picturePassword.length != 3) {
                                   setDialogState(() {
-                                    emailTouched = true;
+                                    isSaving = false;
                                   });
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.invalidEmail),
-                                      backgroundColor: AppColors.error,
-                                    ),
-                                  );
+                                  _showTopMessage(l10n.childLoginMissingData);
                                   return;
                                 }
-                                final normalizedKnownEmail =
-                                    knownParentEmail?.trim();
-                                if (normalizedKnownEmail == null ||
-                                    normalizedKnownEmail.isEmpty ||
-                                    normalizedKnownEmail.toLowerCase() !=
-                                        parentEmailController.text
-                                            .trim()
-                                            .toLowerCase()) {
-                                  setDialogState(() {
-                                    emailTouched = true;
-                                  });
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.parentEmailNotFound),
-                                      backgroundColor: AppColors.error,
-                                    ),
+
+                                Map<String, dynamic>? responseData;
+                                try {
+                                  final response = await ref
+                                      .read(networkServiceProvider)
+                                      .post<Map<String, dynamic>>(
+                                    '/children',
+                                    data: {
+                                      'name': trimmedName,
+                                      'picture_password':
+                                          List<String>.from(picturePassword),
+                                    },
                                   );
+                                  responseData = response.data;
+                                } catch (_) {
+                                  setDialogState(() {
+                                    isSaving = false;
+                                  });
+                                  _showTopMessage(l10n.childProfileAddFailed);
                                   return;
                                 }
-                                Navigator.of(dialogContext).pop();
-                                final parentEmail =
-                                    parentEmailController.text.trim();
-                                await ref
-                                    .read(secureStorageProvider)
-                                    .saveUserEmail(parentEmail);
+
+                                final childId =
+                                    _extractChildIdFromResponse(responseData);
+                                if (childId == null || childId.isEmpty) {
+                                  setDialogState(() {
+                                    isSaving = false;
+                                  });
+                                  _showTopMessage(l10n.childProfileAddFailed);
+                                  return;
+                                }
+
                                 final parentId = await ref
                                     .read(secureStorageProvider)
                                     .getParentId();
+                                final parentEmail = await ref
+                                    .read(secureStorageProvider)
+                                    .getParentEmail();
+                                final now = DateTime.now();
+                                final repo =
+                                    ref.read(childRepositoryProvider);
+                                final existing =
+                                    await repo.getChildProfile(childId);
                                 final newProfile = ChildProfile(
-                                  id: 'child_${DateTime.now().millisecondsSinceEpoch}',
-                                  name: name.trim(),
-                                  age: age!,
+                                  id: childId,
+                                  name: trimmedName,
+                                  age: age ?? 0,
                                   avatar: selectedAvatar,
-                                  interests: [],
-                                  level: 1,
-                                  xp: 0,
-                                  streak: 0,
-                                  favorites: [],
-                                  parentId: parentId ?? parentEmail,
-                                  parentEmail: parentEmail,
+                                  interests: existing?.interests ?? const [],
+                                  level: existing?.level ?? 1,
+                                  xp: existing?.xp ?? 0,
+                                  streak: existing?.streak ?? 0,
+                                  favorites: existing?.favorites ?? const [],
+                                  parentId: parentId ?? 'local',
+                                  parentEmail:
+                                      existing?.parentEmail ?? parentEmail,
                                   picturePassword:
                                       List<String>.from(picturePassword),
-                                  createdAt: DateTime.now(),
-                                  updatedAt: DateTime.now(),
-                                  totalTimeSpent: 0,
-                                  activitiesCompleted: 0,
-                                  currentMood: 'happy',
+                                  createdAt: existing?.createdAt ?? now,
+                                  updatedAt: now,
+                                  totalTimeSpent: existing?.totalTimeSpent ?? 0,
+                                  activitiesCompleted:
+                                      existing?.activitiesCompleted ?? 0,
+                                  currentMood: existing?.currentMood,
+                                  learningStyle: existing?.learningStyle,
+                                  specialNeeds: existing?.specialNeeds,
+                                  accessibilityNeeds: existing?.accessibilityNeeds,
                                 );
 
-                                final created = await ref
-                                    .read(childRepositoryProvider)
-                                    .createChildProfile(newProfile);
+                                final saved = existing == null
+                                    ? await repo.createChildProfile(newProfile)
+                                    : await repo.updateChildProfile(newProfile);
 
-                                if (!mounted) {
-                                  return;
-                                }
+                                if (!mounted) return;
 
-                                if (created != null) {
+                                if (saved != null) {
                                   messenger.showSnackBar(
                                     SnackBar(
                                       content: Text(l10n.childProfileAdded),
                                     ),
                                   );
                                 } else {
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.childProfileAddFailed),
-                                    ),
-                                  );
+                                  _showTopMessage(l10n.childProfileAddFailed);
                                 }
-                                if (!mounted) {
-                                  return;
+
+                                if (!mounted) return;
+                                Navigator.of(dialogContext).pop();
+                                if (_cachedParentId != null) {
+                                  setState(() {
+                                    _childrenFuture =
+                                        _loadChildrenForParent(_cachedParentId!);
+                                  });
                                 }
-                                setState(() {});
                               }
                             : null,
-                        child: Text(l10n.addChild),
+                        child: isSaving
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  color: AppColors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(l10n.addChild),
                       ),
                     ],
                   );
@@ -623,7 +843,6 @@ class _ChildManagementScreenState
               );
             },
           );
-          parentEmailController.dispose();
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
@@ -633,6 +852,15 @@ class _ChildManagementScreenState
 
   Widget _buildChildCard(ChildProfile child) {
     final l10n = AppLocalizations.of(context)!;
+    final hasAge = child.age > 0;
+    final hasLevel = child.level > 0;
+    final details = <String>[];
+    if (hasAge) {
+      details.add(l10n.yearsOld(child.age));
+    }
+    if (hasLevel) {
+      details.add('${l10n.level} ${child.level}');
+    }
     return InkWell(
       onTap: () => context.push('/parent/child-profile', extra: child),
       borderRadius: BorderRadius.circular(20),
@@ -681,13 +909,49 @@ class _ChildManagementScreenState
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  Text(
-                    '${l10n.yearsOld(child.age)} - ${l10n.level} ${child.level}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${l10n.childId}: ${child.id}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          await Clipboard.setData(
+                            ClipboardData(text: child.id),
+                          );
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.success),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.copy, size: 16),
+                        color: AppColors.textSecondary,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints.tightFor(
+                          width: 28,
+                          height: 28,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
                   ),
+                  if (details.isNotEmpty)
+                    Text(
+                      details.join(' - '),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,

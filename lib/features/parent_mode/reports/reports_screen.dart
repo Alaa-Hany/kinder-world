@@ -87,6 +87,70 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     ];
   }
 
+  String _formatPercentLabel(double value, double total) {
+    if (total <= 0 || value <= 0) return '';
+    final percent = ((value / total) * 100).round();
+    return '$percent%';
+  }
+
+  TextStyle _sliceLabelStyle(Color color) {
+    final isDark = color.computeLuminance() < 0.45;
+    return TextStyle(
+      fontSize: AppConstants.fontSize - 2,
+      fontWeight: FontWeight.w600,
+      color: isDark ? AppColors.white : AppColors.textPrimary,
+      shadows: isDark
+          ? [
+              Shadow(
+                color: AppColors.black.withValues(alpha: 0.35),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ]
+          : null,
+    );
+  }
+
+  Widget _buildActivityLegend(
+    List<_ActivitySegment> segments,
+    TextDirection textDirection,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      textDirection: textDirection,
+      children: List.generate(segments.length, (index) {
+        final segment = segments[index];
+        return Padding(
+          padding: EdgeInsets.only(bottom: index == segments.length - 1 ? 0 : 8),
+          child: Row(
+            textDirection: textDirection,
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: segment.color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  segment.label,
+                  style: const TextStyle(
+                    fontSize: AppConstants.fontSize,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
   void _showChildSelection(List<ChildProfile> children) {
     showModalBottomSheet<void>(
       context: context,
@@ -176,6 +240,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 final selectedChild =
                     _selectedChild ?? (children.isNotEmpty ? children.first : null);
                 final metrics = _periodMetrics();
+                final segments = _activitySegments(l10n);
+                final textDirection = Directionality.of(context);
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(24.0),
@@ -313,67 +379,67 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           children: [
                             Text(
                               l10n.activityBreakdown,
-                              style: const TextStyle(
-                                fontSize: AppConstants.fontSize,
+                              style: TextStyle(
+                                fontSize: AppConstants.fontSize + 2,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 20),
-                            SizedBox(
-                              height: 180,
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final size = Size(
-                                    constraints.maxWidth,
-                                    constraints.maxHeight,
-                                  );
-                                  final double chartRadius = math.max(
-                                    0.0,
-                                    (math.min(size.width, size.height) / 2) - 14.0,
-                                  );
-                                  final double centerSpaceRadius =
-                                      chartRadius * 0.6;
-                                  final double labelRadius = math.max(
-                                    0.0,
-                                    centerSpaceRadius +
-                                        ((chartRadius - centerSpaceRadius) / 2),
-                                  );
-                                  final segments = _activitySegments(l10n);
-                                  final textDirection = Directionality.of(context);
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                const chartHeight = 180.0;
+                                final chartSize =
+                                    math.min(constraints.maxWidth, chartHeight);
+                                final chartRadius = math.max(
+                                  0.0,
+                                  (chartSize / 2) - 14.0,
+                                );
+                                final centerSpaceRadius = chartRadius * 0.6;
+                                final ringCenter = centerSpaceRadius +
+                                    ((chartRadius - centerSpaceRadius) / 2);
+                                final titleOffset =
+                                    chartRadius > 0 ? ringCenter / chartRadius : 0.5;
+                                final total = segments.fold<double>(
+                                  0,
+                                  (sum, segment) => sum + segment.value,
+                                );
 
-                                  return Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      PieChart(
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      height: chartHeight,
+                                      child: PieChart(
                                         PieChartData(
                                           startDegreeOffset: -90,
                                           centerSpaceRadius: centerSpaceRadius,
                                           sectionsSpace: 2,
-                                          sections: segments
-                                              .map(
-                                                (segment) => PieChartSectionData(
-                                                  value: segment.value,
-                                                  color: segment.color,
-                                                  radius: chartRadius,
-                                                  showTitle: false,
-                                                ),
-                                              )
-                                              .toList(),
+                                          sections: segments.map((segment) {
+                                            final title = _formatPercentLabel(
+                                              segment.value,
+                                              total,
+                                            );
+                                            return PieChartSectionData(
+                                              value: segment.value,
+                                              color: segment.color,
+                                              radius: chartRadius,
+                                              showTitle: title.isNotEmpty,
+                                              title: title,
+                                              titleStyle:
+                                                  _sliceLabelStyle(segment.color),
+                                              titlePositionPercentageOffset:
+                                                  titleOffset,
+                                            );
+                                          }).toList(),
                                         ),
                                       ),
-                                      CustomPaint(
-                                        size: size,
-                                        painter: _ArcTextPainter(
-                                          segments: segments,
-                                          radius: labelRadius,
-                                          textDirection: textDirection,
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    _buildActivityLegend(segments, textDirection),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -614,139 +680,4 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-}
-
-class _ArcTextPainter extends CustomPainter {
-  _ArcTextPainter({
-    required this.segments,
-    required this.radius,
-    required this.textDirection,
-  });
-
-  final List<_ActivitySegment> segments;
-  final double radius;
-  final TextDirection textDirection;
-
-  static const double _baseFontSize = 10;
-  static const double _sliceWidth = 2;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (radius <= 0) return;
-
-    final total = segments.fold<double>(0, (sum, segment) => sum + segment.value);
-    if (total <= 0) return;
-
-    final center = size.center(Offset.zero);
-    var startAngle = -math.pi / 2;
-
-    for (final segment in segments) {
-      final sweepAngle = (segment.value / total) * math.pi * 2;
-      if (sweepAngle == 0) {
-        startAngle += sweepAngle;
-        continue;
-      }
-      _paintCurvedLabel(
-        canvas: canvas,
-        center: center,
-        radius: radius,
-        startAngle: startAngle,
-        sweepAngle: sweepAngle,
-        text: segment.label,
-      );
-      startAngle += sweepAngle;
-    }
-  }
-
-  void _paintCurvedLabel({
-    required Canvas canvas,
-    required Offset center,
-    required double radius,
-    required double startAngle,
-    required double sweepAngle,
-    required String text,
-  }) {
-    final baseStyle = const TextStyle(
-      color: AppColors.white,
-      fontSize: _baseFontSize,
-      fontWeight: FontWeight.w600,
-    );
-
-    var painter = TextPainter(
-      text: TextSpan(text: text, style: baseStyle),
-      textDirection: textDirection,
-      textAlign: TextAlign.center,
-      maxLines: 1,
-    )..layout();
-
-    if (painter.width == 0) return;
-
-    final arcLength = radius * sweepAngle.abs();
-    final scale = arcLength > 0 ? math.min(1.0, arcLength / painter.width) : 1.0;
-    if (scale < 1.0) {
-      painter = TextPainter(
-        text: TextSpan(
-          text: text,
-          style: baseStyle.copyWith(fontSize: _baseFontSize * scale),
-        ),
-        textDirection: textDirection,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-      )..layout();
-    }
-
-    final metrics = painter.computeLineMetrics();
-    final baseline = metrics.isNotEmpty ? metrics.first.baseline : painter.height;
-    final textWidth = painter.width;
-    final textHeight = painter.height;
-    final centerAngle = startAngle + (sweepAngle / 2);
-    final flip = _shouldFlip(centerAngle);
-    final isRtl = textDirection == TextDirection.rtl;
-
-    final directionSweep = flip ? -sweepAngle : sweepAngle;
-    final maxLabelSweep = directionSweep.abs();
-    final labelSweep = radius > 0 ? textWidth / radius : 0;
-    final usedSweep = math.min(maxLabelSweep, labelSweep);
-    final finalSweep = usedSweep * (directionSweep.isNegative ? -1 : 1);
-    final labelStart = centerAngle - (finalSweep / 2);
-
-    final sliceCount = math.max(1, (textWidth / _sliceWidth).ceil());
-    final actualSliceWidth = textWidth / sliceCount;
-    final paintOffset = Offset(-textWidth / 2, -baseline);
-
-    for (var i = 0; i < sliceCount; i++) {
-      final sliceCenter = (i + 0.5) * actualSliceWidth;
-      final x = isRtl ? textWidth - sliceCenter : sliceCenter;
-      final t = isRtl ? 1 - (sliceCenter / textWidth) : (sliceCenter / textWidth);
-      final angle = labelStart + (finalSweep * t);
-      final rotation = angle + math.pi / 2 + (flip ? math.pi : 0);
-
-      canvas.save();
-      canvas.translate(center.dx, center.dy);
-      canvas.translate(radius * math.cos(angle), radius * math.sin(angle));
-      canvas.rotate(rotation);
-      canvas.clipRect(
-        Rect.fromLTWH(
-          paintOffset.dx + x - (actualSliceWidth / 2),
-          paintOffset.dy,
-          actualSliceWidth,
-          textHeight,
-        ),
-      );
-      painter.paint(canvas, paintOffset);
-      canvas.restore();
-    }
-  }
-
-  bool _shouldFlip(double angle) {
-    final normalized = (angle + (math.pi * 2)) % (math.pi * 2);
-    return normalized > math.pi / 2 && normalized < math.pi * 1.5;
-  }
-
-  @override
-  bool shouldRepaint(covariant _ArcTextPainter oldDelegate) {
-    return oldDelegate.segments != segments ||
-        oldDelegate.radius != radius ||
-        oldDelegate.textDirection != textDirection;
-  }
 }

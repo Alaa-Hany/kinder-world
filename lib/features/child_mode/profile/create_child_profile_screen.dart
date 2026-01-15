@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kinder_world/app.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/providers/auth_controller.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/features/child_mode/paywall/child_paywall_screen.dart';
 
 class CreateChildProfileScreen extends ConsumerStatefulWidget {
   const CreateChildProfileScreen({super.key});
@@ -20,6 +23,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
   
   // Step 1: Basic Info
   final _nameController = TextEditingController();
+  final _parentEmailController = TextEditingController();
   int _selectedAge = 6;
   
   // Step 2: Avatar
@@ -30,6 +34,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
   
   // Step 4: Picture Password
   final List<String> _picturePassword = [];
+  OverlayEntry? _topMessageEntry;
   
   // Available avatars
   final List<String> _avatarOptions = [
@@ -69,8 +74,82 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
 
   @override
   void dispose() {
+    _topMessageEntry?.remove();
+    _topMessageEntry = null;
     _nameController.dispose();
+    _parentEmailController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadParentEmail();
+  }
+
+  Future<void> _loadParentEmail() async {
+    final storedEmail = await ref.read(secureStorageProvider).getParentEmail();
+    if (!mounted) return;
+    if (storedEmail != null &&
+        storedEmail.isNotEmpty &&
+        _parentEmailController.text.isEmpty) {
+      _parentEmailController.text = storedEmail;
+    }
+  }
+
+  void _showTopMessage(String message, {bool isError = true}) {
+    if (!mounted) return;
+    _topMessageEntry?.remove();
+    final textDirection = Directionality.of(context);
+    _topMessageEntry = OverlayEntry(
+      builder: (overlayContext) {
+        return Positioned(
+          top: MediaQuery.of(overlayContext).padding.top + 12,
+          left: 16,
+          right: 16,
+          child: Directionality(
+            textDirection: textDirection,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isError ? AppColors.error : AppColors.success,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    final overlay = Overlay.of(context, rootOverlay: true);
+    if (overlay == null) return;
+    final entry = _topMessageEntry!;
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (_topMessageEntry == entry) {
+        entry.remove();
+        _topMessageEntry = null;
+      }
+    });
   }
 
   void _onPictureSelected(String pictureId) {
@@ -93,47 +172,145 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
     });
   }
 
+  String _mapChildRegisterError(AppLocalizations l10n, String? error) {
+    switch (error) {
+      case 'child_register_404':
+        return l10n.childRegisterParentNotFound;
+      case 'child_register_401':
+        return l10n.childRegisterForbidden;
+      case 'child_register_422':
+        return l10n.childLoginMissingData;
+      case 'child_register_limit':
+        return l10n.childRegisterLimitReached;
+      default:
+        return l10n.registerError;
+    }
+  }
+
+  String _mapChildLoginError(AppLocalizations l10n, String? error) {
+    switch (error) {
+      case 'child_login_404':
+        return l10n.childLoginNotFound;
+      case 'child_login_401':
+        return l10n.childLoginIncorrectPictures;
+      case 'child_login_422':
+        return l10n.childLoginMissingData;
+      default:
+        return l10n.loginError;
+    }
+  }
+
+  Future<bool> _openPaywall() async {
+    if (!mounted) return false;
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => const ChildPaywallScreen(),
+      ),
+    );
+    return result == true;
+  }
+
   Future<void> _createProfile() async {
-    if (_formKey.currentState!.validate() && 
-        _selectedInterests.isNotEmpty && 
-        _picturePassword.length == 3) {
-      
-      // Create new child profile
-      final newProfile = ChildProfile(
-        id: 'child_${DateTime.now().millisecondsSinceEpoch}',
-        name: _nameController.text,
-        age: _selectedAge,
-        avatar: _selectedAvatar,
-        interests: _selectedInterests,
-        level: 1,
-        xp: 0,
-        streak: 0,
-        favorites: [],
-        parentId: 'parent1', // In real app, get from auth
-        picturePassword: _picturePassword,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        totalTimeSpent: 0,
-        activitiesCompleted: 0,
-        currentMood: 'happy',
+    final l10n = AppLocalizations.of(context)!;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedInterests.isEmpty || _picturePassword.length != 3) {
+      _showTopMessage(l10n.childLoginMissingData);
+      return;
+    }
+
+    final trimmedName = _nameController.text.trim();
+    final trimmedEmail = _parentEmailController.text.trim();
+    if (trimmedName.isEmpty || trimmedEmail.isEmpty) {
+      _showTopMessage(l10n.childLoginMissingData);
+      return;
+    }
+
+    final authController = ref.read(authControllerProvider.notifier);
+    var response = await authController.registerChild(
+      name: trimmedName,
+      picturePassword: List<String>.from(_picturePassword),
+      parentEmail: trimmedEmail,
+    );
+
+    if (response == null &&
+        ref.read(authControllerProvider).error == 'child_register_limit') {
+      _showTopMessage(l10n.childRegisterLimitReached);
+      final upgraded = await _openPaywall();
+      if (!upgraded) return;
+      response = await authController.registerChild(
+        name: trimmedName,
+        picturePassword: List<String>.from(_picturePassword),
+        parentEmail: trimmedEmail,
       );
-      
-      // Authenticate and start session
-      final authSuccess = await ref.read(authControllerProvider.notifier).loginChild(
-        childId: newProfile.id,
-        picturePassword: _picturePassword,
-      );
-      
-      if (authSuccess) {
-        await ref.read(childSessionControllerProvider.notifier).startChildSession(
-          childId: newProfile.id,
-          childProfile: newProfile,
-        );
-        
-        if (mounted) {
-          context.go('/child/home');
-        }
-      }
+    }
+
+    if (response == null) {
+      final error = ref.read(authControllerProvider).error;
+      _showTopMessage(_mapChildRegisterError(l10n, error));
+      return;
+    }
+
+    await ref.read(secureStorageProvider).saveUserEmail(trimmedEmail);
+
+    final resolvedName = response.name?.trim().isNotEmpty == true
+        ? response.name!.trim()
+        : trimmedName;
+    final now = DateTime.now();
+    final repo = ref.read(childRepositoryProvider);
+    final existing = await repo.getChildProfile(response.childId);
+    final newProfile = ChildProfile(
+      id: response.childId,
+      name: resolvedName,
+      age: _selectedAge,
+      avatar: _selectedAvatar,
+      interests: _selectedInterests,
+      level: existing?.level ?? 1,
+      xp: existing?.xp ?? 0,
+      streak: existing?.streak ?? 0,
+      favorites: existing?.favorites ?? [],
+      parentId: existing?.parentId ?? trimmedEmail,
+      parentEmail: existing?.parentEmail ?? trimmedEmail,
+      picturePassword: List<String>.from(_picturePassword),
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+      totalTimeSpent: existing?.totalTimeSpent ?? 0,
+      activitiesCompleted: existing?.activitiesCompleted ?? 0,
+      currentMood: existing?.currentMood ?? 'happy',
+      learningStyle: existing?.learningStyle,
+      specialNeeds: existing?.specialNeeds,
+      accessibilityNeeds: existing?.accessibilityNeeds,
+    );
+
+    final saved = existing == null
+        ? await repo.createChildProfile(newProfile)
+        : await repo.updateChildProfile(newProfile);
+
+    if (saved == null) {
+      _showTopMessage(l10n.childProfileAddFailed);
+      return;
+    }
+
+    final authSuccess = await authController.loginChild(
+      childId: response.childId,
+      picturePassword: List<String>.from(_picturePassword),
+    );
+
+    if (!authSuccess) {
+      final error = ref.read(authControllerProvider).error;
+      _showTopMessage(_mapChildLoginError(l10n, error));
+      return;
+    }
+
+    await ref.read(childSessionControllerProvider.notifier).startChildSession(
+      childId: response.childId,
+      childProfile: saved,
+    );
+
+    if (mounted) {
+      context.go('/child/home');
     }
   }
 
@@ -269,6 +446,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
   }
 
   Widget _buildBasicInfoStep() {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -306,6 +484,35 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your child\'s name';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 24),
+
+          TextFormField(
+            controller: _parentEmailController,
+            decoration: InputDecoration(
+              labelText: l10n.parentEmail,
+              labelStyle: const TextStyle(color: AppColors.textSecondary),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefixIcon: const Icon(Icons.email),
+            ),
+            keyboardType: TextInputType.emailAddress,
+            textCapitalization: TextCapitalization.none,
+            autocorrect: false,
+            enableSuggestions: false,
+            validator: (value) {
+              final trimmed = value?.trim() ?? '';
+              if (trimmed.isEmpty) {
+                return l10n.fieldRequired;
+              }
+              final isValid =
+                  RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(trimmed);
+              if (!isValid) {
+                return l10n.invalidEmail;
               }
               return null;
             },

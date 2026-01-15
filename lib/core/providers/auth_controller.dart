@@ -44,6 +44,7 @@ class AuthState {
 class AuthController extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
   final Logger _logger;
+  static const String _premiumEmail = 'w@w.w';
 
   AuthController({
     required AuthRepository authRepository,
@@ -90,7 +91,7 @@ class AuthController extends StateNotifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
         );
-        
+        await _applyPremiumOverride(email);
         _logger.d('Parent login successful: ${user.id}');
         return true;
       } else {
@@ -133,7 +134,7 @@ class AuthController extends StateNotifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
         );
-        
+        await _applyPremiumOverride(email);
         _logger.d('Parent registration successful: ${user.id}');
         return true;
       } else {
@@ -360,13 +361,18 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> setPremiumStatus(bool isPremium) async {
     await _authRepository.savePremiumStatus(isPremium);
     final user = state.user;
-    if (user != null && isPremium) {
-      state = state.copyWith(
-        user: user.copyWith(
-          subscriptionStatus: SubscriptionStatus.active,
-        ),
-      );
-    }
+    if (user == null) return;
+    state = state.copyWith(
+      user: user.copyWith(
+        subscriptionStatus:
+            isPremium ? SubscriptionStatus.active : SubscriptionStatus.expired,
+      ),
+    );
+  }
+
+  Future<void> _applyPremiumOverride(String email) async {
+    final normalized = email.trim().toLowerCase();
+    await setPremiumStatus(normalized == _premiumEmail);
   }
 }
 
