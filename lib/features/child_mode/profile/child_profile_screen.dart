@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
-import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/providers/auth_controller.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
@@ -11,32 +10,55 @@ import 'package:kinder_world/core/theme/app_colors.dart';
 class ChildProfileScreen extends ConsumerWidget {
   const ChildProfileScreen({super.key});
 
-  ChildProfile _demoChild() {
-    final now = DateTime.now();
-    return ChildProfile(
-      id: 'demo_child',
-      name: 'Lina',
-      age: 7,
-      avatar: 'assets/images/avatars/girl1.png',
-      interests: const ['math', 'science', 'reading'],
-      level: 1,
-      xp: 120,
-      streak: 1,
-      favorites: const [],
-      parentId: 'demo-parent',
-      picturePassword: const ['apple', 'ball', 'cat'],
-      createdAt: now,
-      updatedAt: now,
-      totalTimeSpent: 30,
-      activitiesCompleted: 3,
-      currentMood: 'happy',
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final child = ref.watch(currentChildProvider) ?? _demoChild();
+    final child = ref.watch(currentChildProvider);
+
+    if (child == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.child_care_outlined,
+                    size: 80,
+                    color: AppColors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.noChildSelected,
+                    style: const TextStyle(
+                      fontSize: AppConstants.fontSize,
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => context.go('/child/login'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.white,
+                      minimumSize: const Size(200, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(l10n.login),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,

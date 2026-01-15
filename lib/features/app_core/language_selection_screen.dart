@@ -18,22 +18,6 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _slideAnimation;
-  
-  // Supported languages
-  final List<Map<String, dynamic>> languages = [
-    {
-      'code': 'en',
-      'name': 'English',
-      'flag': 'EN',
-      'rtl': false,
-    },
-    {
-      'code': 'ar',
-      'name': '???????',
-      'flag': 'AR',
-      'rtl': true,
-    },
-  ];
 
   @override
   void initState() {
@@ -75,6 +59,18 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final languages = [
+      {
+        'code': 'en',
+        'name': l10n.english,
+        'flag': 'EN',
+      },
+      {
+        'code': 'ar',
+        'name': l10n.arabic,
+        'flag': 'AR',
+      },
+    ];
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -133,13 +129,12 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                     const SizedBox(height: 12),
                     
                     // Subtitle
-                    const Text(
-                      'اختر لغتك',
-                      style: TextStyle(
+                    Text(
+                      l10n.chooseLanguageSubtitle,
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSize,
                         color: AppColors.textSecondary,
                       ),
-                      textDirection: TextDirection.rtl,
                     ),
                     const SizedBox(height: 48),
                     
@@ -163,9 +158,9 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: const Text(
-                        'Continue',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.continueText,
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSize,
                           fontWeight: FontWeight.w600,
                         ),

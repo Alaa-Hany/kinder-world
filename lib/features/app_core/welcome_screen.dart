@@ -72,11 +72,15 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
               ),
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                 // Logo
                 Container(
                   width: 150,
@@ -181,8 +185,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     color: AppColors.textSecondary,
                   ),
                 ),
-              ],
-            ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),

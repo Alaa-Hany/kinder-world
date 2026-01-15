@@ -20,6 +20,7 @@ _$ChildProfileImpl _$$ChildProfileImplFromJson(Map<String, dynamic> json) =>
       favorites:
           (json['favorites'] as List<dynamic>).map((e) => e as String).toList(),
       parentId: json['parentId'] as String,
+      parentEmail: json['parent_email'] as String?,
       picturePassword: (json['picture_password'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -52,6 +53,7 @@ Map<String, dynamic> _$$ChildProfileImplToJson(_$ChildProfileImpl instance) =>
       'streak': instance.streak,
       'favorites': instance.favorites,
       'parentId': instance.parentId,
+      'parent_email': instance.parentEmail,
       'picture_password': instance.picturePassword,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),

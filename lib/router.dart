@@ -24,11 +24,13 @@ import 'package:kinder_world/features/child_mode/profile/child_profile_screen.da
 
 import 'package:kinder_world/features/parent_mode/dashboard/parent_dashboard_screen.dart';
 import 'package:kinder_world/features/parent_mode/child_management/child_management_screen.dart';
+import 'package:kinder_world/features/parent_mode/child_management/parent_child_profile_screen.dart';
 import 'package:kinder_world/features/parent_mode/reports/reports_screen.dart';
 import 'package:kinder_world/features/parent_mode/controls/parental_controls_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/parent_settings_screen.dart';
 import 'package:kinder_world/features/parent_mode/subscription/subscription_screen.dart';
 import 'package:kinder_world/features/parent_mode/notifications/parent_notifications_screen.dart';
+import 'package:kinder_world/core/models/child_profile.dart';
 
 import 'package:kinder_world/features/system_pages/no_internet_screen.dart';
 import 'package:kinder_world/features/system_pages/help_support_screen.dart';
@@ -61,6 +63,7 @@ class Routes {
   // Parent
   static const parentDashboard = '/parent/dashboard';
   static const parentChildManagement = '/parent/child-management';
+  static const parentChildProfile = '/parent/child-profile';
   static const parentReports = '/parent/reports';
   static const parentControls = '/parent/controls';
   static const parentSettings = '/parent/settings';
@@ -295,8 +298,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChildManagementScreen(),
       ),
       GoRoute(
+        path: Routes.parentChildProfile,
+        builder: (context, state) {
+          final extra = state.extra;
+          ChildProfile? child;
+          if (extra is ChildProfile) {
+            child = extra;
+          } else if (extra is Map) {
+            try {
+              child = ChildProfile.fromJson(
+                Map<String, dynamic>.from(extra),
+              );
+            } catch (_) {
+              child = null;
+            }
+          }
+          if (child == null) {
+            return const ErrorScreen(error: 'Child profile not found');
+          }
+          return ParentChildProfileScreen(child: child);
+        },
+      ),
+      GoRoute(
         path: Routes.parentReports,
-        builder: (context, state) => const ReportsScreen(),
+        builder: (context, state) {
+          final initialChildId = state.extra as String?;
+          return ReportsScreen(initialChildId: initialChildId);
+        },
       ),
       GoRoute(
         path: Routes.parentControls,

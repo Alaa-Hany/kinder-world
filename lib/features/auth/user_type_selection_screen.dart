@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
 
 class UserTypeSelectionScreen extends ConsumerStatefulWidget {
   const UserTypeSelectionScreen({super.key});
@@ -52,6 +53,7 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -94,9 +96,9 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   const SizedBox(height: 32),
                   
                   // Title
-                  const Text(
-                    'Who are you?',
-                    style: TextStyle(
+                  Text(
+                    l10n.selectUserType,
+                    style: const TextStyle(
                       fontSize: AppConstants.largeFontSize * 1.2,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -105,9 +107,9 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   const SizedBox(height: 12),
                   
                   // Subtitle
-                  const Text(
-                    'Choose how you want to use Kinder World',
-                    style: TextStyle(
+                  Text(
+                    l10n.selectUserTypeSubtitle,
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSize,
                       color: AppColors.textSecondary,
                     ),
@@ -116,16 +118,16 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   
                   // User Type Cards
                   _buildUserTypeCard(
-                    'Parent',
-                    'Monitor progress, set controls, manage family',
+                    l10n.parentMode,
+                    l10n.parentModeDescription,
                     Icons.family_restroom,
                     AppColors.parentModeColor,
                     'parent',
                   ),
                   const SizedBox(height: 24),
                   _buildUserTypeCard(
-                    'Child',
-                    'Learn, play, and explore safely',
+                    l10n.childMode,
+                    l10n.childModeDescription,
                     Icons.child_care,
                     AppColors.behavioral,
                     'child',
@@ -134,11 +136,11 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   const SizedBox(height: 40),
                   
                   // Privacy note
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      'All user data is protected and COPPA/GDPR compliant',
-                      style: TextStyle(
+                      l10n.coppaGdprNote,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
                       ),

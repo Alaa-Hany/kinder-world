@@ -33,11 +33,13 @@ abstract class AppLocalizations {
   String get login;
   String get register;
   String get email;
+  String get parentEmail;
   String get password;
   String get confirmPassword;
   String get forgotPassword;
   String get parentLogin;
   String get childLogin;
+  String get childId;
   String get picturePassword;
   String get selectPicturePassword;
   String get confirmPicturePassword;
@@ -54,6 +56,22 @@ abstract class AppLocalizations {
   String get childProfileNotFound;
   String get failedToStartSession;
   String get incorrectPicturePassword;
+  String get childLoginNotFound;
+  String get childLoginIncorrectPictures;
+  String get childLoginMissingData;
+  String get createChildProfile;
+  String get childRegisterParentNotFound;
+  String get childRegisterLimitReached;
+  String get childRegisterForbidden;
+  String get paywallTitle;
+  String get paywallPrice;
+  String get paywallSubscribe;
+  String get paywallManagePaymentMethods;
+  String get paymentMethodsTitle;
+  String get paymentMethodsEmpty;
+  String get addPaymentMethod;
+  String get removePaymentMethod;
+  String get openPaymentPortal;
 
   // ✅ parameterized strings (NEW)
   String yearsOld(int age);
@@ -61,9 +79,12 @@ abstract class AppLocalizations {
 
   // User Types
   String get selectUserType;
+  String get selectUserTypeSubtitle;
   String get childMode;
   String get parentMode;
   String get teacherMode;
+  String get parentModeDescription;
+  String get childModeDescription;
 
   // Child Mode
   String get home;
@@ -261,6 +282,8 @@ abstract class AppLocalizations {
   String get picturePasswords;
   String get configurePreferences;
   String get deactivateProfiles;
+  String get childProfileAdded;
+  String get childProfileAddFailed;
 
   // Notifications (extended)
   String get markAllRead;
@@ -347,6 +370,7 @@ abstract class AppLocalizations {
   // Validation
   String get fieldRequired;
   String get invalidEmail;
+  String get parentEmailNotFound;
   String get passwordTooShort;
   String get passwordsDontMatch;
   String get invalidAge;

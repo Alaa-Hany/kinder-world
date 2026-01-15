@@ -1,0 +1,230 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:kinder_world/core/models/child_profile.dart';
+import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:kinder_world/core/widgets/picture_password_row.dart';
+
+class ParentChildProfileScreen extends StatelessWidget {
+  const ParentChildProfileScreen({
+    super.key,
+    required this.child,
+  });
+
+  final ChildProfile child;
+
+  static const Map<String, String> _avatarAssets = {
+    'avatar_1': 'assets/images/avatars/boy1.png',
+    'avatar_2': 'assets/images/avatars/boy2.png',
+    'avatar_3': 'assets/images/avatars/girl1.png',
+    'avatar_4': 'assets/images/avatars/girl2.png',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final fallback = child.name.isNotEmpty ? child.name[0] : '?';
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text(child.name),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildAvatarCircle(
+                avatar: child.avatar,
+                fallback: fallback,
+                size: 96,
+              ),
+              const SizedBox(height: 10),
+              PicturePasswordRow(
+                picturePassword: child.picturePassword,
+                size: 18,
+                showPlaceholders: true,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                child.name,
+                style: const TextStyle(
+                  fontSize: AppConstants.largeFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${l10n.yearsOld(child.age)} - ${l10n.level} ${child.level}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: [
+                  _buildStatChip(
+                    '${child.activitiesCompleted} ${l10n.activities}',
+                    AppColors.success,
+                  ),
+                  _buildStatChip(
+                    '${child.totalTimeSpent} ${l10n.timeSpent}',
+                    AppColors.info,
+                  ),
+                  _buildStatChip(
+                    '${child.streak} ${l10n.dailyStreak}',
+                    AppColors.streakColor,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              if (child.interests.isNotEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.childInterests,
+                        style: const TextStyle(
+                          fontSize: AppConstants.fontSize,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: child.interests
+                            .map((interest) => _buildInterestChip(interest))
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () =>
+                      context.push('/parent/reports', extra: child.id),
+                  icon: const Icon(Icons.pie_chart),
+                  label: Text(l10n.activityReports),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarCircle({
+    required String? avatar,
+    required String fallback,
+    required double size,
+  }) {
+    final resolvedAvatar = _avatarAssets[avatar] ?? avatar;
+    final fallbackWidget = Center(
+      child: Text(
+        fallback,
+        style: TextStyle(
+          fontSize: size * 0.45,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(size / 2),
+        border: Border.all(
+          color: AppColors.primary,
+          width: 2,
+        ),
+      ),
+      child: ClipOval(
+        child: resolvedAvatar != null &&
+                resolvedAvatar.isNotEmpty &&
+                resolvedAvatar.startsWith('assets/')
+            ? Image.asset(
+                resolvedAvatar,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => fallbackWidget,
+              )
+            : fallbackWidget,
+      ),
+    );
+  }
+
+  Widget _buildStatChip(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInterestChip(String interest) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        interest,
+        style: const TextStyle(
+          fontSize: 12,
+          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}

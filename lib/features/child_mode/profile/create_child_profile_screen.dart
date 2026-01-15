@@ -405,10 +405,16 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(40),
                       ),
-                      child: const Icon(
-                        Icons.person,
-                        size: 40,
-                        color: AppColors.primary,
+                      child: ClipOval(
+                        child: Image.asset(
+                          avatar,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.person,
+                            size: 40,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ),
                     ),
                   ),

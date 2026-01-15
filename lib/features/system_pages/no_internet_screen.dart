@@ -145,7 +145,6 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                       if (!mounted) {
                         return;
                       }
-                      // For demo, just show a message
                       messenger.showSnackBar(
                         const SnackBar(
                           content: Text('Still no connection. Please check your internet.'),

@@ -15,9 +15,11 @@ class SecureStorage {
   static const String _keyAuthToken = 'auth_token';
   static const String _keyRefreshToken = 'refresh_token';
   static const String _keyUserId = 'user_id';
+  static const String _keyUserEmail = 'user_email';
   static const String _keyUserRole = 'user_role';
   static const String _keyParentPin = 'parent_pin';
   static const String _keyChildSession = 'child_session';
+  static const String _keyIsPremium = 'is_premium';
 
   // ==================== AUTH TOKEN ====================
 
@@ -97,6 +99,34 @@ class SecureStorage {
   Future<bool> deleteUserId() async {
     try {
       await _storage.delete(key: _keyUserId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ==================== USER EMAIL ====================
+
+  Future<String?> getUserEmail() async {
+    try {
+      return await _storage.read(key: _keyUserEmail);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> saveUserEmail(String email) async {
+    try {
+      await _storage.write(key: _keyUserEmail, value: email);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteUserEmail() async {
+    try {
+      await _storage.delete(key: _keyUserEmail);
       return true;
     } catch (e) {
       return false;
@@ -196,6 +226,39 @@ class SecureStorage {
     }
   }
 
+  // ==================== PREMIUM STATUS ====================
+
+  Future<bool?> getIsPremium() async {
+    try {
+      final value = await _storage.read(key: _keyIsPremium);
+      if (value == null) return null;
+      return value == 'true';
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> saveIsPremium(bool isPremium) async {
+    try {
+      await _storage.write(
+        key: _keyIsPremium,
+        value: isPremium ? 'true' : 'false',
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> clearIsPremium() async {
+    try {
+      await _storage.delete(key: _keyIsPremium);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // ==================== CLEAR ALL ====================
 
   Future<bool> clearAll() async {
@@ -228,4 +291,7 @@ class SecureStorage {
 
   /// Backwards-compatible alias for getting the parent id (previous API used getParentId)
   Future<String?> getParentId() async => getUserId();
+
+  /// Backwards-compatible alias for getting the parent email
+  Future<String?> getParentEmail() async => getUserEmail();
 }

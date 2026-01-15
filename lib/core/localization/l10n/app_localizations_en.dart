@@ -60,6 +60,9 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get email => 'Email';
+
+  @override
+  String get parentEmail => 'Parent Email';
   
   @override
   String get password => 'Password';
@@ -75,6 +78,9 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get childLogin => 'Child Login';
+
+  @override
+  String get childId => 'Child ID';
   
   @override
   String get picturePassword => 'Picture Password';
@@ -96,6 +102,9 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get selectUserType => 'Select User Type';
+
+  @override
+  String get selectUserTypeSubtitle => 'Choose how you want to use Kinder World';
   
   @override
   String get childMode => 'Child Mode';
@@ -105,6 +114,12 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get teacherMode => 'Teacher Mode';
+
+  @override
+  String get parentModeDescription => 'Monitor progress, set controls, manage family';
+
+  @override
+  String get childModeDescription => 'Learn, play, and explore safely';
   
   @override
   String get home => 'Home';
@@ -603,6 +618,8 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get invalidEmail => 'Please enter a valid email';
+  String get parentEmailNotFound =>
+      'Parent email not found. Please sign in as a parent.';
   
   @override
   String get passwordTooShort => 'Password must be at least 6 characters';
@@ -658,6 +675,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get incorrectPicturePassword => 'Incorrect picture password. Please try again.';
 
+  @override
+  String get childLoginNotFound => 'Child not found';
+
+  @override
+  String get childLoginIncorrectPictures => 'Incorrect login pictures';
+
+  @override
+  String get childLoginMissingData => 'Complete the required data';
+
+  @override
+  String get createChildProfile => 'Create Child Profile';
+
+  @override
+  String get childRegisterParentNotFound => 'Parent email not found';
+
+  @override
+  String get childRegisterLimitReached =>
+      'You reached the maximum number of children in the free plan. Upgrade for \$10/month.';
+
+  @override
+  String get childRegisterForbidden => 'Not allowed';
+
+  @override
+  String get paywallTitle => 'Upgrade to Premium';
+
+  @override
+  String get paywallPrice => '\$10 / month';
+
+  @override
+  String get paywallSubscribe => 'Subscribe & Pay';
+
+  @override
+  String get paywallManagePaymentMethods => 'Manage payment methods';
+
+  @override
+  String get paymentMethodsTitle => 'Payment Methods';
+
+  @override
+  String get paymentMethodsEmpty => 'No payment methods added yet.';
+
+  @override
+  String get addPaymentMethod => 'Add payment method';
+
+  @override
+  String get removePaymentMethod => 'Remove';
+
+  @override
+  String get openPaymentPortal => 'Open payment portal';
+
+  @override
   // parameterized strings (NEW)
   @override
   String yearsOld(int age) => '$age years old';
@@ -800,6 +867,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deactivateProfiles => 'Deactivate profiles';
+
+  @override
+  String get childProfileAdded => 'Child profile added';
+
+  @override
+  String get childProfileAddFailed => 'Failed to add child';
 
   @override
   String get markAllRead => 'Mark All Read';

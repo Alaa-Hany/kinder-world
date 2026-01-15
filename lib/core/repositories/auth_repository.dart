@@ -1,17 +1,81 @@
+import 'package:dio/dio.dart';
 import 'package:kinder_world/core/models/user.dart';
+import 'package:kinder_world/core/network/network_service.dart';
 import 'package:kinder_world/core/storage/secure_storage.dart';
 import 'package:logger/logger.dart';
+
+class ChildLoginException implements Exception {
+  final int? statusCode;
+
+  const ChildLoginException({this.statusCode});
+}
+
+class ChildRegisterException implements Exception {
+  final int? statusCode;
+  final String? detailCode;
+
+  const ChildRegisterException({
+    this.statusCode,
+    this.detailCode,
+  });
+}
+
+class ChildRegisterResponse {
+  final String childId;
+  final String? name;
+
+  const ChildRegisterResponse({
+    required this.childId,
+    this.name,
+  });
+}
 
 /// Repository for authentication operations
 class AuthRepository {
   final SecureStorage _secureStorage;
+  final NetworkService _networkService;
   final Logger _logger;
 
   AuthRepository({
     required SecureStorage secureStorage,
+    required NetworkService networkService,
     required Logger logger,
   })  : _secureStorage = secureStorage,
+        _networkService = networkService,
         _logger = logger;
+
+  User? _userFromJson(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final userJson = Map<String, dynamic>.from(data);
+      final id = userJson['id'];
+      if (id != null) {
+        userJson['id'] = id.toString();
+      }
+      return User.fromJson(userJson);
+    }
+    return null;
+  }
+
+  Future<User?> _persistAuthFromResponse(Map<String, dynamic> data) async {
+    final user = _userFromJson(data['user']);
+    if (user == null) return null;
+
+    final accessToken = data['access_token'];
+    if (accessToken is String && accessToken.isNotEmpty) {
+      await _secureStorage.saveAuthToken(accessToken);
+    }
+
+    final refreshToken = data['refresh_token'];
+    if (refreshToken is String && refreshToken.isNotEmpty) {
+      await _secureStorage.saveRefreshToken(refreshToken);
+    }
+
+    await _secureStorage.saveUserId(user.id);
+    await _secureStorage.saveUserRole(user.role);
+    await _secureStorage.saveUserEmail(user.email);
+
+    return user;
+  }
 
   // ==================== AUTHENTICATION STATE ====================
 
@@ -28,22 +92,31 @@ class AuthRepository {
   /// Get current user from storage/API
   Future<User?> getCurrentUser() async {
     try {
-      final userId = await _secureStorage.getUserId();
       final role = await _secureStorage.getUserRole();
-      
-      if (userId == null || role == null) return null;
+      if (role == null) return null;
 
-      // TODO: Replace with actual API call
-      // For now, return mock user
-      return User(
-        id: userId,
-        email: 'user@example.com',
-        role: role,
-        name: 'Mock User',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        isActive: true,
-      );
+      if (role == UserRoles.child) {
+        final childId = await _secureStorage.getChildSession();
+        if (childId == null) return null;
+        final now = DateTime.now();
+        return User(
+          id: childId,
+          email: '$childId@child.local',
+          role: UserRoles.child,
+          name: 'Child $childId',
+          createdAt: now,
+          updatedAt: now,
+          isActive: true,
+        );
+      }
+
+      final response = await _networkService.get<Map<String, dynamic>>('/auth/me');
+      final data = response.data;
+      if (data == null) return null;
+      return _userFromJson(data['user']);
+    } on DioException catch (e) {
+      _logger.e('Error getting current user: ${e.message}');
+      return null;
     } catch (e) {
       _logger.e('Error getting current user: $e');
       return null;
@@ -70,36 +143,36 @@ class AuthRepository {
     try {
       _logger.d('Attempting parent login for: $email');
 
-      // TODO: Replace with actual API call
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Mock validation
       if (email.isEmpty || password.isEmpty) {
         _logger.w('Login failed: Empty credentials');
         return null;
       }
 
-      // Mock successful login
-      final mockUser = User(
-        id: 'parent_${DateTime.now().millisecondsSinceEpoch}',
-        email: email,
-        role: UserRoles.parent,
-        name: email.split('@')[0],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        isActive: true,
-        subscriptionStatus: SubscriptionStatus.trial,
-        trialEndDate: DateTime.now().add(const Duration(days: 14)),
+      final response = await _networkService.post<Map<String, dynamic>>(
+        '/auth/login',
+        data: {
+          'email': email,
+          'password': password,
+        },
       );
 
-      // Save to secure storage
-      await _secureStorage.saveAuthToken('mock_token_${mockUser.id}');
-      await _secureStorage.saveUserId(mockUser.id);
-      await _secureStorage.saveUserRole(mockUser.role);
+      final data = response.data;
+      if (data == null) {
+        _logger.e('Login failed: empty response');
+        return null;
+      }
 
-      _logger.d('Parent login successful: ${mockUser.id}');
-      return mockUser;
+      final user = await _persistAuthFromResponse(Map<String, dynamic>.from(data));
+      if (user == null) {
+        _logger.e('Login failed: invalid user data');
+        return null;
+      }
+
+      _logger.d('Parent login successful: ${user.id}');
+      return user;
+    } on DioException catch (e) {
+      _logger.e('Parent login error: ${e.response?.statusCode} - ${e.response?.data}');
+      return null;
     } catch (e) {
       _logger.e('Parent login error: $e');
       return null;
@@ -127,28 +200,33 @@ class AuthRepository {
         return null;
       }
 
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(seconds: 1));
-
-      final mockUser = User(
-        id: 'parent_${DateTime.now().millisecondsSinceEpoch}',
-        email: email,
-        role: UserRoles.parent,
-        name: name,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        isActive: true,
-        subscriptionStatus: SubscriptionStatus.trial,
-        trialEndDate: DateTime.now().add(const Duration(days: 14)),
+      final response = await _networkService.post<Map<String, dynamic>>(
+        '/auth/register',
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'confirmPassword': confirmPassword,
+        },
       );
 
-      // Save to secure storage
-      await _secureStorage.saveAuthToken('mock_token_${mockUser.id}');
-      await _secureStorage.saveUserId(mockUser.id);
-      await _secureStorage.saveUserRole(mockUser.role);
+      final data = response.data;
+      if (data == null) {
+        _logger.e('Registration failed: empty response');
+        return null;
+      }
 
-      _logger.d('Parent registration successful: ${mockUser.id}');
-      return mockUser;
+      final user = await _persistAuthFromResponse(Map<String, dynamic>.from(data));
+      if (user == null) {
+        _logger.e('Registration failed: invalid user data');
+        return null;
+      }
+
+      _logger.d('Parent registration successful: ${user.id}');
+      return user;
+    } on DioException catch (e) {
+      _logger.e('Parent registration error: ${e.response?.statusCode} - ${e.response?.data}');
+      return null;
     } catch (e) {
       _logger.e('Parent registration error: $e');
       return null;
@@ -157,7 +235,7 @@ class AuthRepository {
 
   // ==================== CHILD AUTHENTICATION ====================
 
-  /// Login child with picture password
+  /// Login child via picture password
   Future<User?> loginChild({
     required String childId,
     required List<String> picturePassword,
@@ -165,37 +243,156 @@ class AuthRepository {
     try {
       _logger.d('Attempting child login for: $childId');
 
-      // TODO: Replace with actual API call to validate picture password
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (picturePassword.length != 3) {
-        _logger.w('Child login failed: Invalid picture password length');
-        return null;
+      if (childId.trim().isEmpty || picturePassword.length != 3) {
+        _logger.w('Child login failed: Missing or invalid credentials');
+        throw const ChildLoginException(statusCode: 422);
       }
 
-      // Mock child user
-      final mockUser = User(
+      final response = await _networkService.post<Map<String, dynamic>>(
+        '/auth/child/login',
+        data: {
+          'child_id': int.tryParse(childId) ?? childId,
+          'picture_password': picturePassword,
+        },
+      );
+
+      final data = response.data;
+      final success = data != null && data['success'] == true;
+      if (!success) {
+        _logger.w('Child login failed: Invalid credentials');
+        throw const ChildLoginException(statusCode: 401);
+      }
+
+      final now = DateTime.now();
+      final childUser = User(
         id: childId,
         email: '$childId@child.local',
         role: UserRoles.child,
         name: 'Child $childId',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        createdAt: now,
+        updatedAt: now,
         isActive: true,
       );
 
-      // Save to secure storage
-      await _secureStorage.saveAuthToken('mock_child_token_${mockUser.id}');
-      await _secureStorage.saveUserId(mockUser.id);
-      await _secureStorage.saveUserRole(mockUser.role);
+      await _secureStorage.saveAuthToken('child_session_$childId');
+      await _secureStorage.saveUserId(childId);
+      await _secureStorage.saveUserRole(UserRoles.child);
       await _secureStorage.saveChildSession(childId);
 
-      _logger.d('Child login successful: ${mockUser.id}');
-      return mockUser;
+      _logger.d('Child login successful: ${childUser.id}');
+      return childUser;
+    } on DioException catch (e) {
+      _logger.e('Child login error: ${e.response?.statusCode} - ${e.response?.data}');
+      throw ChildLoginException(statusCode: e.response?.statusCode);
     } catch (e) {
       _logger.e('Child login error: $e');
+      throw const ChildLoginException();
+    }
+  }
+
+  /// Register child via picture password
+  Future<ChildRegisterResponse?> registerChild({
+    required String name,
+    required List<String> picturePassword,
+    required String parentEmail,
+  }) async {
+    try {
+      final trimmedName = name.trim();
+      final trimmedEmail = parentEmail.trim();
+
+      if (trimmedName.isEmpty ||
+          trimmedEmail.isEmpty ||
+          picturePassword.length != 3) {
+        _logger.w('Child register failed: Missing or invalid data');
+        throw const ChildRegisterException(statusCode: 422);
+      }
+
+      final response = await _networkService.post<Map<String, dynamic>>(
+        '/auth/child/register',
+        data: {
+          'name': trimmedName,
+          'picture_password': picturePassword,
+          'parent_email': trimmedEmail,
+        },
+      );
+
+      final data = response.data;
+      if (data == null) {
+        _logger.e('Child register failed: empty response');
+        return null;
+      }
+
+      String? childId;
+      String? childName;
+
+      if (data['child'] is Map) {
+        final childJson = Map<String, dynamic>.from(data['child']);
+        childId = childJson['id']?.toString() ?? childJson['child_id']?.toString();
+        childName = childJson['name']?.toString();
+      }
+
+      childId ??= data['child_id']?.toString() ?? data['id']?.toString();
+      childName ??= data['name']?.toString();
+
+      if (childId == null || childId.isEmpty) {
+        _logger.e('Child register failed: missing child id');
+        return null;
+      }
+
+      return ChildRegisterResponse(
+        childId: childId,
+        name: childName,
+      );
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      String? detailCode;
+      final data = e.response?.data;
+      if (data is Map) {
+        final detail = data['detail'];
+        if (detail is Map) {
+          final code = detail['code'];
+          if (code != null) {
+            detailCode = code.toString();
+          }
+        } else if (data['code'] != null) {
+          detailCode = data['code'].toString();
+        }
+      }
+      _logger.e('Child register error: $statusCode - $data');
+      throw ChildRegisterException(
+        statusCode: statusCode,
+        detailCode: detailCode,
+      );
+    } catch (e) {
+      _logger.e('Child register error: $e');
+      throw const ChildRegisterException();
+    }
+  }
+
+  Future<User?> _localChildLogin(String childId) async {
+    if (childId.isEmpty) {
+      _logger.w('Child login failed: Missing child id');
       return null;
     }
+
+    final now = DateTime.now();
+    final childUser = User(
+      id: childId,
+      email: '$childId@child.local',
+      role: UserRoles.child,
+      name: 'Child $childId',
+      createdAt: now,
+      updatedAt: now,
+      isActive: true,
+    );
+
+    await _secureStorage.saveAuthToken('child_session_$childId');
+    await _secureStorage.saveUserId(childId);
+    await _secureStorage.saveUserRole(UserRoles.child);
+    await _secureStorage.saveChildSession(childId);
+
+    _logger.d('Child login successful (local): ${childUser.id}');
+    return childUser;
   }
 
   // ==================== LOGOUT ====================
@@ -291,21 +488,50 @@ class AuthRepository {
     }
   }
 
+  // ==================== PREMIUM STATUS ====================
+
+  Future<bool?> getPremiumStatus() async {
+    try {
+      return await _secureStorage.getIsPremium();
+    } catch (e) {
+      _logger.e('Error getting premium status: $e');
+      return null;
+    }
+  }
+
+  Future<bool> savePremiumStatus(bool isPremium) async {
+    try {
+      return await _secureStorage.saveIsPremium(isPremium);
+    } catch (e) {
+      _logger.e('Error saving premium status: $e');
+      return false;
+    }
+  }
+
   // ==================== TOKEN MANAGEMENT ====================
 
   /// Refresh authentication token
   Future<String?> refreshToken() async {
     try {
-      // TODO: Implement actual token refresh with API
-      final currentToken = await _secureStorage.getAuthToken();
-      
-      if (currentToken == null) return null;
+      final refreshToken = await _secureStorage.getRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) return null;
 
-      // Mock refresh
-      final newToken = 'refreshed_$currentToken';
-      await _secureStorage.saveAuthToken(newToken);
-      
-      return newToken;
+      final response = await _networkService.post<Map<String, dynamic>>(
+        '/auth/refresh',
+        data: {'refresh_token': refreshToken},
+      );
+
+      final data = response.data;
+      final newToken = data?['access_token'];
+      if (newToken is String && newToken.isNotEmpty) {
+        await _secureStorage.saveAuthToken(newToken);
+        return newToken;
+      }
+
+      return null;
+    } on DioException catch (e) {
+      _logger.e('Error refreshing token: ${e.response?.statusCode} - ${e.response?.data}');
+      return null;
     } catch (e) {
       _logger.e('Error refreshing token: $e');
       return null;

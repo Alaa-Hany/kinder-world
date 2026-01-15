@@ -180,17 +180,66 @@ class AuthController extends StateNotifier<AuthState> {
       } else {
         state = state.copyWith(
           isLoading: false,
-          error: 'Invalid picture password',
+          error: 'child_login_failed',
         );
         return false;
       }
+    } on ChildLoginException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: _childLoginErrorForStatus(e.statusCode),
+      );
+      return false;
     } catch (e) {
       _logger.e('Child login error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: 'Login failed. Please try again.',
+        error: 'child_login_failed',
       );
       return false;
+    }
+  }
+
+  /// Register child account
+  Future<ChildRegisterResponse?> registerChild({
+    required String name,
+    required List<String> picturePassword,
+    required String parentEmail,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final response = await _authRepository.registerChild(
+        name: name,
+        picturePassword: picturePassword,
+        parentEmail: parentEmail,
+      );
+
+      if (response != null) {
+        state = state.copyWith(
+          isLoading: false,
+        );
+        return response;
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        error: 'child_register_failed',
+      );
+      return null;
+    } on ChildRegisterException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: _childRegisterErrorForStatus(e.statusCode, e.detailCode),
+      );
+      return null;
+    } catch (e) {
+      _logger.e('Child register error: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'child_register_failed',
+      );
+      return null;
     }
   }
 
@@ -269,6 +318,35 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(error: null);
   }
 
+  String _childLoginErrorForStatus(int? statusCode) {
+    switch (statusCode) {
+      case 401:
+        return 'child_login_401';
+      case 404:
+        return 'child_login_404';
+      case 422:
+        return 'child_login_422';
+      default:
+        return 'child_login_failed';
+    }
+  }
+
+  String _childRegisterErrorForStatus(int? statusCode, String? detailCode) {
+    if (statusCode == 402 && detailCode == 'CHILD_LIMIT_REACHED') {
+      return 'child_register_limit';
+    }
+    switch (statusCode) {
+      case 401:
+        return 'child_register_401';
+      case 404:
+        return 'child_register_404';
+      case 422:
+        return 'child_register_422';
+      default:
+        return 'child_register_failed';
+    }
+  }
+
   /// Validate token
   Future<bool> validateToken() async {
     try {
@@ -278,6 +356,18 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
   }
+
+  Future<void> setPremiumStatus(bool isPremium) async {
+    await _authRepository.savePremiumStatus(isPremium);
+    final user = state.user;
+    if (user != null && isPremium) {
+      state = state.copyWith(
+        user: user.copyWith(
+          subscriptionStatus: SubscriptionStatus.active,
+        ),
+      );
+    }
+  }
 }
 
 // ==================== PROVIDERS ====================
@@ -285,10 +375,12 @@ class AuthController extends StateNotifier<AuthState> {
 /// Main auth repository provider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);
+  final networkService = ref.watch(networkServiceProvider);
   final logger = ref.watch(loggerProvider);
   
   return AuthRepository(
     secureStorage: secureStorage,
+    networkService: networkService,
     logger: logger,
   );
 });

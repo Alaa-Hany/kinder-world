@@ -62,6 +62,13 @@ class AppLocalizationsAr extends AppLocalizationsEn {
   String get email => 'البريد الإلكتروني';
 
   @override
+  String get parentEmail => 'البريد الإلكتروني لولي الأمر';
+
+  @override
+  String get parentEmailNotFound =>
+      'البريد الإلكتروني لولي الأمر غير موجود. يرجى تسجيل الدخول بولي الأمر أولاً.';
+
+  @override
   String get password => 'كلمة المرور';
 
   @override
@@ -75,6 +82,9 @@ class AppLocalizationsAr extends AppLocalizationsEn {
 
   @override
   String get childLogin => 'دخول الطفل';
+
+  @override
+  String get childId => 'رقم الطفل';
 
   @override
   String get picturePassword => 'كلمة مرور الصور';
@@ -98,6 +108,9 @@ class AppLocalizationsAr extends AppLocalizationsEn {
   String get selectUserType => 'اختر نوع المستخدم';
 
   @override
+  String get selectUserTypeSubtitle => 'اختر كيفية استخدام كيندر وورلد';
+
+  @override
   String get childMode => 'وضع الطفل';
 
   @override
@@ -105,6 +118,12 @@ class AppLocalizationsAr extends AppLocalizationsEn {
 
   @override
   String get teacherMode => 'وضع المعلم';
+
+  @override
+  String get parentModeDescription => 'تابع التقدم، اضبط القيود، وأدر العائلة';
+
+  @override
+  String get childModeDescription => 'تعلّم والعب واستكشف بأمان';
 
   @override
   String get home => 'الرئيسية';
@@ -171,6 +190,9 @@ class AppLocalizationsAr extends AppLocalizationsEn {
 
   @override
   String get childInterests => 'الاهتمامات';
+
+  @override
+  String get avatar => 'الصورة الرمزية';
 
   @override
   String get reports => 'التقارير';
@@ -282,6 +304,55 @@ class AppLocalizationsAr extends AppLocalizationsEn {
 
   @override
   String get incorrectPicturePassword => 'كلمة مرور الصور غير صحيحة.';
+
+  @override
+  String get childLoginNotFound => 'الطفل غير موجود';
+
+  @override
+  String get childLoginIncorrectPictures => 'صور الدخول غير صحيحة';
+
+  @override
+  String get childLoginMissingData => 'أكمل البيانات المطلوبة';
+
+  @override
+  String get createChildProfile => 'إنشاء ملف طفل';
+
+  @override
+  String get childRegisterParentNotFound => 'بريد ولي الأمر غير موجود';
+
+  @override
+  String get childRegisterLimitReached =>
+      'وصلت للحد الأقصى للأطفال في النسخة المجانية. الترقية 10\$ شهريًا.';
+
+  @override
+  String get childRegisterForbidden => 'غير مسموح';
+
+  @override
+  String get paywallTitle => 'الترقية إلى بريميوم';
+
+  @override
+  String get paywallPrice => '10\$ / الشهر';
+
+  @override
+  String get paywallSubscribe => 'اشترك/ادفع';
+
+  @override
+  String get paywallManagePaymentMethods => 'إدارة طرق الدفع';
+
+  @override
+  String get paymentMethodsTitle => 'طرق الدفع';
+
+  @override
+  String get paymentMethodsEmpty => 'لا توجد طرق دفع محفوظة.';
+
+  @override
+  String get addPaymentMethod => 'إضافة طريقة دفع';
+
+  @override
+  String get removePaymentMethod => 'حذف';
+
+  @override
+  String get openPaymentPortal => 'فتح بوابة إدارة الدفع';
 
   @override
   String yearsOld(int age) => '$age سنة';
@@ -423,6 +494,12 @@ class AppLocalizationsAr extends AppLocalizationsEn {
 
   @override
   String get deactivateProfiles => 'إلغاء تفعيل الملفات';
+
+  @override
+  String get childProfileAdded => 'تمت إضافة ملف الطفل';
+
+  @override
+  String get childProfileAddFailed => 'فشل إضافة الطفل';
 
   @override
   String get markAllRead => 'تحديد الكل كمقروء';

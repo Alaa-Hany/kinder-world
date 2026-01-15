@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -10,8 +12,25 @@ import 'package:kinder_world/core/theme/app_colors.dart';
 
 enum ReportPeriod { week, month, year }
 
+class _ActivitySegment {
+  const _ActivitySegment({
+    required this.value,
+    required this.color,
+    required this.label,
+  });
+
+  final double value;
+  final Color color;
+  final String label;
+}
+
 class ReportsScreen extends ConsumerStatefulWidget {
-  const ReportsScreen({super.key});
+  const ReportsScreen({
+    super.key,
+    this.initialChildId,
+  });
+
+  final String? initialChildId;
 
   @override
   ConsumerState<ReportsScreen> createState() => _ReportsScreenState();
@@ -20,56 +39,6 @@ class ReportsScreen extends ConsumerStatefulWidget {
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   ReportPeriod _period = ReportPeriod.week;
   ChildProfile? _selectedChild;
-
-  List<ChildProfile> _demoChildren(String parentId) {
-    final now = DateTime.now();
-    return [
-      ChildProfile(
-        id: 'demo_child_1',
-        name: 'Lina',
-        age: 7,
-        avatar: 'assets/images/avatars/girl1.png',
-        interests: const ['reading', 'science'],
-        level: 1,
-        xp: 120,
-        streak: 0,
-        favorites: const [],
-        parentId: parentId,
-        picturePassword: const ['apple', 'ball', 'cat'],
-        createdAt: now,
-        updatedAt: now,
-        lastSession: null,
-        totalTimeSpent: 0,
-        activitiesCompleted: 0,
-        currentMood: 'happy',
-        learningStyle: null,
-        specialNeeds: null,
-        accessibilityNeeds: null,
-      ),
-      ChildProfile(
-        id: 'demo_child_2',
-        name: 'Omar',
-        age: 6,
-        avatar: 'assets/images/avatars/boy1.png',
-        interests: const ['games', 'music'],
-        level: 1,
-        xp: 90,
-        streak: 0,
-        favorites: const [],
-        parentId: parentId,
-        picturePassword: const ['dog', 'fish', 'kite'],
-        createdAt: now,
-        updatedAt: now,
-        lastSession: null,
-        totalTimeSpent: 0,
-        activitiesCompleted: 0,
-        currentMood: 'happy',
-        learningStyle: null,
-        specialNeeds: null,
-        accessibilityNeeds: null,
-      ),
-    ];
-  }
 
   String _periodLabel(AppLocalizations l10n) {
     switch (_period) {
@@ -91,6 +60,31 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       case ReportPeriod.year:
         return {'activities': '480', 'score': '90%', 'time': '115h'};
     }
+  }
+
+  List<_ActivitySegment> _activitySegments(AppLocalizations l10n) {
+    return [
+      _ActivitySegment(
+        value: 30,
+        color: AppColors.educational,
+        label: l10n.educationalContent,
+      ),
+      _ActivitySegment(
+        value: 25,
+        color: AppColors.entertaining,
+        label: l10n.entertainment,
+      ),
+      _ActivitySegment(
+        value: 25,
+        color: AppColors.skillful,
+        label: l10n.skillfulActivities,
+      ),
+      _ActivitySegment(
+        value: 20,
+        color: AppColors.behavioral,
+        label: l10n.behavioralSkills,
+      ),
+    ];
   }
 
   void _showChildSelection(List<ChildProfile> children) {
@@ -149,7 +143,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         child: FutureBuilder<String?>(
           future: ref.read(secureStorageProvider).getParentId(),
           builder: (context, parentIdSnapshot) {
-            final parentId = parentIdSnapshot.data ?? 'demo-parent';
+            final parentId = parentIdSnapshot.data ?? '';
             return FutureBuilder<List<ChildProfile>>(
               future: ref
                   .read(childRepositoryProvider)
@@ -162,16 +156,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   );
                 }
 
-                final repoChildren = childrenSnapshot.data ?? [];
-                final children = repoChildren.isEmpty
-                    ? _demoChildren(parentId)
-                    : repoChildren;
+                final children = childrenSnapshot.data ?? [];
 
                 if (_selectedChild == null && children.isNotEmpty) {
+                  final initialChild = widget.initialChildId != null
+                      ? children.firstWhere(
+                          (child) => child.id == widget.initialChildId,
+                          orElse: () => children.first,
+                        )
+                      : children.first;
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted) return;
                     setState(() {
-                      _selectedChild = children.first;
+                      _selectedChild = initialChild;
                     });
                   });
                 }
@@ -324,32 +321,58 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             ),
                             const SizedBox(height: 20),
                             SizedBox(
-                              height: 200,
-                              child: PieChart(
-                                PieChartData(
-                                  sections: [
-                                    PieChartSectionData(
-                                      value: 30,
-                                      color: AppColors.educational,
-                                      title: 'Educational',
-                                    ),
-                                    PieChartSectionData(
-                                      value: 25,
-                                      color: AppColors.entertaining,
-                                      title: 'Entertainment',
-                                    ),
-                                    PieChartSectionData(
-                                      value: 25,
-                                      color: AppColors.skillful,
-                                      title: 'Skillful',
-                                    ),
-                                    PieChartSectionData(
-                                      value: 20,
-                                      color: AppColors.behavioral,
-                                      title: 'Behavioral',
-                                    ),
-                                  ],
-                                ),
+                              height: 180,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final size = Size(
+                                    constraints.maxWidth,
+                                    constraints.maxHeight,
+                                  );
+                                  final double chartRadius = math.max(
+                                    0.0,
+                                    (math.min(size.width, size.height) / 2) - 14.0,
+                                  );
+                                  final double centerSpaceRadius =
+                                      chartRadius * 0.6;
+                                  final double labelRadius = math.max(
+                                    0.0,
+                                    centerSpaceRadius +
+                                        ((chartRadius - centerSpaceRadius) / 2),
+                                  );
+                                  final segments = _activitySegments(l10n);
+                                  final textDirection = Directionality.of(context);
+
+                                  return Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      PieChart(
+                                        PieChartData(
+                                          startDegreeOffset: -90,
+                                          centerSpaceRadius: centerSpaceRadius,
+                                          sectionsSpace: 2,
+                                          sections: segments
+                                              .map(
+                                                (segment) => PieChartSectionData(
+                                                  value: segment.value,
+                                                  color: segment.color,
+                                                  radius: chartRadius,
+                                                  showTitle: false,
+                                                ),
+                                              )
+                                              .toList(),
+                                        ),
+                                      ),
+                                      CustomPaint(
+                                        size: size,
+                                        painter: _ArcTextPainter(
+                                          segments: segments,
+                                          radius: labelRadius,
+                                          textDirection: textDirection,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -589,5 +612,141 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         ),
       ],
     );
+  }
+
+}
+
+class _ArcTextPainter extends CustomPainter {
+  _ArcTextPainter({
+    required this.segments,
+    required this.radius,
+    required this.textDirection,
+  });
+
+  final List<_ActivitySegment> segments;
+  final double radius;
+  final TextDirection textDirection;
+
+  static const double _baseFontSize = 10;
+  static const double _sliceWidth = 2;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (radius <= 0) return;
+
+    final total = segments.fold<double>(0, (sum, segment) => sum + segment.value);
+    if (total <= 0) return;
+
+    final center = size.center(Offset.zero);
+    var startAngle = -math.pi / 2;
+
+    for (final segment in segments) {
+      final sweepAngle = (segment.value / total) * math.pi * 2;
+      if (sweepAngle == 0) {
+        startAngle += sweepAngle;
+        continue;
+      }
+      _paintCurvedLabel(
+        canvas: canvas,
+        center: center,
+        radius: radius,
+        startAngle: startAngle,
+        sweepAngle: sweepAngle,
+        text: segment.label,
+      );
+      startAngle += sweepAngle;
+    }
+  }
+
+  void _paintCurvedLabel({
+    required Canvas canvas,
+    required Offset center,
+    required double radius,
+    required double startAngle,
+    required double sweepAngle,
+    required String text,
+  }) {
+    final baseStyle = const TextStyle(
+      color: AppColors.white,
+      fontSize: _baseFontSize,
+      fontWeight: FontWeight.w600,
+    );
+
+    var painter = TextPainter(
+      text: TextSpan(text: text, style: baseStyle),
+      textDirection: textDirection,
+      textAlign: TextAlign.center,
+      maxLines: 1,
+    )..layout();
+
+    if (painter.width == 0) return;
+
+    final arcLength = radius * sweepAngle.abs();
+    final scale = arcLength > 0 ? math.min(1.0, arcLength / painter.width) : 1.0;
+    if (scale < 1.0) {
+      painter = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: baseStyle.copyWith(fontSize: _baseFontSize * scale),
+        ),
+        textDirection: textDirection,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+      )..layout();
+    }
+
+    final metrics = painter.computeLineMetrics();
+    final baseline = metrics.isNotEmpty ? metrics.first.baseline : painter.height;
+    final textWidth = painter.width;
+    final textHeight = painter.height;
+    final centerAngle = startAngle + (sweepAngle / 2);
+    final flip = _shouldFlip(centerAngle);
+    final isRtl = textDirection == TextDirection.rtl;
+
+    final directionSweep = flip ? -sweepAngle : sweepAngle;
+    final maxLabelSweep = directionSweep.abs();
+    final labelSweep = radius > 0 ? textWidth / radius : 0;
+    final usedSweep = math.min(maxLabelSweep, labelSweep);
+    final finalSweep = usedSweep * (directionSweep.isNegative ? -1 : 1);
+    final labelStart = centerAngle - (finalSweep / 2);
+
+    final sliceCount = math.max(1, (textWidth / _sliceWidth).ceil());
+    final actualSliceWidth = textWidth / sliceCount;
+    final paintOffset = Offset(-textWidth / 2, -baseline);
+
+    for (var i = 0; i < sliceCount; i++) {
+      final sliceCenter = (i + 0.5) * actualSliceWidth;
+      final x = isRtl ? textWidth - sliceCenter : sliceCenter;
+      final t = isRtl ? 1 - (sliceCenter / textWidth) : (sliceCenter / textWidth);
+      final angle = labelStart + (finalSweep * t);
+      final rotation = angle + math.pi / 2 + (flip ? math.pi : 0);
+
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.translate(radius * math.cos(angle), radius * math.sin(angle));
+      canvas.rotate(rotation);
+      canvas.clipRect(
+        Rect.fromLTWH(
+          paintOffset.dx + x - (actualSliceWidth / 2),
+          paintOffset.dy,
+          actualSliceWidth,
+          textHeight,
+        ),
+      );
+      painter.paint(canvas, paintOffset);
+      canvas.restore();
+    }
+  }
+
+  bool _shouldFlip(double angle) {
+    final normalized = (angle + (math.pi * 2)) % (math.pi * 2);
+    return normalized > math.pi / 2 && normalized < math.pi * 1.5;
+  }
+
+  @override
+  bool shouldRepaint(covariant _ArcTextPainter oldDelegate) {
+    return oldDelegate.segments != segments ||
+        oldDelegate.radius != radius ||
+        oldDelegate.textDirection != textDirection;
   }
 }

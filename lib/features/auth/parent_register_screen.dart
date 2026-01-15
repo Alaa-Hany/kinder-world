@@ -147,6 +147,9 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  textCapitalization: TextCapitalization.none,
+                  autocorrect: false,
+                  enableSuggestions: false,
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     hintText: 'Enter your email',

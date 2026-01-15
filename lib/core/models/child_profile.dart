@@ -20,6 +20,7 @@ class ChildProfile with _$ChildProfile {
     required int streak,
     required List<String> favorites,
     required String parentId,
+    @JsonKey(name: 'parent_email') String? parentEmail,
     @JsonKey(name: 'picture_password') required List<String> picturePassword,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,

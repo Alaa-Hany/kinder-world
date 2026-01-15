@@ -6,7 +6,7 @@ class AppConstants {
   static const String appVersion = '1.0.0';
   
   // API
-  static const String baseUrl = 'https://api.kinderworld.app';
+  static const String baseUrl = 'http://127.0.0.1:8000';
   static const Duration apiTimeout = Duration(seconds: 30);
   
   // Storage
