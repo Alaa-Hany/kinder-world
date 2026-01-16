@@ -8,7 +8,11 @@ import 'package:kinder_world/core/models/progress_record.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
 import 'package:kinder_world/core/providers/progress_controller.dart';
 import 'package:kinder_world/app.dart';
+import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:kinder_world/core/subscription/plan_info.dart';
+import 'package:kinder_world/core/widgets/plan_guard.dart';
+import 'package:kinder_world/core/widgets/plan_status_banner.dart';
 
 class ParentDashboardScreen extends ConsumerStatefulWidget {
   const ParentDashboardScreen({super.key});
@@ -21,6 +25,8 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  Future<List<ChildProfile>>? _childrenFuture;
+  String? _cachedParentId;
 
   @override
   void initState() {
@@ -47,8 +53,195 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     super.dispose();
   }
 
+  List<Map<String, dynamic>> _extractChildrenList(dynamic data) {
+    if (data is List) {
+      return data
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+    if (data is Map) {
+      final listData =
+          data['children'] ?? data['data'] ?? data['results'] ?? data['items'];
+      if (listData is List) {
+        return listData
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+      }
+    }
+    return [];
+  }
+
+  String? _parseChildId(Map<String, dynamic> data) {
+    final id = data['id'] ?? data['child_id'] ?? data['childId'];
+    if (id == null) return null;
+    return id.toString();
+  }
+
+  int _parseInt(dynamic value, int fallback) {
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  DateTime _parseDate(dynamic value, DateTime fallback) {
+    if (value == null) return fallback;
+    if (value is DateTime) return value;
+    if (value is String) {
+      final parsed = DateTime.tryParse(value);
+      return parsed ?? fallback;
+    }
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
+    return fallback;
+  }
+
+  DateTime? _parseNullableDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
+    return null;
+  }
+
+  List<String> _parseStringList(dynamic value) {
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return const [];
+  }
+
+  List<String>? _parseNullableStringList(dynamic value) {
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return null;
+  }
+
+  ChildProfile? _mergeChildProfileFromApi(
+    Map<String, dynamic> data, {
+    ChildProfile? existing,
+    required String parentId,
+    String? parentEmail,
+  }) {
+    final childId = _parseChildId(data);
+    if (childId == null || childId.isEmpty) return null;
+
+    final now = DateTime.now();
+    final apiName = data['name']?.toString().trim();
+    final resolvedName = (apiName != null && apiName.isNotEmpty)
+        ? apiName
+        : (existing?.name ?? childId);
+    final existingAge = existing?.age ?? 0;
+    final age = existingAge > 0 ? existingAge : _parseInt(data['age'], 0);
+    final existingLevel = existing?.level ?? 0;
+    final level = existingLevel > 0 ? existingLevel : _parseInt(data['level'], 1);
+    final avatar =
+        existing?.avatar ?? data['avatar']?.toString() ?? 'avatar_1';
+    final picturePassword = (existing?.picturePassword.isNotEmpty ?? false)
+        ? existing!.picturePassword
+        : _parseStringList(data['picture_password']);
+    final createdAt = existing?.createdAt ?? _parseDate(data['created_at'], now);
+    final updatedAt = _parseDate(data['updated_at'], now);
+    final lastSession =
+        existing?.lastSession ?? _parseNullableDate(data['last_session']);
+
+    return ChildProfile(
+      id: childId,
+      name: resolvedName,
+      age: age,
+      avatar: avatar,
+      interests: existing?.interests ?? _parseStringList(data['interests']),
+      level: level,
+      xp: existing?.xp ?? _parseInt(data['xp'], 0),
+      streak: existing?.streak ?? _parseInt(data['streak'], 0),
+      favorites: existing?.favorites ?? _parseStringList(data['favorites']),
+      parentId: parentId,
+      parentEmail: existing?.parentEmail ??
+          parentEmail ??
+          data['parent_email']?.toString(),
+      picturePassword: picturePassword,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      lastSession: lastSession,
+      totalTimeSpent:
+          existing?.totalTimeSpent ?? _parseInt(data['total_time_spent'], 0),
+      activitiesCompleted: existing?.activitiesCompleted ??
+          _parseInt(data['activities_completed'], 0),
+      currentMood: existing?.currentMood ?? data['current_mood']?.toString(),
+      learningStyle:
+          existing?.learningStyle ?? data['learning_style']?.toString(),
+      specialNeeds:
+          existing?.specialNeeds ?? _parseNullableStringList(data['special_needs']),
+      accessibilityNeeds: existing?.accessibilityNeeds ??
+          _parseNullableStringList(data['accessibility_needs']),
+    );
+  }
+
+  Future<List<ChildProfile>> _loadChildrenForParent(String parentId) async {
+    final repo = ref.read(childRepositoryProvider);
+    final parentEmail = await ref.read(secureStorageProvider).getParentEmail();
+    if (parentEmail != null && parentEmail.isNotEmpty) {
+      await repo.linkChildrenToParent(
+        parentId: parentId,
+        parentEmail: parentEmail,
+      );
+    }
+    final localChildren = await repo.getChildProfilesForParent(parentId);
+    final childrenById = {
+      for (final child in localChildren) child.id: child,
+    };
+
+    final token = await ref.read(secureStorageProvider).getAuthToken();
+    if (token == null || token.startsWith('child_session_')) {
+      return childrenById.values.toList();
+    }
+
+    final resolvedParentEmail = parentEmail;
+    try {
+      final response = await ref.read(networkServiceProvider).get<dynamic>(
+        '/children',
+      );
+      final apiChildren = _extractChildrenList(response.data);
+      for (final childData in apiChildren) {
+        final childId = _parseChildId(childData);
+        if (childId == null || childId.isEmpty) continue;
+        final existing = await repo.getChildProfile(childId);
+        final merged = _mergeChildProfileFromApi(
+          childData,
+          parentId: parentId,
+          parentEmail: resolvedParentEmail,
+          existing: existing,
+        );
+        if (merged == null) continue;
+        childrenById[childId] = merged;
+        if (existing == null) {
+          await repo.createChildProfile(merged);
+        } else {
+          await repo.updateChildProfile(merged);
+        }
+      }
+    } catch (_) {
+      return childrenById.values.toList();
+    }
+
+    return childrenById.values.toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -70,9 +263,13 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
               }
 
               final parentId = parentIdSnapshot.data!;
+              if (_childrenFuture == null || _cachedParentId != parentId) {
+                _cachedParentId = parentId;
+                _childrenFuture = _loadChildrenForParent(parentId);
+              }
 
               return FutureBuilder<List<ChildProfile>>(
-                future: ref.read(childRepositoryProvider).getChildProfilesForParent(parentId),
+                future: _childrenFuture,
                 builder: (context, childrenSnapshot) {
                   if (childrenSnapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -134,6 +331,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const PlanStatusBanner(),
                               // Children Overview
                               _buildChildrenOverview(children),
                               const SizedBox(height: 24),
@@ -143,7 +341,11 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                               const SizedBox(height: 24),
                               
                               // AI Insights
-                              _buildAiInsights(children),
+                              PlanGuard(
+                                requiredTier: PlanTier.premium,
+                                featureLabel: l10n.aiInsights,
+                                child: _buildAiInsights(children),
+                              ),
                               const SizedBox(height: 24),
                               
                               // Recent Activities

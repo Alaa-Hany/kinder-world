@@ -20,6 +20,7 @@ class SecureStorage {
   static const String _keyParentPin = 'parent_pin';
   static const String _keyChildSession = 'child_session';
   static const String _keyIsPremium = 'is_premium';
+  static const String _keyPlanType = 'plan_type';
 
   // ==================== AUTH TOKEN ====================
 
@@ -253,6 +254,34 @@ class SecureStorage {
   Future<bool> clearIsPremium() async {
     try {
       await _storage.delete(key: _keyIsPremium);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ==================== PLAN TYPE ====================
+
+  Future<String?> getPlanType() async {
+    try {
+      return await _storage.read(key: _keyPlanType);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> savePlanType(String planType) async {
+    try {
+      await _storage.write(key: _keyPlanType, value: planType);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> clearPlanType() async {
+    try {
+      await _storage.delete(key: _keyPlanType);
       return true;
     } catch (e) {
       return false;

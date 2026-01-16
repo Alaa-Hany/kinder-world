@@ -70,6 +70,33 @@ class ChildRepository {
     }
   }
 
+  Future<void> linkChildrenToParent({
+    required String parentId,
+    required String parentEmail,
+  }) async {
+    if (parentId.isEmpty || parentEmail.isEmpty) return;
+    try {
+      for (var key in _childBox.keys) {
+        final data = _childBox.get(key);
+        if (data == null) continue;
+        try {
+          final json = data is String
+              ? jsonDecode(data)
+              : Map<String, dynamic>.from(data);
+          final child = ChildProfile.fromJson(json);
+          if (child.parentEmail == parentEmail && child.parentId != parentId) {
+            final updated = child.copyWith(parentId: parentId);
+            await _childBox.put(updated.id, updated.toJson());
+          }
+        } catch (e) {
+          _logger.e('Error linking child to parent: $key, $e');
+        }
+      }
+    } catch (e) {
+      _logger.e('Error linking children to parent: $e');
+    }
+  }
+
   /// Create new child profile
   Future<ChildProfile?> createChildProfile(ChildProfile profile) async {
     try {

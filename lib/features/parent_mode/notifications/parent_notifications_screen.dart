@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:kinder_world/core/subscription/plan_info.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:kinder_world/core/widgets/plan_guard.dart';
+import 'package:kinder_world/core/widgets/plan_status_banner.dart';
 
 class ParentNotificationsScreen extends ConsumerWidget {
   const ParentNotificationsScreen({super.key});
@@ -41,19 +44,35 @@ class ParentNotificationsScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: ListView.separated(
-          padding: const EdgeInsets.all(24.0),
-          itemCount: notifications.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            final notification = notifications[index];
-            return _NotificationCard(
-              notification: notification,
-              onTap: () {
-                // Handle notification tap
-              },
-            );
-          },
+        child: PlanGuard(
+          requiredTier: PlanTier.premium,
+          featureLabel: l10n.notifications,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: PlanStatusBanner(margin: EdgeInsets.zero),
+              ),
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                  itemCount: notifications.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
+                    return _NotificationCard(
+                      notification: notification,
+                      onTap: () {
+                        // Handle notification tap
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

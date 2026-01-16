@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,8 +8,9 @@ import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/app.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
-import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/core/providers/plan_provider.dart';
 import 'package:kinder_world/core/widgets/picture_password_row.dart';
+import 'package:kinder_world/core/widgets/plan_status_banner.dart';
 
 class _AvatarOption {
   final String id;
@@ -216,6 +218,13 @@ class _ChildManagementScreenState
 
   Future<List<ChildProfile>> _loadChildrenForParent(String parentId) async {
     final repo = ref.read(childRepositoryProvider);
+    final parentEmail = await ref.read(secureStorageProvider).getParentEmail();
+    if (parentEmail != null && parentEmail.isNotEmpty) {
+      await repo.linkChildrenToParent(
+        parentId: parentId,
+        parentEmail: parentEmail,
+      );
+    }
     final localChildren = await repo.getChildProfilesForParent(parentId);
     final childrenById = {
       for (final child in localChildren) child.id: child,
@@ -226,7 +235,7 @@ class _ChildManagementScreenState
       return childrenById.values.toList();
     }
 
-    final parentEmail = await ref.read(secureStorageProvider).getParentEmail();
+    final resolvedParentEmail = parentEmail;
     try {
       final response = await ref.read(networkServiceProvider).get<dynamic>(
         '/children',
@@ -235,11 +244,11 @@ class _ChildManagementScreenState
       for (final childData in apiChildren) {
         final childId = _parseChildId(childData);
         if (childId == null || childId.isEmpty) continue;
-        final existing = childrenById[childId];
+        final existing = await repo.getChildProfile(childId) ?? childrenById[childId];
         final merged = _mergeChildProfileFromApi(
           childData,
           parentId: parentId,
-          parentEmail: parentEmail,
+          parentEmail: resolvedParentEmail,
           existing: existing,
         );
         if (merged == null) continue;
@@ -310,6 +319,123 @@ class _ChildManagementScreenState
         _topMessageEntry = null;
       }
     });
+  }
+
+  Future<void> _showChildLimitDialog(AppLocalizations l10n) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.freePlanChildLimit),
+          content: Text(l10n.planFeatureInPremium),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.push('/parent/subscription');
+              },
+              child: Text(l10n.upgradeNow),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmDeleteChild(ChildProfile child) async {
+    final l10n = AppLocalizations.of(context)!;
+    bool isDeleting = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(l10n.deleteChildTitle),
+              content: Text(l10n.deleteChildDescription),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isDeleting ? null : () => Navigator.of(dialogContext).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() {
+                            isDeleting = true;
+                          });
+                          try {
+                            await ref
+                                .read(networkServiceProvider)
+                                .delete('/children/${child.id}');
+                            final repo = ref.read(childRepositoryProvider);
+                            final deleted =
+                                await repo.deleteChildProfile(child.id);
+                            if (!mounted) return;
+                            Navigator.of(dialogContext).pop();
+                            if (deleted) {
+                              _showTopMessage(
+                                l10n.deleteChildSuccess,
+                                isError: false,
+                              );
+                            } else {
+                              _showTopMessage(l10n.deleteChildFailed);
+                            }
+                            if (_cachedParentId != null) {
+                              setState(() {
+                                _childrenFuture =
+                                    _loadChildrenForParent(_cachedParentId!);
+                              });
+                            } else {
+                              _refreshChildren();
+                            }
+                          } on DioException catch (e) {
+                            final statusCode = e.response?.statusCode;
+                            if (statusCode == 403 ||
+                                statusCode == 409 ||
+                                statusCode == 500) {
+                              _showTopMessage(l10n.deleteChildFailed);
+                            } else {
+                              _showTopMessage(l10n.deleteChildFailed);
+                            }
+                            setDialogState(() {
+                              isDeleting = false;
+                            });
+                          } catch (_) {
+                            _showTopMessage(l10n.deleteChildFailed);
+                            setDialogState(() {
+                              isDeleting = false;
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: AppColors.white,
+                  ),
+                  child: isDeleting
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            color: AppColors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(l10n.delete),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -466,6 +592,7 @@ class _ChildManagementScreenState
                               ),
                             ),
                             const SizedBox(height: 24),
+                            const PlanStatusBanner(),
                             Text(
                               l10n.yourChildren,
                               style: const TextStyle(
@@ -537,6 +664,23 @@ class _ChildManagementScreenState
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          final l10n = AppLocalizations.of(context)!;
+          try {
+            final plan = await ref.read(planInfoProvider.future);
+            final parentId =
+                await ref.read(secureStorageProvider).getParentId();
+            final repo = ref.read(childRepositoryProvider);
+            final currentChildren = parentId != null && parentId.isNotEmpty
+                ? await repo.getChildProfilesForParent(parentId)
+                : await repo.getAllChildProfiles();
+            if (!plan.canAddChild(currentChildren.length)) {
+              await _showChildLimitDialog(l10n);
+              return;
+            }
+          } catch (_) {
+            // If plan lookup fails, continue without blocking.
+          }
+
           final parentContext = context;
           final messenger = ScaffoldMessenger.of(parentContext);
           String name = '';
@@ -996,6 +1140,22 @@ class _ChildManagementScreenState
                         context.push('/parent/reports', extra: child.id),
                     icon: const Icon(Icons.pie_chart),
                     color: AppColors.primary,
+                    iconSize: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 32,
+                      height: 32,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Tooltip(
+                  message: l10n.delete,
+                  child: IconButton(
+                    onPressed: () => _confirmDeleteChild(child),
+                    icon: const Icon(Icons.delete_outline),
+                    color: AppColors.error,
                     iconSize: 20,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints.tightFor(

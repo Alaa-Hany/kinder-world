@@ -9,6 +9,9 @@ import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:kinder_world/core/subscription/plan_info.dart';
+import 'package:kinder_world/core/widgets/plan_guard.dart';
+import 'package:kinder_world/core/widgets/plan_status_banner.dart';
 
 enum ReportPeriod { week, month, year }
 
@@ -243,32 +246,37 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 final segments = _activitySegments(l10n);
                 final textDirection = Directionality.of(context);
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
-                      Text(
-                        l10n.learningProgressReports,
-                        style: const TextStyle(
-                          fontSize: AppConstants.largeFontSize,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                return PlanGuard(
+                  requiredTier: PlanTier.premium,
+                  featureLabel: l10n.reportsAndAnalytics,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+                        Text(
+                          l10n.learningProgressReports,
+                          style: const TextStyle(
+                            fontSize: AppConstants.largeFontSize,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.trackChildDevelopment,
-                        style: const TextStyle(
-                          fontSize: AppConstants.fontSize,
-                          color: AppColors.textSecondary,
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.trackChildDevelopment,
+                          style: const TextStyle(
+                            fontSize: AppConstants.fontSize,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
+                        const SizedBox(height: 16),
+                        const PlanStatusBanner(),
+                        const SizedBox(height: 24),
 
-                      // Child Selection
-                      Container(
+                        // Child Selection
+                        Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: AppColors.white,

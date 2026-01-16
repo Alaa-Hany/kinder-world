@@ -330,6 +330,22 @@ abstract class AppLocalizations {
   String get familyPlan;
   String get premiumFeatures;
   String get upgradeNow;
+  String get choosePlan;
+  String get currentPlan;
+  String get planFree;
+  String get planPremium;
+  String get planFamilyPlus;
+  String get planFeatureInPremium;
+  String planChildLimit(int count);
+  String get planUnlimitedChildren;
+  String get planBasicReports;
+  String get planAdvancedReports;
+  String get planAiInsightsPro;
+  String get planOfflineDownloads;
+  String get planSmartControls;
+  String get planExclusiveContent;
+  String get planFamilyDashboard;
+  String get freePlanChildLimit;
   String get manageSubscription;
   String get paymentMethod;
   String get billingInfo;
@@ -366,6 +382,10 @@ abstract class AppLocalizations {
   String get logoutConfirm;
   String get exitConfirm;
   String get deleteConfirm;
+  String get deleteChildTitle;
+  String get deleteChildDescription;
+  String get deleteChildSuccess;
+  String get deleteChildFailed;
 
   // Validation
   String get fieldRequired;

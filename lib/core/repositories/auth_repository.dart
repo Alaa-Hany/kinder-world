@@ -263,12 +263,15 @@ class AuthRepository {
         throw const ChildLoginException(statusCode: 401);
       }
 
+      final resolvedName = _extractChildName(data);
       final now = DateTime.now();
       final childUser = User(
         id: childId,
         email: '$childId@child.local',
         role: UserRoles.child,
-        name: 'Child $childId',
+        name: resolvedName?.isNotEmpty == true
+            ? resolvedName!.trim()
+            : 'Child $childId',
         createdAt: now,
         updatedAt: now,
         isActive: true,
@@ -395,6 +398,21 @@ class AuthRepository {
     return childUser;
   }
 
+  String? _extractChildName(dynamic data) {
+    if (data is Map) {
+      final childData = data['child'];
+      if (childData is Map && childData['name'] != null) {
+        final name = childData['name']?.toString().trim();
+        if (name != null && name.isNotEmpty) return name;
+      }
+      final name = data['name']?.toString().trim();
+      if (name != null && name.isNotEmpty) return name;
+      final childName = data['child_name']?.toString().trim();
+      if (childName != null && childName.isNotEmpty) return childName;
+    }
+    return null;
+  }
+
   // ==================== LOGOUT ====================
 
   /// Logout current user
@@ -504,6 +522,26 @@ class AuthRepository {
       return await _secureStorage.saveIsPremium(isPremium);
     } catch (e) {
       _logger.e('Error saving premium status: $e');
+      return false;
+    }
+  }
+
+  // ==================== PLAN TYPE ====================
+
+  Future<String?> getPlanType() async {
+    try {
+      return await _secureStorage.getPlanType();
+    } catch (e) {
+      _logger.e('Error getting plan type: $e');
+      return null;
+    }
+  }
+
+  Future<bool> savePlanType(String planType) async {
+    try {
+      return await _secureStorage.savePlanType(planType);
+    } catch (e) {
+      _logger.e('Error saving plan type: $e');
       return false;
     }
   }

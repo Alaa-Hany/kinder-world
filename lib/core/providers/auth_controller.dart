@@ -360,6 +360,10 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> setPremiumStatus(bool isPremium) async {
     await _authRepository.savePremiumStatus(isPremium);
+    final existingPlanType = await _authRepository.getPlanType();
+    if (!(isPremium && existingPlanType == 'family_plus')) {
+      await _authRepository.savePlanType(isPremium ? 'premium' : 'free');
+    }
     final user = state.user;
     if (user == null) return;
     state = state.copyWith(

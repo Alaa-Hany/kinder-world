@@ -519,10 +519,61 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get premiumFeatures => 'Premium Features';
-  
+
   @override
   String get upgradeNow => 'Upgrade Now';
-  
+
+  @override
+  String get choosePlan => 'Choose Plan';
+
+  @override
+  String get currentPlan => 'Current Plan';
+
+  @override
+  String get planFree => 'Free';
+
+  @override
+  String get planPremium => 'Premium';
+
+  @override
+  String get planFamilyPlus => 'Family+';
+
+  @override
+  String get planFeatureInPremium => 'This feature is included in Premium';
+
+  @override
+  String planChildLimit(int count) {
+    final suffix = count == 1 ? '' : 's';
+    return '$count child profile$suffix';
+  }
+
+  @override
+  String get planUnlimitedChildren => 'Unlimited child profiles';
+
+  @override
+  String get planBasicReports => 'Basic reports';
+
+  @override
+  String get planAdvancedReports => 'Advanced reports';
+
+  @override
+  String get planAiInsightsPro => 'AI Insights Pro';
+
+  @override
+  String get planOfflineDownloads => 'Offline downloads';
+
+  @override
+  String get planSmartControls => 'Smart controls';
+
+  @override
+  String get planExclusiveContent => 'Exclusive content';
+
+  @override
+  String get planFamilyDashboard => 'Family dashboard';
+
+  @override
+  String get freePlanChildLimit => 'Free plan allows 1 child profile';
+
   @override
   String get manageSubscription => 'Manage Subscription';
   
@@ -612,6 +663,19 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get deleteConfirm => 'Are you sure you want to delete?';
+
+  @override
+  String get deleteChildTitle => 'Delete child profile?';
+
+  @override
+  String get deleteChildDescription =>
+      'Child data and reports will be permanently deleted. This can\'t be undone.';
+
+  @override
+  String get deleteChildSuccess => 'Child deleted successfully';
+
+  @override
+  String get deleteChildFailed => 'Unable to delete right now';
   
   @override
   String get fieldRequired => 'This field is required';

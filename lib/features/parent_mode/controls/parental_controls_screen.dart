@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:kinder_world/core/subscription/plan_info.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:kinder_world/core/widgets/plan_guard.dart';
+import 'package:kinder_world/core/widgets/plan_status_banner.dart';
 
 class ParentalControlsScreen extends ConsumerStatefulWidget {
   const ParentalControlsScreen({super.key});
@@ -37,144 +40,153 @@ class _ParentalControlsScreenState
         foregroundColor: AppColors.white,
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    Text(
-                      l10n.contentRestrictionsAndScreenTime,
-                      style: const TextStyle(
-                        fontSize: AppConstants.largeFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.manageChildAccess,
-                      style: const TextStyle(
-                        fontSize: AppConstants.fontSize,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-
-                    _buildControlSection(
-                      l10n.screenTimeLimits,
-                      Icons.timer,
-                      [
-                        _buildToggleSetting(
-                          l10n.dailyLimit,
-                          _dailyLimitEnabled,
-                          (value) => setState(() => _dailyLimitEnabled = value),
-                        ),
-                        _buildSliderSetting(
-                          l10n.hoursPerDay,
-                          _hoursPerDay,
-                          0,
-                          6,
-                          (value) => setState(() => _hoursPerDay = value),
-                        ),
-                        _buildToggleSetting(
-                          l10n.breakReminders,
-                          _breakRemindersEnabled,
-                          (value) =>
-                              setState(() => _breakRemindersEnabled = value),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    _buildControlSection(
-                      l10n.contentFiltering,
-                      Icons.filter_list,
-                      [
-                        _buildToggleSetting(
-                          l10n.ageAppropriate,
-                          _ageAppropriateOnly,
-                          (value) => setState(() => _ageAppropriateOnly = value),
-                        ),
-                        _buildToggleSetting(
-                          l10n.blockContent,
-                          _blockEducational,
-                          (value) => setState(() => _blockEducational = value),
-                        ),
-                        _buildToggleSetting(
-                          l10n.requireApproval,
-                          _requireApproval,
-                          (value) => setState(() => _requireApproval = value),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    _buildControlSection(
-                      l10n.timeRestrictions,
-                      Icons.access_time,
-                      [
-                        _buildToggleSetting(
-                          l10n.sleepMode,
-                          _sleepMode,
-                          (value) => setState(() => _sleepMode = value),
-                        ),
-                        _buildTimeSetting(l10n.bedtime, _bedtime, isBedtime: true),
-                        _buildTimeSetting(l10n.wakeTime, _wakeTime, isBedtime: false),
-                      ],
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // Emergency Controls
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.3),
+        child: PlanGuard(
+          requiredTier: PlanTier.premium,
+          featureLabel: l10n.smartControl,
+          padding: const EdgeInsets.all(24),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      Text(
+                        l10n.contentRestrictionsAndScreenTime,
+                        style: const TextStyle(
+                          fontSize: AppConstants.largeFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.emergencyControls,
-                            style: const TextStyle(
-                              fontSize: AppConstants.fontSize,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.error,
-                            ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.manageChildAccess,
+                        style: const TextStyle(
+                          fontSize: AppConstants.fontSize,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const PlanStatusBanner(),
+                      const SizedBox(height: 24),
+
+                      _buildControlSection(
+                        l10n.screenTimeLimits,
+                        Icons.timer,
+                        [
+                          _buildToggleSetting(
+                            l10n.dailyLimit,
+                            _dailyLimitEnabled,
+                            (value) => setState(() => _dailyLimitEnabled = value),
                           ),
-                          const SizedBox(height: 16),
-
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // TODO: Implement emergency lock
-                            },
-                            icon: const Icon(Icons.lock),
-                            label: Text(l10n.lockAppNow),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.error,
-                              foregroundColor: AppColors.white,
-                              minimumSize: const Size(double.infinity, 48),
-                            ),
+                          _buildSliderSetting(
+                            l10n.hoursPerDay,
+                            _hoursPerDay,
+                            0,
+                            6,
+                            (value) => setState(() => _hoursPerDay = value),
+                          ),
+                          _buildToggleSetting(
+                            l10n.breakReminders,
+                            _breakRemindersEnabled,
+                            (value) =>
+                                setState(() => _breakRemindersEnabled = value),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 24),
+
+                      _buildControlSection(
+                        l10n.contentFiltering,
+                        Icons.filter_list,
+                        [
+                          _buildToggleSetting(
+                            l10n.ageAppropriate,
+                            _ageAppropriateOnly,
+                            (value) => setState(() => _ageAppropriateOnly = value),
+                          ),
+                          _buildToggleSetting(
+                            l10n.blockContent,
+                            _blockEducational,
+                            (value) => setState(() => _blockEducational = value),
+                          ),
+                          _buildToggleSetting(
+                            l10n.requireApproval,
+                            _requireApproval,
+                            (value) => setState(() => _requireApproval = value),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      _buildControlSection(
+                        l10n.timeRestrictions,
+                        Icons.access_time,
+                        [
+                          _buildToggleSetting(
+                            l10n.sleepMode,
+                            _sleepMode,
+                            (value) => setState(() => _sleepMode = value),
+                          ),
+                          _buildTimeSetting(l10n.bedtime, _bedtime,
+                              isBedtime: true),
+                          _buildTimeSetting(l10n.wakeTime, _wakeTime,
+                              isBedtime: false),
+                        ],
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      // Emergency Controls
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.error.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.emergencyControls,
+                              style: const TextStyle(
+                                fontSize: AppConstants.fontSize,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.error,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                // TODO: Implement emergency lock
+                              },
+                              icon: const Icon(Icons.lock),
+                              label: Text(l10n.lockAppNow),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.error,
+                                foregroundColor: AppColors.white,
+                                minimumSize: const Size(double.infinity, 48),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -460,28 +460,48 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
   Future<ChildProfile?> _ensureLocalChildProfile(
     String childId,
-    ChildProfile? childProfile,
-  ) async {
+    ChildProfile? childProfile, {
+    String? fallbackName,
+  }) async {
     final repo = ref.read(childRepositoryProvider);
     final existing = childProfile ?? await repo.getChildProfile(childId);
     final selectedPassword = _selectedPictures.length == 3
         ? List<String>.from(_selectedPictures)
         : const <String>[];
+    final resolvedFallback =
+        (fallbackName != null && fallbackName.trim().isNotEmpty)
+            ? fallbackName.trim()
+            : null;
+    final isDefaultName = resolvedFallback != null &&
+        (resolvedFallback == childId || resolvedFallback == 'Child $childId');
 
     if (existing != null) {
+      var updatedProfile = existing;
       if (selectedPassword.isNotEmpty &&
           !_samePictures(existing.picturePassword, selectedPassword)) {
-        final updated = existing.copyWith(
+        updatedProfile = updatedProfile.copyWith(
           picturePassword: selectedPassword,
           updatedAt: DateTime.now(),
         );
-        final saved = await repo.updateChildProfile(updated);
+      }
+      if (resolvedFallback != null &&
+          !isDefaultName &&
+          (existing.name.isEmpty ||
+              existing.name == childId ||
+              existing.name == 'Child $childId')) {
+        updatedProfile = updatedProfile.copyWith(
+          name: resolvedFallback,
+          updatedAt: DateTime.now(),
+        );
+      }
+      if (updatedProfile != existing) {
+        final saved = await repo.updateChildProfile(updatedProfile);
         if (saved != null) {
           _refreshChildren();
           return saved;
         }
       }
-      return existing;
+      return updatedProfile;
     }
 
     final now = DateTime.now();
@@ -489,7 +509,9 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       id: childId,
       name: (childProfile?.name.isNotEmpty ?? false)
           ? childProfile!.name
-          : childId,
+          : (!isDefaultName && resolvedFallback != null
+              ? resolvedFallback
+              : childId),
       age: childProfile?.age ?? 0,
       avatar: childProfile?.avatar ?? _avatarOptions.first.id,
       interests: childProfile?.interests ?? const [],
@@ -548,8 +570,13 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
         return;
       }
 
+      final loggedInName = ref.read(authControllerProvider).user?.name;
       final storedProfile =
-          await _ensureLocalChildProfile(trimmedId, childProfile);
+          await _ensureLocalChildProfile(
+        trimmedId,
+        childProfile,
+        fallbackName: loggedInName,
+      );
       if (storedProfile == null) {
         _showError(l10n.childProfileNotFound);
         return;
