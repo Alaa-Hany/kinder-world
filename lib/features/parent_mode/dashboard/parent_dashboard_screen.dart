@@ -7,12 +7,14 @@ import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/models/progress_record.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
 import 'package:kinder_world/core/providers/progress_controller.dart';
+import 'package:kinder_world/core/providers/theme_provider.dart';
 import 'package:kinder_world/app.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:kinder_world/core/subscription/plan_info.dart';
 import 'package:kinder_world/core/widgets/plan_guard.dart';
 import 'package:kinder_world/core/widgets/plan_status_banner.dart';
+import 'package:kinder_world/core/widgets/dashboard_theme_switch.dart';
 
 class ParentDashboardScreen extends ConsumerStatefulWidget {
   const ParentDashboardScreen({super.key});
@@ -27,6 +29,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
   late Animation<double> _fadeAnimation;
   Future<List<ChildProfile>>? _childrenFuture;
   String? _cachedParentId;
+  // Removed local switch state; use themeModeProvider instead
 
   @override
   void initState() {
@@ -308,17 +311,33 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                         ),
                         actions: [
                           IconButton(
+                            icon: const Icon(Icons.settings),
+                            color: AppColors.textPrimary,
+                            onPressed: () {
+                              context.go('/parent/settings');
+                            },
+                          ),
+                          IconButton(
                             icon: const Icon(Icons.notifications),
                             color: AppColors.textPrimary,
                             onPressed: () {
                               context.go('/parent/notifications');
                             },
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.settings),
-                            color: AppColors.textPrimary,
-                            onPressed: () {
-                              context.go('/parent/settings');
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final themeMode = ref.watch(themeModeProvider);
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: DashboardThemeSwitch(
+                                  value: themeMode == ThemeMode.dark,
+                                  onChanged: (isDark) {
+                                    ref.read(themeModeProvider.notifier).setTheme(
+                                      isDark ? ThemeMode.dark : ThemeMode.light,
+                                    );
+                                  },
+                                ),
+                              );
                             },
                           ),
                         ],
@@ -439,6 +458,8 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
   }
 
   Widget _buildChildCard(ChildProfile child) {
+    final initials = child.name.isNotEmpty ? child.name[0] : '?';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -464,7 +485,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             ),
             child: Center(
               child: Text(
-                child.name[0],
+                initials,
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -474,7 +495,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             ),
           ),
           const SizedBox(width: 16),
-          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,6 +507,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                     color: AppColors.textPrimary,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   '${child.age} years old • Level ${child.level}',
                   style: const TextStyle(
@@ -495,7 +516,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                   ),
                 ),
                 const SizedBox(height: 8),
-                
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -508,37 +528,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
               ],
             ),
           ),
-          
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.lightGrey,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              MoodTypes.getEmoji(child.currentMood ?? MoodTypes.happy),
-              style: const TextStyle(fontSize: 24),
-            ),
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
       ),
     );
   }
@@ -548,10 +538,12 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
       return const SizedBox();
     }
 
-    // Calculate totals
     final totalTime = children.fold<int>(0, (sum, child) => sum + child.totalTimeSpent);
-    final totalActivities = children.fold<int>(0, (sum, child) => sum + child.activitiesCompleted);
-    const avgScore = 85; // Placeholder - would come from progress records
+    final totalActivities =
+        children.fold<int>(0, (sum, child) => sum + child.activitiesCompleted);
+    final avgXp = children.isEmpty
+        ? 0
+        : (children.fold<int>(0, (sum, child) => sum + child.xp) ~/ children.length);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +557,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
           ),
         ),
         const SizedBox(height: 16),
-        
         Row(
           children: [
             Expanded(
@@ -588,8 +579,8 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             const SizedBox(width: 16),
             Expanded(
               child: _buildStatCard(
-                'Avg Score',
-                '$avgScore%',
+                'Avg XP',
+                '$avgXp',
                 Icons.star,
                 AppColors.xpColor,
               ),
@@ -646,6 +637,25 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

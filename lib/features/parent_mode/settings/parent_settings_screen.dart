@@ -26,21 +26,21 @@ class ParentSettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16.0),
           children: [
             const SizedBox(height: 8),
-            
+
             // Account Section
             _buildSectionHeader(l10n.accountSection),
             _buildSettingItem(
               l10n.profileLabel,
               Icons.person,
               onTap: () {
-                _showComingSoon(context, l10n.profileLabel, l10n);
+                context.push(Routes.parentProfile);
               },
             ),
             _buildSettingItem(
               l10n.changePassword,
               Icons.lock,
               onTap: () {
-                _showComingSoon(context, l10n.changePassword, l10n);
+                context.push(Routes.parentChangePassword);
               },
             ),
             _buildSettingItem(
@@ -50,9 +50,9 @@ class ParentSettingsScreen extends ConsumerWidget {
                 context.go(Routes.parentNotifications);
               },
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Family Section
             _buildSectionHeader(l10n.familySection),
             _buildSettingItem(
@@ -76,9 +76,9 @@ class ParentSettingsScreen extends ConsumerWidget {
                 context.go(Routes.parentControls);
               },
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Preferences Section
             _buildSectionHeader(l10n.preferencesSection),
             _buildSettingItem(
@@ -92,75 +92,77 @@ class ParentSettingsScreen extends ConsumerWidget {
               l10n.theme,
               Icons.palette,
               onTap: () {
-                _showComingSoon(context, l10n.theme, l10n);
+                context.push(Routes.parentTheme);
               },
             ),
             _buildSettingItem(
               l10n.privacySettings,
               Icons.privacy_tip,
               onTap: () {
-                context.go('${Routes.legal}?type=privacy');
+                context.push(Routes.parentPrivacySettings);
               },
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Support Section
             _buildSectionHeader(l10n.supportSection),
             _buildSettingItem(
               l10n.helpFaq,
               Icons.help,
               onTap: () {
-                context.go(Routes.help);
+                context.push(Routes.parentHelp);
               },
             ),
             _buildSettingItem(
               l10n.contactUs,
               Icons.contact_mail,
               onTap: () {
-                context.go(Routes.help);
+                context.push(Routes.parentContactUs);
               },
             ),
             _buildSettingItem(
               l10n.about,
               Icons.info,
               onTap: () {
-                _showComingSoon(context, l10n.about, l10n);
+                context.push(Routes.parentAbout);
               },
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Legal Section
             _buildSectionHeader(l10n.legalSection),
             _buildSettingItem(
               l10n.termsOfService,
               Icons.description,
               onTap: () {
-                context.go('${Routes.legal}?type=terms');
+                context.push('${Routes.legal}?type=terms');
               },
             ),
             _buildSettingItem(
               l10n.privacyPolicy,
               Icons.security,
               onTap: () {
-                context.go('${Routes.legal}?type=privacy');
+                context.push('${Routes.legal}?type=privacy');
               },
             ),
             _buildSettingItem(
               l10n.coppaCompliance,
               Icons.child_care,
               onTap: () {
-                context.go('${Routes.legal}?type=coppa');
+                context.push('${Routes.legal}?type=coppa');
               },
             ),
-            
+
             const SizedBox(height: 40),
-            
+
             // Logout Button
             ElevatedButton.icon(
               onPressed: () async {
-                await ref.read(childSessionControllerProvider.notifier).endChildSession();
+                await ref
+                    .read(childSessionControllerProvider.notifier)
+                    .endChildSession();
                 await ref.read(authControllerProvider.notifier).logout();
                 if (!context.mounted) return;
                 context.go(Routes.welcome);
@@ -196,18 +198,6 @@ class ParentSettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showComingSoon(
-    BuildContext context,
-    String title,
-    AppLocalizations l10n,
-  ) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.comingSoon(title)),
-      ),
-    );
-  }
-
   Widget _buildSettingItem(String title, IconData icon, {VoidCallback? onTap}) {
     return ListTile(
       leading: Container(
@@ -226,7 +216,8 @@ class ParentSettingsScreen extends ConsumerWidget {
           color: AppColors.textPrimary,
         ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.grey),
+      trailing:
+          const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.grey),
       onTap: onTap,
     );
   }

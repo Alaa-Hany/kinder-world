@@ -3,6 +3,7 @@
 // ignore_for_file: invalid_annotation_target
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kinder_world/core/constants/app_constants.dart';
 
 part 'child_profile.freezed.dart';
 part 'child_profile.g.dart';
@@ -31,6 +32,9 @@ class ChildProfile with _$ChildProfile {
     @JsonKey(name: 'learning_style') String? learningStyle,
     @JsonKey(name: 'special_needs') List<String>? specialNeeds,
     @JsonKey(name: 'accessibility_needs') List<String>? accessibilityNeeds,
+    @Default(AppConstants.defaultChildAvatar)
+    @JsonKey(name: 'avatar_path')
+    String avatarPath,
   }) = _ChildProfile;
 
   const ChildProfile._();

@@ -72,24 +72,25 @@ class ChildProfileScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               
               // Avatar
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(60),
-                  border: Border.all(
-                    color: AppColors.primary,
-                    width: 4,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    child.name[0],
-                    style: const TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
+              Center(
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
                       color: AppColors.primary,
+                      width: 4,
+                    ),
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                  ),
+                  child: CircleAvatar(
+                    radius: 56,
+                    backgroundColor: Colors.transparent,
+                    backgroundImage: AssetImage(
+                      child.avatarPath.isNotEmpty
+                          ? child.avatarPath
+                          : AppConstants.defaultChildAvatar,
                     ),
                   ),
                 ),

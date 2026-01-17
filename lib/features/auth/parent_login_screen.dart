@@ -16,7 +16,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -29,23 +29,23 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     final authController = ref.read(authControllerProvider.notifier);
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     final success = await authController.loginParent(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
-    
+
     if (mounted) {
       setState(() {
         _isLoading = false;
       });
-      
+
       if (success) {
         context.go('/parent/dashboard');
       } else {
@@ -64,7 +64,39 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final isLoading = _isLoading || authState.isLoading;
-    
+    final outlineBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.grey),
+    );
+
+    InputDecoration buildDecoration({
+      required String label,
+      required String hint,
+      required IconData icon,
+      Widget? suffix,
+    }) {
+      return InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon, color: AppColors.textIcon),
+        suffixIcon: suffix,
+        filled: true,
+        fillColor: AppColors.surface,
+        labelStyle: const TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        hintStyle: const TextStyle(color: AppColors.textSecondary),
+        enabledBorder: outlineBorder,
+        focusedBorder: outlineBorder.copyWith(
+          borderSide: const BorderSide(color: AppColors.primary),
+        ),
+        errorBorder: outlineBorder.copyWith(
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -102,7 +134,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Email field
                 TextFormField(
                   controller: _emailController,
@@ -110,10 +142,11 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   textCapitalization: TextCapitalization.none,
                   autocorrect: false,
                   enableSuggestions: false,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
-                    prefixIcon: Icon(Icons.email),
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: buildDecoration(
+                    label: 'Email',
+                    hint: 'Enter your email',
+                    icon: Icons.email,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -126,18 +159,22 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Password field
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: buildDecoration(
+                    label: 'Password',
+                    hint: 'Enter your password',
+                    icon: Icons.lock,
+                    suffix: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: AppColors.textIcon,
                       ),
                       onPressed: () {
                         setState(() {
@@ -157,7 +194,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Forgot password
                 Align(
                   alignment: Alignment.centerRight,
@@ -169,7 +206,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Login button
                 SizedBox(
                   width: double.infinity,
@@ -184,7 +221,8 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                       ),
                     ),
                     child: isLoading
-                        ? const CircularProgressIndicator(color: AppColors.white)
+                        ? const CircularProgressIndicator(
+                            color: AppColors.white)
                         : const Text(
                             'Login',
                             style: TextStyle(
@@ -195,12 +233,13 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Divider
                 Row(
                   children: [
                     Expanded(
-                      child: Divider(color: AppColors.grey.withValues(alpha: 0.3)),
+                      child:
+                          Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -213,12 +252,13 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                       ),
                     ),
                     Expanded(
-                      child: Divider(color: AppColors.grey.withValues(alpha: 0.3)),
+                      child:
+                          Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Create account button
                 SizedBox(
                   width: double.infinity,

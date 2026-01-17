@@ -275,8 +275,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         const PlanStatusBanner(),
                         const SizedBox(height: 24),
 
-                        // Child Selection
-                        Container(
+                      // Child Selection
+                      Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: AppColors.white,
@@ -387,7 +387,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           children: [
                             Text(
                               l10n.activityBreakdown,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: AppConstants.fontSize + 2,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary,
@@ -506,13 +506,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       const SizedBox(height: 40),
                     ],
                   ),
-                );
+                ));
               },
             );
           },
         ),
-      ),
-    );
+        ),
+      );
   }
 
   Widget _buildPeriodButton(String text, ReportPeriod period) {

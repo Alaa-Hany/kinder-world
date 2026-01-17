@@ -123,6 +123,11 @@ class AuthRepository {
     }
   }
 
+  /// Alias for getCurrentUser - fetch fresh user data from API
+  Future<User?> getMe() async {
+    return await getCurrentUser();
+  }
+
   /// Get user role
   Future<String?> getUserRole() async {
     try {
@@ -372,43 +377,43 @@ class AuthRepository {
     }
   }
 
-  Future<User?> _localChildLogin(String childId) async {
-    if (childId.isEmpty) {
-      _logger.w('Child login failed: Missing child id');
+  String? _extractChildName(dynamic data) {
+    String? extractFromMap(Map<String, dynamic> map) {
+      String? pick(dynamic value) {
+        if (value == null) return null;
+        final name = value.toString().trim();
+        return name.isNotEmpty ? name : null;
+      }
+
+      final direct = pick(map['name']) ??
+          pick(map['child_name']) ??
+          pick(map['childName']) ??
+          pick(map['full_name']) ??
+          pick(map['fullName']);
+      if (direct != null) return direct;
+
+      for (final key in [
+        'child',
+        'child_profile',
+        'childProfile',
+        'profile',
+        'user',
+        'data',
+        'result',
+        'payload',
+      ]) {
+        final nested = map[key];
+        if (nested is Map) {
+          final name =
+              extractFromMap(Map<String, dynamic>.from(nested));
+          if (name != null) return name;
+        }
+      }
       return null;
     }
 
-    final now = DateTime.now();
-    final childUser = User(
-      id: childId,
-      email: '$childId@child.local',
-      role: UserRoles.child,
-      name: 'Child $childId',
-      createdAt: now,
-      updatedAt: now,
-      isActive: true,
-    );
-
-    await _secureStorage.saveAuthToken('child_session_$childId');
-    await _secureStorage.saveUserId(childId);
-    await _secureStorage.saveUserRole(UserRoles.child);
-    await _secureStorage.saveChildSession(childId);
-
-    _logger.d('Child login successful (local): ${childUser.id}');
-    return childUser;
-  }
-
-  String? _extractChildName(dynamic data) {
     if (data is Map) {
-      final childData = data['child'];
-      if (childData is Map && childData['name'] != null) {
-        final name = childData['name']?.toString().trim();
-        if (name != null && name.isNotEmpty) return name;
-      }
-      final name = data['name']?.toString().trim();
-      if (name != null && name.isNotEmpty) return name;
-      final childName = data['child_name']?.toString().trim();
-      if (childName != null && childName.isNotEmpty) return childName;
+      return extractFromMap(Map<String, dynamic>.from(data));
     }
     return null;
   }

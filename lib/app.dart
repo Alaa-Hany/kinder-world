@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kinder_world/core/localization/app_localizations.dart' as custom_localizations;
+import 'package:kinder_world/core/localization/app_localizations.dart'
+    as custom_localizations;
 import 'package:kinder_world/core/theme/app_theme.dart';
 import 'package:kinder_world/core/storage/secure_storage.dart';
 import 'package:kinder_world/core/network/network_service.dart';
 import 'package:kinder_world/router.dart';
 import 'package:logger/logger.dart';
+import 'package:kinder_world/core/providers/theme_provider.dart';
 
 // Providers
 final secureStorageProvider = Provider<SecureStorage>((ref) {
@@ -26,7 +28,6 @@ final networkServiceProvider = Provider<NetworkService>((ref) {
   );
 });
 
-final themeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 final localeProvider = StateProvider<Locale>((ref) => const Locale('en'));
 
 class KinderWorldApp extends ConsumerWidget {
@@ -34,19 +35,15 @@ class KinderWorldApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
-    
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp.router(
       title: 'Kinder World',
       debugShowCheckedModeBanner: false,
-      
-      // Theme
-      theme: AppTheme.lightTheme(isChildFriendly: true),
-      darkTheme: AppTheme.darkTheme(isChildFriendly: true),
+      theme: AppTheme.lightTheme(),
+      darkTheme: AppTheme.darkTheme(),
       themeMode: themeMode,
-      
-      // Localization
       localizationsDelegates: const [
         custom_localizations.AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -58,15 +55,13 @@ class KinderWorldApp extends ConsumerWidget {
         Locale('ar'),
       ],
       locale: locale,
-      
-      // Router
       routerConfig: ref.watch(routerProvider),
-      
+
       // Builder for app-level configurations
       builder: (context, child) {
         // Force text direction based on locale
         final isRTL = locale.languageCode == 'ar';
-        
+
         return Directionality(
           textDirection: isRTL ? TextDirection.rtl : TextDirection.ltr,
           child: child!,

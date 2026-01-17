@@ -403,6 +403,15 @@ abstract class AppLocalizations {
   String get screenReader;
   String get voiceCommands;
   String get switchAccess;
+
+  // Parent Settings
+  String get parentProfile;
+  String get parentChangePassword;
+  String get parentTheme;
+  String get parentPrivacySettings;
+  String get parentHelp;
+  String get parentContactUs;
+  String get parentAbout;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

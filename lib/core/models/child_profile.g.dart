@@ -39,6 +39,8 @@ _$ChildProfileImpl _$$ChildProfileImplFromJson(Map<String, dynamic> json) =>
       accessibilityNeeds: (json['accessibility_needs'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      avatarPath:
+          json['avatar_path'] as String? ?? AppConstants.defaultChildAvatar,
     );
 
 Map<String, dynamic> _$$ChildProfileImplToJson(_$ChildProfileImpl instance) =>
@@ -64,4 +66,5 @@ Map<String, dynamic> _$$ChildProfileImplToJson(_$ChildProfileImpl instance) =>
       'learning_style': instance.learningStyle,
       'special_needs': instance.specialNeeds,
       'accessibility_needs': instance.accessibilityNeeds,
+      'avatar_path': instance.avatarPath,
     };

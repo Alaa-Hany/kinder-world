@@ -141,7 +141,6 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
     );
 
     final overlay = Overlay.of(context, rootOverlay: true);
-    if (overlay == null) return;
     final entry = _topMessageEntry!;
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 3), () {

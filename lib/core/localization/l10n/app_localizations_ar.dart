@@ -33,16 +33,17 @@ class AppLocalizationsAr extends AppLocalizationsEn {
 
 
   @override
-  String get deleteChildTitle => '??? ??? ??????';
+  String get deleteChildTitle => 'حذف ملف الطفل';
 
   @override
-  String get deleteChildDescription => '???? ??? ?????? ????? ???????? ???????. ?? ???? ???????.';
+  String get deleteChildDescription =>
+      'سيؤدي هذا إلى حذف ملف الطفل وجميع البيانات المرتبطة به بشكل دائم. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
-  String get deleteChildSuccess => '?? ??? ????? ?????';
+  String get deleteChildSuccess => 'تم حذف ملف الطفل بنجاح';
 
   @override
-  String get deleteChildFailed => '?? ???? ????? ????';
+  String get deleteChildFailed => 'فشل حذف ملف الطفل';
 
   @override
   String get edit => 'تعديل';
@@ -342,52 +343,52 @@ class AppLocalizationsAr extends AppLocalizationsEn {
 
 
   @override
-  String get choosePlan => '????? ??????';
+  String get choosePlan => 'اختر خطتك';
 
   @override
-  String get currentPlan => '?????? ???????';
+  String get currentPlan => 'الخطة الحالية';
 
   @override
-  String get planFree => '??????';
+  String get planFree => 'مجاني';
 
   @override
-  String get planPremium => '???????';
+  String get planPremium => 'بريميوم';
 
   @override
   String get planFamilyPlus => 'Family+';
 
   @override
-  String get planFeatureInPremium => '?????? ?? ??? Premium';
+  String get planFeatureInPremium => 'متوفر في بريميوم';
 
   @override
-  String planChildLimit(int count) => '???? ?? $count ???';
+  String planChildLimit(int count) => 'إدارة ما يصل إلى $count أطفال';
 
   @override
-  String get planUnlimitedChildren => '??? ????? ??? ?????';
+  String get planUnlimitedChildren => 'عدد غير محدود من الأطفال';
 
   @override
-  String get planBasicReports => '?????? ??????';
+  String get planBasicReports => 'تقارير التقدم الأساسية';
 
   @override
-  String get planAdvancedReports => '?????? ??????';
+  String get planAdvancedReports => 'تقارير التعلم المتقدمة';
 
   @override
-  String get planAiInsightsPro => 'AI Insights Pro';
+  String get planAiInsightsPro => 'رؤى الذكاء الاصطناعي الاحترافية';
 
   @override
-  String get planOfflineDownloads => '????? ???? ??????';
+  String get planOfflineDownloads => 'الوصول دون اتصال';
 
   @override
-  String get planSmartControls => '???? ???';
+  String get planSmartControls => 'ضوابط أبوية';
 
   @override
-  String get planExclusiveContent => '????? ????';
+  String get planExclusiveContent => 'محتوى حصري';
 
   @override
-  String get planFamilyDashboard => '???? ??????';
+  String get planFamilyDashboard => 'لوحة تحكم العائلة';
 
   @override
-  String get freePlanChildLimit => '??? Free ???? ???? ????';
+  String get freePlanChildLimit => 'الخطة المجانية تسمح بطفل واحد';
 
   @override
   String get paywallTitle => 'الترقية إلى بريميوم';
@@ -669,4 +670,26 @@ class AppLocalizationsAr extends AppLocalizationsEn {
 
   @override
   String xpToLevel(int level) => 'XP للمستوى $level';
+
+  // Parent Settings
+  @override
+  String get parentProfile => 'الملف الشخصي';
+
+  @override
+  String get parentChangePassword => 'تغيير كلمة المرور';
+
+  @override
+  String get parentTheme => 'المظهر';
+
+  @override
+  String get parentPrivacySettings => 'إعدادات الخصوصية';
+
+  @override
+  String get parentHelp => 'المساعدة والأسئلة الشائعة';
+
+  @override
+  String get parentContactUs => 'اتصل بنا';
+
+  @override
+  String get parentAbout => 'حول التطبيق';
 }

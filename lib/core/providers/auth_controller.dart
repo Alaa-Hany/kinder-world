@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/models/user.dart';
 import 'package:kinder_world/core/repositories/auth_repository.dart';
+import 'package:kinder_world/core/services/auth_service.dart';
 import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
@@ -395,6 +396,19 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   );
 });
 
+/// Auth service provider
+final authServiceProvider = Provider<AuthService>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  final networkService = ref.watch(networkServiceProvider);
+  final logger = ref.watch(loggerProvider);
+  
+  return AuthService(
+    repository: authRepository,
+    networkService: networkService,
+    logger: logger,
+  );
+});
+
 /// Main auth controller provider - SINGLE SOURCE OF TRUTH
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
@@ -416,6 +430,12 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 /// Get current user
 final currentUserProvider = Provider<User?>((ref) {
   return ref.watch(authControllerProvider).user;
+});
+
+/// Get current authenticated user - fetches fresh data from API
+final meProvider = FutureProvider<User?>((ref) async {
+  final authRepository = ref.watch(authRepositoryProvider);
+  return await authRepository.getMe();
 });
 
 /// Check if current user is parent

@@ -8,6 +8,7 @@ import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/app.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
+import 'package:kinder_world/core/providers/child_session_controller.dart';
 import 'package:kinder_world/core/providers/plan_provider.dart';
 import 'package:kinder_world/core/widgets/picture_password_row.dart';
 import 'package:kinder_world/core/widgets/plan_status_banner.dart';
@@ -266,6 +267,16 @@ class _ChildManagementScreenState
     return childrenById.values.toList();
   }
 
+  Future<void> _refreshChildren() async {
+    final parentId = await ref.read(secureStorageProvider).getParentId();
+    if (!mounted) return;
+    final resolvedParentId = parentId ?? '';
+    setState(() {
+      _cachedParentId = resolvedParentId;
+      _childrenFuture = _loadChildrenForParent(resolvedParentId);
+    });
+  }
+
   void _showTopMessage(String message, {bool isError = true}) {
     if (!mounted) return;
     _topMessageEntry?.remove();
@@ -310,7 +321,6 @@ class _ChildManagementScreenState
     );
 
     final overlay = Overlay.of(context, rootOverlay: true);
-    if (overlay == null) return;
     final entry = _topMessageEntry!;
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 3), () {
@@ -379,7 +389,9 @@ class _ChildManagementScreenState
                             final deleted =
                                 await repo.deleteChildProfile(child.id);
                             if (!mounted) return;
-                            Navigator.of(dialogContext).pop();
+                            if (mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
                             if (deleted) {
                               _showTopMessage(
                                 l10n.deleteChildSuccess,
@@ -681,6 +693,7 @@ class _ChildManagementScreenState
             // If plan lookup fails, continue without blocking.
           }
 
+          if (!mounted) return;
           final parentContext = context;
           final messenger = ScaffoldMessenger.of(parentContext);
           String name = '';
@@ -961,7 +974,9 @@ class _ChildManagementScreenState
                                 }
 
                                 if (!mounted) return;
-                                Navigator.of(dialogContext).pop();
+                                if (mounted) {
+                                  Navigator.of(dialogContext).pop();
+                                }
                                 if (_cachedParentId != null) {
                                   setState(() {
                                     _childrenFuture =

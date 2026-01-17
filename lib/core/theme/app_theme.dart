@@ -12,7 +12,6 @@ class AppTheme {
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
       
-      // Color Scheme
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
@@ -21,10 +20,10 @@ class AppTheme {
         onPrimary: AppColors.white,
         onSecondary: AppColors.white,
         onSurface: AppColors.textPrimary,
+        onBackground: AppColors.textPrimary,
         onError: AppColors.white,
       ),
       
-      // App Bar
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
@@ -38,7 +37,6 @@ class AppTheme {
         iconTheme: const IconThemeData(color: AppColors.white),
       ),
       
-      // Bottom Navigation
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.primary,
@@ -47,7 +45,6 @@ class AppTheme {
         elevation: 8,
       ),
       
-      // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -63,7 +60,6 @@ class AppTheme {
         ),
       ),
       
-      // Text
       textTheme: TextTheme(
         displayLarge: TextStyle(
           fontSize: isChildFriendly ? 32 : 28,
@@ -93,9 +89,14 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: AppColors.white,
         ),
+        bodySmall: TextStyle(
+          color: AppColors.textSecondary,
+        ),
+        labelSmall: TextStyle(
+          color: AppColors.textSecondary,
+        ),
       ),
       
-      // Cards
       cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -104,7 +105,6 @@ class AppTheme {
         color: AppColors.surface,
       ),
       
-      // Input Decoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightGrey,
@@ -125,9 +125,25 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        labelStyle: const TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        floatingLabelStyle: const TextStyle(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
+        hintStyle: const TextStyle(
+          color: AppColors.textHint,
+        ),
+        helperStyle: const TextStyle(
+          color: AppColors.textHint,
+        ),
+        prefixIconColor: AppColors.textIcon,
+        suffixIconColor: AppColors.textIcon,
+        iconColor: AppColors.textIcon,
       ),
       
-      // Visual Density
       visualDensity: isChildFriendly ? VisualDensity.comfortable : VisualDensity.standard,
     );
   }

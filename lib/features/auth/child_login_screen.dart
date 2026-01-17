@@ -44,7 +44,6 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
   ChildProfile? _selectedChildProfile;
   bool _isLoading = false;
   String? _error;
-  bool _showCreateInline = false;
   OverlayEntry? _topMessageEntry;
 
   final List<_AvatarOption> _avatarOptions = const [
@@ -80,6 +79,37 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
   final List<PicturePasswordOption> _pictureOptions = picturePasswordOptions;
 
+  OutlineInputBorder get _loginBorder => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.grey),
+      );
+
+  InputDecoration _buildLoginDecoration({
+    required String label,
+    required IconData icon,
+    Widget? suffix,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: AppColors.textSecondary),
+      suffixIcon: suffix,
+      filled: true,
+      fillColor: AppColors.surface,
+      labelStyle: const TextStyle(
+        color: AppColors.textPrimary,
+        fontWeight: FontWeight.w600,
+      ),
+      hintStyle: const TextStyle(color: AppColors.textSecondary),
+      enabledBorder: _loginBorder,
+      focusedBorder: _loginBorder.copyWith(
+        borderSide: const BorderSide(color: AppColors.primary),
+      ),
+      errorBorder: _loginBorder.copyWith(
+        borderSide: const BorderSide(color: AppColors.error),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -111,8 +141,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
     try {
       final response = await ref.read(networkServiceProvider).get<dynamic>(
-        '/children',
-      );
+            '/children',
+          );
       final apiChildren = _extractChildrenList(response.data);
       for (final childData in apiChildren) {
         final childId = _parseChildId(childData);
@@ -189,7 +219,6 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     );
 
     final overlay = Overlay.of(context, rootOverlay: true);
-    if (overlay == null) return;
     final entry = _topMessageEntry!;
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 3), () {
@@ -401,17 +430,22 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
     final now = DateTime.now();
     final apiName = data['name']?.toString().trim();
-    final resolvedName =
-        (apiName != null && apiName.isNotEmpty) ? apiName : (existing?.name ?? childId);
+    final resolvedName = (apiName != null && apiName.isNotEmpty)
+        ? apiName
+        : (existing?.name ?? childId);
     final existingAge = existing?.age ?? 0;
     final age = existingAge > 0 ? existingAge : _parseInt(data['age'], 0);
     final existingLevel = existing?.level ?? 0;
-    final level = existingLevel > 0 ? existingLevel : _parseInt(data['level'], 1);
-    final avatar = existing?.avatar ?? data['avatar']?.toString() ?? _avatarOptions.first.id;
+    final level =
+        existingLevel > 0 ? existingLevel : _parseInt(data['level'], 1);
+    final avatar = existing?.avatar ??
+        data['avatar']?.toString() ??
+        _avatarOptions.first.id;
     final picturePassword = (existing?.picturePassword.isNotEmpty ?? false)
         ? existing!.picturePassword
         : _parseStringList(data['picture_password']);
-    final createdAt = existing?.createdAt ?? _parseDate(data['created_at'], now);
+    final createdAt =
+        existing?.createdAt ?? _parseDate(data['created_at'], now);
     final updatedAt = _parseDate(data['updated_at'], now);
     final lastSession =
         existing?.lastSession ?? _parseNullableDate(data['last_session']);
@@ -441,8 +475,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       currentMood: existing?.currentMood ?? data['current_mood']?.toString(),
       learningStyle:
           existing?.learningStyle ?? data['learning_style']?.toString(),
-      specialNeeds:
-          existing?.specialNeeds ?? _parseNullableStringList(data['special_needs']),
+      specialNeeds: existing?.specialNeeds ??
+          _parseNullableStringList(data['special_needs']),
       accessibilityNeeds: existing?.accessibilityNeeds ??
           _parseNullableStringList(data['accessibility_needs']),
     );
@@ -507,8 +541,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     final now = DateTime.now();
     final newProfile = ChildProfile(
       id: childId,
-      name: (childProfile?.name.isNotEmpty ?? false)
-          ? childProfile!.name
+      name: (childProfile != null && childProfile.name.isNotEmpty)
+          ? childProfile.name
           : (!isDefaultName && resolvedFallback != null
               ? resolvedFallback
               : childId),
@@ -571,8 +605,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       }
 
       final loggedInName = ref.read(authControllerProvider).user?.name;
-      final storedProfile =
-          await _ensureLocalChildProfile(
+      final storedProfile = await _ensureLocalChildProfile(
         trimmedId,
         childProfile,
         fallbackName: loggedInName,
@@ -603,6 +636,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
   }
 
   Future<void> _showCreateProfileDialog(AppLocalizations l10n) async {
+    final parentContext = context;
     final storedParentEmail =
         await ref.read(secureStorageProvider).getParentEmail();
     final parentEmailController =
@@ -639,7 +673,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     }
 
     await showDialog<void>(
-      context: context,
+      context: parentContext,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
@@ -652,15 +686,14 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
             final nameError =
                 nameTouched && childName.isEmpty ? l10n.fieldRequired : null;
             final emailError = emailTouched && !isValidEmail(parentEmail)
-                ? (parentEmail.isEmpty
-                    ? l10n.fieldRequired
-                    : l10n.invalidEmail)
+                ? (parentEmail.isEmpty ? l10n.fieldRequired : l10n.invalidEmail)
                 : null;
             final showPasswordError =
                 passwordTouched && selectedPassword.length != 3;
 
             return Dialog(
-              insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              insetPadding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -670,360 +703,374 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                   padding: const EdgeInsets.all(20),
                   child: SingleChildScrollView(
                     child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.createChildProfile,
-                        style: const TextStyle(
-                          fontSize: AppConstants.fontSize,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                      controller: childNameController,
-                      decoration: InputDecoration(
-                        labelText: l10n.childName,
-                        errorText: nameError,
-                        prefixIcon: const Icon(Icons.person),
-                      ),
-                      textCapitalization: TextCapitalization.words,
-                      onChanged: (_) => setDialogState(() {
-                        nameTouched = true;
-                      }),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: parentEmailController,
-                      decoration: InputDecoration(
-                        labelText: l10n.parentEmail,
-                        errorText: emailError,
-                        prefixIcon: const Icon(Icons.email),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      textCapitalization: TextCapitalization.none,
-                      onChanged: (_) => setDialogState(() {
-                        emailTouched = true;
-                      }),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${l10n.childAge}:'),
-                        const SizedBox(width: 12),
-                        DropdownButton<int>(
-                          value: age,
-                          hint: const Text('-'),
-                          items: List.generate(12, (i) => i + 3)
-                              .map(
-                                (value) => DropdownMenuItem(
-                                  value: value,
-                                  child: Text('$value'),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) => setDialogState(() {
-                            age = value;
+                        Text(
+                          l10n.createChildProfile,
+                          style: const TextStyle(
+                            fontSize: AppConstants.fontSize,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: childNameController,
+                          decoration: InputDecoration(
+                            labelText: l10n.childName,
+                            errorText: nameError,
+                            prefixIcon: const Icon(Icons.person),
+                          ),
+                          textCapitalization: TextCapitalization.words,
+                          onChanged: (_) => setDialogState(() {
+                            nameTouched = true;
                           }),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(l10n.avatar),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: 320,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _avatarOptions.map((option) {
-                          final isSelected = selectedAvatar == option.id;
-                          return InkWell(
-                            onTap: () {
-                              setDialogState(() {
-                                selectedAvatar = option.id;
-                              });
-                            },
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primary.withValues(alpha: 0.2)
-                                    : AppColors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.lightGrey,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Center(
-                                child: ClipOval(
-                                  child: option.assetPath.isNotEmpty
-                                      ? Image.asset(
-                                          option.assetPath,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(
-                                            option.icon,
-                                            color: option.iconColor,
-                                            size: 26,
-                                          ),
-                                        )
-                                      : Icon(
-                                          option.icon,
-                                          color: option.iconColor,
-                                          size: 26,
-                                        ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(l10n.selectPicturePassword),
-                    const SizedBox(height: 8),
-                    PicturePasswordRow(
-                      picturePassword: selectedPassword,
-                      size: 22,
-                      showPlaceholders: true,
-                    ),
-                    if (showPasswordError) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        l10n.picturePasswordError,
-                        style: const TextStyle(
-                          color: AppColors.error,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: 320,
-                      child: Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: _pictureOptions.map((option) {
-                          final isSelected = selectedPassword.contains(option.id);
-                          return InkWell(
-                            onTap: () => togglePicture(option.id, setDialogState),
-                            borderRadius: BorderRadius.circular(14),
-                            child: Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? option.color.withValues(alpha: 0.2)
-                                    : AppColors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? option.color
-                                      : AppColors.lightGrey,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Icon(
-                                option.icon,
-                                size: 26,
-                                color: option.color,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: isSaving
-                                ? null
-                                : () => Navigator.of(dialogContext).pop(),
-                            child: Text(l10n.cancel),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: parentEmailController,
+                          decoration: InputDecoration(
+                            labelText: l10n.parentEmail,
+                            errorText: emailError,
+                            prefixIcon: const Icon(Icons.email),
                           ),
+                          keyboardType: TextInputType.emailAddress,
+                          textCapitalization: TextCapitalization.none,
+                          onChanged: (_) => setDialogState(() {
+                            emailTouched = true;
+                          }),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: canSave
-                                ? () async {
-                                    setDialogState(() {
-                                      isSaving = true;
-                                      nameTouched = true;
-                                      emailTouched = true;
-                                      passwordTouched = true;
-                                    });
-
-                                    final trimmedName =
-                                        childNameController.text.trim();
-                                    final trimmedEmail =
-                                        parentEmailController.text.trim();
-
-                                    if (trimmedName.isEmpty ||
-                                        !isValidEmail(trimmedEmail) ||
-                                        selectedPassword.length != 3) {
-                                      setDialogState(() {
-                                        isSaving = false;
-                                      });
-                                      _showTopMessage(
-                                        l10n.childLoginMissingData,
-                                      );
-                                      return;
-                                    }
-
-                                    final authController = ref
-                                        .read(authControllerProvider.notifier);
-                                    var response =
-                                        await authController.registerChild(
-                                      name: trimmedName,
-                                      picturePassword:
-                                          List<String>.from(selectedPassword),
-                                      parentEmail: trimmedEmail,
-                                    );
-
-                                    if (response == null &&
-                                        ref.read(authControllerProvider).error ==
-                                            'child_register_limit') {
-                                      setDialogState(() {
-                                        isSaving = false;
-                                      });
-                                      _showTopMessage(
-                                        l10n.childRegisterLimitReached,
-                                      );
-                                      final upgraded = await _openPaywall();
-                                      if (!upgraded) {
-                                        return;
-                                      }
-                                      if (!mounted) return;
-                                      setDialogState(() {
-                                        isSaving = true;
-                                      });
-                                      response = await authController.registerChild(
-                                        name: trimmedName,
-                                        picturePassword: List<String>.from(
-                                          selectedPassword,
-                                        ),
-                                        parentEmail: trimmedEmail,
-                                      );
-                                    }
-
-                                    if (response == null) {
-                                      setDialogState(() {
-                                        isSaving = false;
-                                      });
-                                      final error =
-                                          ref.read(authControllerProvider).error;
-                                      _showTopMessage(
-                                        _mapChildRegisterError(l10n, error),
-                                      );
-                                      return;
-                                    }
-
-                                    await ref
-                                        .read(secureStorageProvider)
-                                        .saveUserEmail(trimmedEmail);
-
-                                    final resolvedName = response.name
-                                                ?.trim()
-                                                .isNotEmpty ==
-                                            true
-                                        ? response.name!.trim()
-                                        : trimmedName;
-                                    final now = DateTime.now();
-                                    final existing = await repo.getChildProfile(
-                                      response.childId,
-                                    );
-                                    final updatedProfile = (existing ??
-                                            ChildProfile(
-                                              id: response.childId,
-                                              name: resolvedName,
-                                              age: age ?? 0,
-                                              avatar: selectedAvatar,
-                                              interests: const [],
-                                              level: 1,
-                                              xp: 0,
-                                              streak: 0,
-                                              favorites: const [],
-                                              parentId: trimmedEmail,
-                                              parentEmail: trimmedEmail,
-                                              picturePassword: List<String>.from(
-                                                selectedPassword,
-                                              ),
-                                              createdAt: now,
-                                              updatedAt: now,
-                                              lastSession: null,
-                                              totalTimeSpent: 0,
-                                              activitiesCompleted: 0,
-                                              currentMood: null,
-                                              learningStyle: null,
-                                              specialNeeds: null,
-                                              accessibilityNeeds: null,
-                                            ))
-                                        .copyWith(
-                                      name: resolvedName,
-                                      age: age ?? existing?.age ?? 0,
-                                      avatar: selectedAvatar,
-                                      parentId: trimmedEmail,
-                                      parentEmail: trimmedEmail,
-                                      picturePassword: List<String>.from(
-                                        selectedPassword,
-                                      ),
-                                      updatedAt: now,
-                                    );
-
-                                    final saved = existing == null
-                                        ? await repo.createChildProfile(
-                                            updatedProfile,
-                                          )
-                                        : await repo.updateChildProfile(
-                                            updatedProfile,
-                                          );
-
-                                    if (saved == null) {
-                                      setDialogState(() {
-                                        isSaving = false;
-                                      });
-                                      _showTopMessage(l10n.childProfileAddFailed);
-                                      return;
-                                    }
-
-                                    if (mounted) {
-                                      Navigator.of(dialogContext).pop();
-                                      _refreshChildren();
-                                      _selectChild(saved);
-                                    }
-                                  }
-                                : null,
-                            child: isSaving
-                                ? const SizedBox(
-                                    height: 16,
-                                    width: 16,
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.white,
-                                      strokeWidth: 2,
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Text('${l10n.childAge}:'),
+                            const SizedBox(width: 12),
+                            DropdownButton<int>(
+                              value: age,
+                              hint: const Text('-'),
+                              items: List.generate(12, (i) => i + 3)
+                                  .map(
+                                    (value) => DropdownMenuItem(
+                                      value: value,
+                                      child: Text('$value'),
                                     ),
                                   )
-                                : Text(l10n.save),
+                                  .toList(),
+                              onChanged: (value) => setDialogState(() {
+                                age = value;
+                              }),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(l10n.avatar),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 320,
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _avatarOptions.map((option) {
+                              final isSelected = selectedAvatar == option.id;
+                              return InkWell(
+                                onTap: () {
+                                  setDialogState(() {
+                                    selectedAvatar = option.id;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  width: 64,
+                                  height: 64,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.primary
+                                            .withValues(alpha: 0.2)
+                                        : AppColors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : AppColors.lightGrey,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: ClipOval(
+                                      child: option.assetPath.isNotEmpty
+                                          ? Image.asset(
+                                              option.assetPath,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  Icon(
+                                                option.icon,
+                                                color: option.iconColor,
+                                                size: 26,
+                                              ),
+                                            )
+                                          : Icon(
+                                              option.icon,
+                                              color: option.iconColor,
+                                              size: 26,
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(l10n.selectPicturePassword),
+                        const SizedBox(height: 8),
+                        PicturePasswordRow(
+                          picturePassword: selectedPassword,
+                          size: 22,
+                          showPlaceholders: true,
+                        ),
+                        if (showPasswordError) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            l10n.picturePasswordError,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: 320,
+                          child: Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: _pictureOptions.map((option) {
+                              final isSelected =
+                                  selectedPassword.contains(option.id);
+                              return InkWell(
+                                onTap: () =>
+                                    togglePicture(option.id, setDialogState),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  width: 64,
+                                  height: 64,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? option.color.withValues(alpha: 0.2)
+                                        : AppColors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? option.color
+                                          : AppColors.lightGrey,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    option.icon,
+                                    size: 26,
+                                    color: option.color,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: isSaving
+                                    ? null
+                                    : () => Navigator.of(dialogContext).pop(),
+                                child: Text(l10n.cancel),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: canSave
+                                    ? () async {
+                                        setDialogState(() {
+                                          isSaving = true;
+                                          nameTouched = true;
+                                          emailTouched = true;
+                                          passwordTouched = true;
+                                        });
+
+                                        final trimmedName =
+                                            childNameController.text.trim();
+                                        final trimmedEmail =
+                                            parentEmailController.text.trim();
+
+                                        if (trimmedName.isEmpty ||
+                                            !isValidEmail(trimmedEmail) ||
+                                            selectedPassword.length != 3) {
+                                          setDialogState(() {
+                                            isSaving = false;
+                                          });
+                                          _showTopMessage(
+                                            l10n.childLoginMissingData,
+                                          );
+                                          return;
+                                        }
+
+                                        final authController = ref.read(
+                                            authControllerProvider.notifier);
+                                        var response =
+                                            await authController.registerChild(
+                                          name: trimmedName,
+                                          picturePassword: List<String>.from(
+                                              selectedPassword),
+                                          parentEmail: trimmedEmail,
+                                        );
+
+                                        if (response == null &&
+                                            ref
+                                                    .read(
+                                                        authControllerProvider)
+                                                    .error ==
+                                                'child_register_limit') {
+                                          setDialogState(() {
+                                            isSaving = false;
+                                          });
+                                          _showTopMessage(
+                                            l10n.childRegisterLimitReached,
+                                          );
+                                          final upgraded = await _openPaywall();
+                                          if (!upgraded) {
+                                            return;
+                                          }
+                                          if (!mounted) return;
+                                          setDialogState(() {
+                                            isSaving = true;
+                                          });
+                                          response = await authController
+                                              .registerChild(
+                                            name: trimmedName,
+                                            picturePassword: List<String>.from(
+                                              selectedPassword,
+                                            ),
+                                            parentEmail: trimmedEmail,
+                                          );
+                                        }
+
+                                        if (response == null) {
+                                          setDialogState(() {
+                                            isSaving = false;
+                                          });
+                                          final error = ref
+                                              .read(authControllerProvider)
+                                              .error;
+                                          _showTopMessage(
+                                            _mapChildRegisterError(l10n, error),
+                                          );
+                                          return;
+                                        }
+
+                                        await ref
+                                            .read(secureStorageProvider)
+                                            .saveUserEmail(trimmedEmail);
+
+                                        final resolvedName =
+                                            response.name?.trim().isNotEmpty ==
+                                                    true
+                                                ? response.name!.trim()
+                                                : trimmedName;
+                                        final now = DateTime.now();
+                                        final existing =
+                                            await repo.getChildProfile(
+                                          response.childId,
+                                        );
+                                        final updatedProfile = (existing ??
+                                                ChildProfile(
+                                                  id: response.childId,
+                                                  name: resolvedName,
+                                                  age: age ?? 0,
+                                                  avatar: selectedAvatar,
+                                                  interests: const [],
+                                                  level: 1,
+                                                  xp: 0,
+                                                  streak: 0,
+                                                  favorites: const [],
+                                                  parentId: trimmedEmail,
+                                                  parentEmail: trimmedEmail,
+                                                  picturePassword:
+                                                      List<String>.from(
+                                                    selectedPassword,
+                                                  ),
+                                                  createdAt: now,
+                                                  updatedAt: now,
+                                                  lastSession: null,
+                                                  totalTimeSpent: 0,
+                                                  activitiesCompleted: 0,
+                                                  currentMood: null,
+                                                  learningStyle: null,
+                                                  specialNeeds: null,
+                                                  accessibilityNeeds: null,
+                                                ))
+                                            .copyWith(
+                                          name: resolvedName,
+                                          age: age ?? existing?.age ?? 0,
+                                          avatar: selectedAvatar,
+                                          parentId: trimmedEmail,
+                                          parentEmail: trimmedEmail,
+                                          picturePassword: List<String>.from(
+                                            selectedPassword,
+                                          ),
+                                          updatedAt: now,
+                                        );
+
+                                        final saved = existing == null
+                                            ? await repo.createChildProfile(
+                                                updatedProfile,
+                                              )
+                                            : await repo.updateChildProfile(
+                                                updatedProfile,
+                                              );
+
+                                        if (saved == null) {
+                                          setDialogState(() {
+                                            isSaving = false;
+                                          });
+                                          _showTopMessage(
+                                              l10n.childProfileAddFailed);
+                                          return;
+                                        }
+
+                                        if (mounted) {
+                                          // Pop dialog first while dialogContext is valid
+                                          Navigator.of(dialogContext).pop();
+                                        }
+                                        if (mounted) {
+                                          _refreshChildren();
+                                          _selectChild(saved);
+                                        }
+                                      }
+                                    : null,
+                                child: isSaving
+                                    ? const SizedBox(
+                                        height: 16,
+                                        width: 16,
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(l10n.save),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        );
+            );
           },
         );
       },
@@ -1032,6 +1079,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     childNameController.dispose();
     parentEmailController.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -1077,7 +1125,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                     return const Center(
                       child: Padding(
                         padding: EdgeInsets.all(40.0),
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child:
+                            CircularProgressIndicator(color: AppColors.primary),
                       ),
                     );
                   }
@@ -1155,7 +1204,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
             width: 220,
             height: 48,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : () => context.go('/select-user-type'),
+              onPressed:
+                  _isLoading ? null : () => context.go('/select-user-type'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
@@ -1191,9 +1241,10 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
           controller: _childIdController,
           keyboardType: TextInputType.text,
           textCapitalization: TextCapitalization.none,
-          decoration: InputDecoration(
-            labelText: l10n.childId,
-            prefixIcon: const Icon(Icons.badge),
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: _buildLoginDecoration(
+            label: l10n.childId,
+            icon: Icons.badge,
           ),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_-]')),
@@ -1225,7 +1276,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                       fontSize: AppConstants.fontSize,
                       fontWeight: FontWeight.w600,
                     ),
-                ),
+                  ),
           ),
         ),
         const SizedBox(height: 12),
@@ -1249,7 +1300,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     );
   }
 
-  Widget _buildChildSelection(AppLocalizations l10n, List<ChildProfile> children) {
+  Widget _buildChildSelection(
+      AppLocalizations l10n, List<ChildProfile> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1405,8 +1457,9 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 decoration: BoxDecoration(
-                  color:
-                      isSelected ? option.color.withValues(alpha: 0.2) : AppColors.white,
+                  color: isSelected
+                      ? option.color.withValues(alpha: 0.2)
+                      : AppColors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isSelected ? option.color : AppColors.lightGrey,
@@ -1485,13 +1538,14 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
         borderRadius: BorderRadius.circular(size / 2),
       ),
       child: ClipOval(
-        child: avatar != null && avatar.isNotEmpty && avatar.startsWith('assets/')
-            ? Image.asset(
-                avatar,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => fallbackWidget,
-              )
-            : fallbackWidget,
+        child:
+            avatar != null && avatar.isNotEmpty && avatar.startsWith('assets/')
+                ? Image.asset(
+                    avatar,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => fallbackWidget,
+                  )
+                : fallbackWidget,
       ),
     );
   }
@@ -1506,7 +1560,9 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
         width: 140,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.white,
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.lightGrey,

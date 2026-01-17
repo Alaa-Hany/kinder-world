@@ -519,61 +519,10 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get premiumFeatures => 'Premium Features';
-
+  
   @override
   String get upgradeNow => 'Upgrade Now';
-
-  @override
-  String get choosePlan => 'Choose Plan';
-
-  @override
-  String get currentPlan => 'Current Plan';
-
-  @override
-  String get planFree => 'Free';
-
-  @override
-  String get planPremium => 'Premium';
-
-  @override
-  String get planFamilyPlus => 'Family+';
-
-  @override
-  String get planFeatureInPremium => 'This feature is included in Premium';
-
-  @override
-  String planChildLimit(int count) {
-    final suffix = count == 1 ? '' : 's';
-    return '$count child profile$suffix';
-  }
-
-  @override
-  String get planUnlimitedChildren => 'Unlimited child profiles';
-
-  @override
-  String get planBasicReports => 'Basic reports';
-
-  @override
-  String get planAdvancedReports => 'Advanced reports';
-
-  @override
-  String get planAiInsightsPro => 'AI Insights Pro';
-
-  @override
-  String get planOfflineDownloads => 'Offline downloads';
-
-  @override
-  String get planSmartControls => 'Smart controls';
-
-  @override
-  String get planExclusiveContent => 'Exclusive content';
-
-  @override
-  String get planFamilyDashboard => 'Family dashboard';
-
-  @override
-  String get freePlanChildLimit => 'Free plan allows 1 child profile';
-
+  
   @override
   String get manageSubscription => 'Manage Subscription';
   
@@ -663,25 +612,14 @@ class AppLocalizationsEn extends AppLocalizations {
   
   @override
   String get deleteConfirm => 'Are you sure you want to delete?';
-
-  @override
-  String get deleteChildTitle => 'Delete child profile?';
-
-  @override
-  String get deleteChildDescription =>
-      'Child data and reports will be permanently deleted. This can\'t be undone.';
-
-  @override
-  String get deleteChildSuccess => 'Child deleted successfully';
-
-  @override
-  String get deleteChildFailed => 'Unable to delete right now';
   
   @override
   String get fieldRequired => 'This field is required';
   
   @override
   String get invalidEmail => 'Please enter a valid email';
+
+  @override
   String get parentEmailNotFound =>
       'Parent email not found. Please sign in as a parent.';
   
@@ -756,7 +694,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get childRegisterLimitReached =>
-      'You\'ve reached the maximum number of childrens. Upgrade now.';
+      'You\'ve reached the maximum number of childrens. Upgrade nowfor \$10/month.';
 
   @override
   String get childRegisterForbidden => 'Not allowed';
@@ -768,7 +706,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paywallPrice => '\$10 / month';
 
   @override
-  String get paywallSubscribe => 'Subscribe & Pay';
+  String get paywallSubscribe => 'Upgrade now';
 
   @override
   String get paywallManagePaymentMethods => 'Manage payment methods';
@@ -1047,4 +985,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String xpToLevel(int level) => 'XP to Level $level';
+  
+  @override
+  String get choosePlan => 'Choose Your Plan';
+  
+  @override
+  String get currentPlan => 'Current Plan';
+  
+  @override
+  String get deleteChildDescription => 'This will permanently delete the child profile and all associated data. This action cannot be undone.';
+  
+  @override
+  String get deleteChildFailed => 'Failed to delete child profile';
+  
+  @override
+  String get deleteChildSuccess => 'Child profile deleted successfully';
+  
+  @override
+  String get deleteChildTitle => 'Delete Child Profile';
+  
+  @override
+  String get freePlanChildLimit => 'Free plan allows 1 child';
+  
+  @override
+  String get planAdvancedReports => 'Advanced Learning Reports';
+  
+  @override
+  String get planAiInsightsPro => 'AI-Powered Learning Insights';
+  
+  @override
+  String get planBasicReports => 'Basic Progress Reports';
+  
+  @override
+  String planChildLimit(int count) => 'Manage up to $count children';
+  
+  @override
+  String get planExclusiveContent => 'Exclusive Premium Content';
+  
+  @override
+  String get planFamilyDashboard => 'Family Dashboard';
+  
+  @override
+  String get planFamilyPlus => 'Family Plus';
+  
+  @override
+  String get planFeatureInPremium => 'Available in Premium';
+  
+  @override
+  String get planFree => 'Free';
+  
+  @override
+  String get planOfflineDownloads => 'Offline Access';
+  
+  @override
+  String get planPremium => 'Premium';
+  
+  @override
+  String get planSmartControls => 'Parental Controls';
+  
+  @override
+  String get planUnlimitedChildren => 'Unlimited Children';
+
+  // Parent Settings localization keys
+  @override
+  String get parentProfile => 'Profile';
+
+  @override
+  String get parentChangePassword => 'Change Password';
+
+  @override
+  String get parentTheme => 'Theme';
+
+  @override
+  String get parentPrivacySettings => 'Privacy Settings';
+
+  @override
+  String get parentHelp => 'Help & FAQ';
+
+  @override
+  String get parentContactUs => 'Contact Us';
+
+  @override
+  String get parentAbout => 'About';
 }

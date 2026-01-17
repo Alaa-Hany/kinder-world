@@ -52,6 +52,8 @@ mixin _$ChildProfile {
   List<String>? get specialNeeds => throw _privateConstructorUsedError;
   @JsonKey(name: 'accessibility_needs')
   List<String>? get accessibilityNeeds => throw _privateConstructorUsedError;
+  @JsonKey(name: 'avatar_path')
+  String get avatarPath => throw _privateConstructorUsedError;
 
   /// Serializes this ChildProfile to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -90,7 +92,8 @@ abstract class $ChildProfileCopyWith<$Res> {
       @JsonKey(name: 'current_mood') String? currentMood,
       @JsonKey(name: 'learning_style') String? learningStyle,
       @JsonKey(name: 'special_needs') List<String>? specialNeeds,
-      @JsonKey(name: 'accessibility_needs') List<String>? accessibilityNeeds});
+      @JsonKey(name: 'accessibility_needs') List<String>? accessibilityNeeds,
+      @JsonKey(name: 'avatar_path') String avatarPath});
 }
 
 /// @nodoc
@@ -129,6 +132,7 @@ class _$ChildProfileCopyWithImpl<$Res, $Val extends ChildProfile>
     Object? learningStyle = freezed,
     Object? specialNeeds = freezed,
     Object? accessibilityNeeds = freezed,
+    Object? avatarPath = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -215,6 +219,10 @@ class _$ChildProfileCopyWithImpl<$Res, $Val extends ChildProfile>
           ? _value.accessibilityNeeds
           : accessibilityNeeds // ignore: cast_nullable_to_non_nullable
               as List<String>?,
+      avatarPath: null == avatarPath
+          ? _value.avatarPath
+          : avatarPath // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -248,7 +256,8 @@ abstract class _$$ChildProfileImplCopyWith<$Res>
       @JsonKey(name: 'current_mood') String? currentMood,
       @JsonKey(name: 'learning_style') String? learningStyle,
       @JsonKey(name: 'special_needs') List<String>? specialNeeds,
-      @JsonKey(name: 'accessibility_needs') List<String>? accessibilityNeeds});
+      @JsonKey(name: 'accessibility_needs') List<String>? accessibilityNeeds,
+      @JsonKey(name: 'avatar_path') String avatarPath});
 }
 
 /// @nodoc
@@ -285,6 +294,7 @@ class __$$ChildProfileImplCopyWithImpl<$Res>
     Object? learningStyle = freezed,
     Object? specialNeeds = freezed,
     Object? accessibilityNeeds = freezed,
+    Object? avatarPath = null,
   }) {
     return _then(_$ChildProfileImpl(
       id: null == id
@@ -371,6 +381,10 @@ class __$$ChildProfileImplCopyWithImpl<$Res>
           ? _value._accessibilityNeeds
           : accessibilityNeeds // ignore: cast_nullable_to_non_nullable
               as List<String>?,
+      avatarPath: null == avatarPath
+          ? _value.avatarPath
+          : avatarPath // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -401,7 +415,9 @@ class _$ChildProfileImpl extends _ChildProfile {
       @JsonKey(name: 'learning_style') this.learningStyle,
       @JsonKey(name: 'special_needs') final List<String>? specialNeeds,
       @JsonKey(name: 'accessibility_needs')
-      final List<String>? accessibilityNeeds})
+      final List<String>? accessibilityNeeds,
+      @JsonKey(name: 'avatar_path')
+      this.avatarPath = AppConstants.defaultChildAvatar})
       : _interests = interests,
         _favorites = favorites,
         _picturePassword = picturePassword,
@@ -501,8 +517,12 @@ class _$ChildProfileImpl extends _ChildProfile {
   }
 
   @override
+  @JsonKey(name: 'avatar_path')
+  final String avatarPath;
+
+  @override
   String toString() {
-    return 'ChildProfile(id: $id, name: $name, age: $age, avatar: $avatar, interests: $interests, level: $level, xp: $xp, streak: $streak, favorites: $favorites, parentId: $parentId, parentEmail: $parentEmail, picturePassword: $picturePassword, createdAt: $createdAt, updatedAt: $updatedAt, lastSession: $lastSession, totalTimeSpent: $totalTimeSpent, activitiesCompleted: $activitiesCompleted, currentMood: $currentMood, learningStyle: $learningStyle, specialNeeds: $specialNeeds, accessibilityNeeds: $accessibilityNeeds)';
+    return 'ChildProfile(id: $id, name: $name, age: $age, avatar: $avatar, interests: $interests, level: $level, xp: $xp, streak: $streak, favorites: $favorites, parentId: $parentId, parentEmail: $parentEmail, picturePassword: $picturePassword, createdAt: $createdAt, updatedAt: $updatedAt, lastSession: $lastSession, totalTimeSpent: $totalTimeSpent, activitiesCompleted: $activitiesCompleted, currentMood: $currentMood, learningStyle: $learningStyle, specialNeeds: $specialNeeds, accessibilityNeeds: $accessibilityNeeds, avatarPath: $avatarPath)';
   }
 
   @override
@@ -544,7 +564,9 @@ class _$ChildProfileImpl extends _ChildProfile {
             const DeepCollectionEquality()
                 .equals(other._specialNeeds, _specialNeeds) &&
             const DeepCollectionEquality()
-                .equals(other._accessibilityNeeds, _accessibilityNeeds));
+                .equals(other._accessibilityNeeds, _accessibilityNeeds) &&
+            (identical(other.avatarPath, avatarPath) ||
+                other.avatarPath == avatarPath));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -571,7 +593,8 @@ class _$ChildProfileImpl extends _ChildProfile {
         currentMood,
         learningStyle,
         const DeepCollectionEquality().hash(_specialNeeds),
-        const DeepCollectionEquality().hash(_accessibilityNeeds)
+        const DeepCollectionEquality().hash(_accessibilityNeeds),
+        avatarPath
       ]);
 
   /// Create a copy of ChildProfile
@@ -592,30 +615,32 @@ class _$ChildProfileImpl extends _ChildProfile {
 
 abstract class _ChildProfile extends ChildProfile {
   const factory _ChildProfile(
-      {required final String id,
-      required final String name,
-      required final int age,
-      required final String avatar,
-      required final List<String> interests,
-      required final int level,
-      required final int xp,
-      required final int streak,
-      required final List<String> favorites,
-      required final String parentId,
-      @JsonKey(name: 'parent_email') final String? parentEmail,
-      @JsonKey(name: 'picture_password')
-      required final List<String> picturePassword,
-      @JsonKey(name: 'created_at') required final DateTime createdAt,
-      @JsonKey(name: 'updated_at') required final DateTime updatedAt,
-      @JsonKey(name: 'last_session') final DateTime? lastSession,
-      @JsonKey(name: 'total_time_spent') required final int totalTimeSpent,
-      @JsonKey(name: 'activities_completed')
-      required final int activitiesCompleted,
-      @JsonKey(name: 'current_mood') final String? currentMood,
-      @JsonKey(name: 'learning_style') final String? learningStyle,
-      @JsonKey(name: 'special_needs') final List<String>? specialNeeds,
-      @JsonKey(name: 'accessibility_needs')
-      final List<String>? accessibilityNeeds}) = _$ChildProfileImpl;
+          {required final String id,
+          required final String name,
+          required final int age,
+          required final String avatar,
+          required final List<String> interests,
+          required final int level,
+          required final int xp,
+          required final int streak,
+          required final List<String> favorites,
+          required final String parentId,
+          @JsonKey(name: 'parent_email') final String? parentEmail,
+          @JsonKey(name: 'picture_password')
+          required final List<String> picturePassword,
+          @JsonKey(name: 'created_at') required final DateTime createdAt,
+          @JsonKey(name: 'updated_at') required final DateTime updatedAt,
+          @JsonKey(name: 'last_session') final DateTime? lastSession,
+          @JsonKey(name: 'total_time_spent') required final int totalTimeSpent,
+          @JsonKey(name: 'activities_completed')
+          required final int activitiesCompleted,
+          @JsonKey(name: 'current_mood') final String? currentMood,
+          @JsonKey(name: 'learning_style') final String? learningStyle,
+          @JsonKey(name: 'special_needs') final List<String>? specialNeeds,
+          @JsonKey(name: 'accessibility_needs')
+          final List<String>? accessibilityNeeds,
+          @JsonKey(name: 'avatar_path') final String avatarPath}) =
+      _$ChildProfileImpl;
   const _ChildProfile._() : super._();
 
   factory _ChildProfile.fromJson(Map<String, dynamic> json) =
@@ -674,6 +699,9 @@ abstract class _ChildProfile extends ChildProfile {
   @override
   @JsonKey(name: 'accessibility_needs')
   List<String>? get accessibilityNeeds;
+  @override
+  @JsonKey(name: 'avatar_path')
+  String get avatarPath;
 
   /// Create a copy of ChildProfile
   /// with the given fields replaced by the non-null parameter values.

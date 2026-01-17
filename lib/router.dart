@@ -28,6 +28,13 @@ import 'package:kinder_world/features/parent_mode/child_management/parent_child_
 import 'package:kinder_world/features/parent_mode/reports/reports_screen.dart';
 import 'package:kinder_world/features/parent_mode/controls/parental_controls_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/parent_settings_screen.dart';
+import 'package:kinder_world/features/parent_mode/settings/screens/profile_screen.dart';
+import 'package:kinder_world/features/parent_mode/settings/screens/change_password_screen.dart';
+import 'package:kinder_world/features/parent_mode/settings/screens/theme_screen.dart';
+import 'package:kinder_world/features/parent_mode/settings/screens/privacy_settings_screen.dart';
+import 'package:kinder_world/features/parent_mode/settings/screens/help_screen.dart';
+import 'package:kinder_world/features/parent_mode/settings/screens/contact_us_screen.dart';
+import 'package:kinder_world/features/parent_mode/settings/screens/about_screen.dart';
 import 'package:kinder_world/features/parent_mode/subscription/subscription_screen.dart';
 import 'package:kinder_world/features/parent_mode/notifications/parent_notifications_screen.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
@@ -70,6 +77,15 @@ class Routes {
   static const parentSubscription = '/parent/subscription';
   static const parentNotifications = '/parent/notifications';
   static const parentDataSync = '/parent/data-sync';
+  
+  // Parent Settings sub-routes
+  static const parentProfile = '/parent/profile';
+  static const parentChangePassword = '/parent/change-password';
+  static const parentTheme = '/parent/theme';
+  static const parentPrivacySettings = '/parent/privacy-settings';
+  static const parentHelp = '/parent/help';
+  static const parentContactUs = '/parent/contact-us';
+  static const parentAbout = '/parent/about';
 
   // System
   static const noInternet = '/no-internet';
@@ -333,6 +349,34 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.parentSettings,
         builder: (context, state) => const ParentSettingsScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentProfile,
+        builder: (context, state) => const ParentProfileScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentChangePassword,
+        builder: (context, state) => const ParentChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentTheme,
+        builder: (context, state) => const ParentThemeScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentPrivacySettings,
+        builder: (context, state) => const ParentPrivacySettingsScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentHelp,
+        builder: (context, state) => const ParentHelpScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentContactUs,
+        builder: (context, state) => const ParentContactUsScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentAbout,
+        builder: (context, state) => const ParentAboutScreen(),
       ),
       GoRoute(
         path: Routes.parentSubscription,

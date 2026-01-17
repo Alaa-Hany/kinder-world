@@ -190,6 +190,7 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        color: AppColors.textIcon,
                       ),
                       onPressed: () {
                         setState(() {
@@ -221,6 +222,7 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                        color: AppColors.textIcon,
                       ),
                       onPressed: () {
                         setState(() {
