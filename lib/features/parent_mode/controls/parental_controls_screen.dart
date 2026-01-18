@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/subscription/plan_info.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
-import 'package:kinder_world/core/widgets/plan_guard.dart';
+import 'package:kinder_world/core/providers/plan_provider.dart';
 import 'package:kinder_world/core/widgets/plan_status_banner.dart';
+import 'package:kinder_world/core/widgets/premium_badge.dart';
+import 'package:kinder_world/core/widgets/premium_section_upsell.dart';
 
 class ParentalControlsScreen extends ConsumerStatefulWidget {
   const ParentalControlsScreen({super.key});
@@ -32,175 +32,203 @@ class _ParentalControlsScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final plan =
+        ref.watch(planInfoProvider).asData?.value ?? PlanInfo.fromTier(PlanTier.free);
+    final isAdvancedLocked = !plan.hasSmartControls;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(l10n.parentalControls),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
+        backgroundColor: colors.surface,
+        foregroundColor: colors.onSurface,
       ),
       body: SafeArea(
-        child: PlanGuard(
-          requiredTier: PlanTier.premium,
-          featureLabel: l10n.smartControl,
-          padding: const EdgeInsets.all(24),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
-                      Text(
-                        l10n.contentRestrictionsAndScreenTime,
-                        style: const TextStyle(
-                          fontSize: AppConstants.largeFontSize,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    Text(
+                      l10n.contentRestrictionsAndScreenTime,
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.manageChildAccess,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const PlanStatusBanner(),
+                    const SizedBox(height: 24),
+
+                    _buildControlSection(
+                      l10n.screenTimeLimits,
+                      Icons.timer,
+                      [
+                        _buildToggleSetting(
+                          l10n.dailyLimit,
+                          _dailyLimitEnabled,
+                          (value) => setState(() => _dailyLimitEnabled = value),
+                        ),
+                        _buildSliderSetting(
+                          l10n.hoursPerDay,
+                          _hoursPerDay,
+                          0,
+                          6,
+                          (value) => setState(() => _hoursPerDay = value),
+                        ),
+                        _buildToggleSetting(
+                          l10n.breakReminders,
+                          _breakRemindersEnabled,
+                          (value) =>
+                              setState(() => _breakRemindersEnabled = value),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    _buildControlSection(
+                      l10n.contentFiltering,
+                      Icons.filter_list,
+                      [
+                        _buildToggleSetting(
+                          l10n.ageAppropriate,
+                          _ageAppropriateOnly,
+                          (value) => setState(() => _ageAppropriateOnly = value),
+                        ),
+                        _buildToggleSetting(
+                          l10n.blockContent,
+                          _blockEducational,
+                          (value) => setState(() => _blockEducational = value),
+                        ),
+                        _buildToggleSetting(
+                          l10n.requireApproval,
+                          _requireApproval,
+                          (value) => setState(() => _requireApproval = value),
+                        ),
+                      ],
+                      trailing: const PremiumBadge(),
+                      isDimmed: isAdvancedLocked,
+                      footer: isAdvancedLocked
+                          ? PremiumSectionUpsell(
+                              title: l10n.planFeatureInPremium,
+                              description: l10n.smartControl,
+                              buttonLabel: l10n.upgradeNow,
+                              showBadge: false,
+                              padding: const EdgeInsets.all(12),
+                            )
+                          : null,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    _buildControlSection(
+                      l10n.timeRestrictions,
+                      Icons.access_time,
+                      [
+                        _buildToggleSetting(
+                          l10n.sleepMode,
+                          _sleepMode,
+                          (value) => setState(() => _sleepMode = value),
+                        ),
+                        _buildTimeSetting(l10n.bedtime, _bedtime,
+                            isBedtime: true),
+                        _buildTimeSetting(l10n.wakeTime, _wakeTime,
+                            isBedtime: false),
+                      ],
+                      trailing: const PremiumBadge(),
+                      isDimmed: isAdvancedLocked,
+                      footer: isAdvancedLocked
+                          ? PremiumSectionUpsell(
+                              title: l10n.planFeatureInPremium,
+                              description: l10n.smartControl,
+                              buttonLabel: l10n.upgradeNow,
+                              showBadge: false,
+                              padding: const EdgeInsets.all(12),
+                            )
+                          : null,
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // Emergency Controls
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: colors.error.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colors.error.withValues(alpha: 0.4),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.manageChildAccess,
-                        style: const TextStyle(
-                          fontSize: AppConstants.fontSize,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const PlanStatusBanner(),
-                      const SizedBox(height: 24),
-
-                      _buildControlSection(
-                        l10n.screenTimeLimits,
-                        Icons.timer,
-                        [
-                          _buildToggleSetting(
-                            l10n.dailyLimit,
-                            _dailyLimitEnabled,
-                            (value) => setState(() => _dailyLimitEnabled = value),
-                          ),
-                          _buildSliderSetting(
-                            l10n.hoursPerDay,
-                            _hoursPerDay,
-                            0,
-                            6,
-                            (value) => setState(() => _hoursPerDay = value),
-                          ),
-                          _buildToggleSetting(
-                            l10n.breakReminders,
-                            _breakRemindersEnabled,
-                            (value) =>
-                                setState(() => _breakRemindersEnabled = value),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      _buildControlSection(
-                        l10n.contentFiltering,
-                        Icons.filter_list,
-                        [
-                          _buildToggleSetting(
-                            l10n.ageAppropriate,
-                            _ageAppropriateOnly,
-                            (value) => setState(() => _ageAppropriateOnly = value),
-                          ),
-                          _buildToggleSetting(
-                            l10n.blockContent,
-                            _blockEducational,
-                            (value) => setState(() => _blockEducational = value),
-                          ),
-                          _buildToggleSetting(
-                            l10n.requireApproval,
-                            _requireApproval,
-                            (value) => setState(() => _requireApproval = value),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      _buildControlSection(
-                        l10n.timeRestrictions,
-                        Icons.access_time,
-                        [
-                          _buildToggleSetting(
-                            l10n.sleepMode,
-                            _sleepMode,
-                            (value) => setState(() => _sleepMode = value),
-                          ),
-                          _buildTimeSetting(l10n.bedtime, _bedtime,
-                              isBedtime: true),
-                          _buildTimeSetting(l10n.wakeTime, _wakeTime,
-                              isBedtime: false),
-                        ],
-                      ),
-
-                      const SizedBox(height: 40),
-
-                      // Emergency Controls
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.error.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.emergencyControls,
-                              style: const TextStyle(
-                                fontSize: AppConstants.fontSize,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.error,
-                              ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.emergencyControls,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colors.error,
                             ),
-                            const SizedBox(height: 16),
+                          ),
+                          const SizedBox(height: 16),
 
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Implement emergency lock
-                              },
-                              icon: const Icon(Icons.lock),
-                              label: Text(l10n.lockAppNow),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.error,
-                                foregroundColor: AppColors.white,
-                                minimumSize: const Size(double.infinity, 48),
-                              ),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              // TODO: Implement emergency lock
+                            },
+                            icon: const Icon(Icons.lock),
+                            label: Text(l10n.lockAppNow),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colors.error,
+                              foregroundColor: colors.onError,
+                              minimumSize: const Size(double.infinity, 48),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildControlSection(String title, IconData icon, List<Widget> controls) {
+  Widget _buildControlSection(
+    String title,
+    IconData icon,
+    List<Widget> controls, {
+    Widget? trailing,
+    Widget? footer,
+    bool isDimmed = false,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.05),
+            color: colors.shadow.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -211,20 +239,28 @@ class _ParentalControlsScreenState
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.primary, size: 24),
+              Icon(icon, color: colors.primary, size: 24),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: AppConstants.fontSize,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+              Expanded(
+                child: Text(
+                  title,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
+              if (trailing != null) trailing,
             ],
           ),
           const SizedBox(height: 20),
-          ...controls,
+          Opacity(
+            opacity: isDimmed ? 0.55 : 1,
+            child: IgnorePointer(
+              ignoring: isDimmed,
+              child: Column(children: controls),
+            ),
+          ),
+          if (footer != null) footer,
         ],
       ),
     );
@@ -235,6 +271,8 @@ class _ParentalControlsScreenState
     bool value,
     ValueChanged<bool> onChanged,
   ) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -242,15 +280,12 @@ class _ParentalControlsScreenState
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: AppConstants.fontSize,
-              color: AppColors.textPrimary,
-            ),
+            style: textTheme.bodyMedium,
           ),
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
+            activeThumbColor: colors.primary,
           ),
         ],
       ),
@@ -264,6 +299,8 @@ class _ParentalControlsScreenState
     double max,
     ValueChanged<double> onChanged,
   ) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
@@ -271,10 +308,7 @@ class _ParentalControlsScreenState
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: AppConstants.fontSize,
-              color: AppColors.textPrimary,
-            ),
+            style: textTheme.bodyMedium,
           ),
           const SizedBox(height: 8),
           Slider(
@@ -282,7 +316,7 @@ class _ParentalControlsScreenState
             min: min,
             max: max,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeColor: colors.primary,
           ),
         ],
       ),
@@ -290,6 +324,8 @@ class _ParentalControlsScreenState
   }
 
   Widget _buildTimeSetting(String title, String time, {required bool isBedtime}) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -297,10 +333,7 @@ class _ParentalControlsScreenState
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: AppConstants.fontSize,
-              color: AppColors.textPrimary,
-            ),
+            style: textTheme.bodyMedium,
           ),
           TextButton(
             onPressed: () {
@@ -317,9 +350,9 @@ class _ParentalControlsScreenState
             },
             child: Text(
               time,
-              style: const TextStyle(
-                fontSize: AppConstants.fontSize,
-                color: AppColors.primary,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colors.primary,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -335,7 +368,7 @@ class _ParentalControlsScreenState
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
