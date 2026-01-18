@@ -12,7 +12,6 @@ class DashboardThemeSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
@@ -22,9 +21,9 @@ class DashboardThemeSwitch extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: value ? Colors.black : Colors.white,
+          color: value ? Colors.greenAccent : Colors.grey.shade300,
           border: Border.all(
-            color: value ? Colors.white24 : Colors.black12,
+            color: value ? Colors.green : Colors.grey.shade400,
             width: 2,
           ),
         ),
@@ -35,10 +34,10 @@ class DashboardThemeSwitch extends StatelessWidget {
             height: 20,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colors.primary,
+              color: value ? Colors.green : Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: colors.shadow.withOpacity(0.2),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 2,
                   offset: const Offset(0, 1),
                 ),

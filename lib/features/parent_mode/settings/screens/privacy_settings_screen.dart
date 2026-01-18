@@ -1,65 +1,13 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
-import 'package:kinder_world/core/models/privacy_settings.dart';
 import 'package:kinder_world/core/providers/privacy_provider.dart';
 
-class ParentPrivacySettingsScreen extends ConsumerStatefulWidget {
+class ParentPrivacySettingsScreen extends ConsumerWidget {
   const ParentPrivacySettingsScreen({super.key});
 
   @override
-  ConsumerState<ParentPrivacySettingsScreen> createState() =>
-      _ParentPrivacySettingsScreenState();
-}
-
-class _ParentPrivacySettingsScreenState
-    extends ConsumerState<ParentPrivacySettingsScreen> {
-  Timer? _debounceTimer;
-  PrivacySettings? _currentSettings;
-  PrivacySettings? _lastKnownSettings;
-
-  @override
-  void dispose() {
-    _debounceTimer?.cancel();
-    super.dispose();
-  }
-
-  void _onToggle(PrivacySettings Function(PrivacySettings) updater) {
-    final rollback = _lastKnownSettings ?? _currentSettings;
-    if (_currentSettings == null || rollback == null) return;
-
-    final updated = updater(_currentSettings!);
-    setState(() {
-      _currentSettings = updated;
-    });
-
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
-      final success = await ref
-          .read(privacyControllerProvider.notifier)
-          .updateSettings(updated);
-      if (!mounted) return;
-
-      if (success) {
-        _lastKnownSettings = updated;
-        ref.invalidate(privacyProvider);
-      } else {
-        setState(() {
-          _currentSettings = rollback;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to update privacy settings'),
-          ),
-        );
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final privacyState = ref.watch(privacyProvider);
     final l10n = AppLocalizations.of(context);
 
@@ -74,7 +22,7 @@ class _ParentPrivacySettingsScreenState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Unable to load privacy settings'),
+              const Text('Error loading privacy settings'),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.invalidate(privacyProvider),
@@ -83,44 +31,59 @@ class _ParentPrivacySettingsScreenState
             ],
           ),
         ),
-        data: (settings) {
-          _lastKnownSettings = settings;
-          _currentSettings ??= settings;
-          final displaySettings = _currentSettings!;
-
+        data: (privacySettings) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView(
               children: [
+                // Analytics toggle
                 SwitchListTile(
                   title: const Text('Analytics'),
-                  subtitle:
-                      const Text('Help improve Kinder World with usage data'),
-                  value: displaySettings.analyticsEnabled,
-                  onChanged: (value) => _onToggle(
-                    (prev) => prev.copyWith(analyticsEnabled: value),
-                  ),
+                  subtitle: const Text('Help improve Kinder World with usage data'),
+                  value: privacySettings.analyticsEnabled,
+                  onChanged: (value) {
+                    ref.read(privacyControllerProvider.notifier).updateSettings(
+                          privacySettings.copyWith(
+                            analyticsEnabled: value,
+                          ),
+                        );
+                  },
                 ),
                 const Divider(),
+
+                // Personalized recommendations toggle
                 SwitchListTile(
-                  title: const Text('Personalized recommendations'),
-                  subtitle:
-                      const Text('Receive customized content suggestions'),
-                  value: displaySettings.personalizedRecommendations,
-                  onChanged: (value) => _onToggle(
-                    (prev) => prev.copyWith(personalizedRecommendations: value),
-                  ),
+                  title: const Text('Personalized Recommendations'),
+                  subtitle: const Text('Receive customized content suggestions'),
+                  value:
+                      privacySettings.personalizedRecommendations,
+                  onChanged: (value) {
+                    ref.read(privacyControllerProvider.notifier).updateSettings(
+                          privacySettings.copyWith(
+                            personalizedRecommendations: value,
+                          ),
+                        );
+                  },
                 ),
                 const Divider(),
+
+                // Data collection opt-out toggle
                 SwitchListTile(
-                  title: const Text('Opt-out of data collection'),
-                  subtitle: const Text('Pause data collection across the app'),
-                  value: displaySettings.dataCollectionOptOut,
-                  onChanged: (value) => _onToggle(
-                    (prev) => prev.copyWith(dataCollectionOptOut: value),
-                  ),
+                  title: const Text('Opt-out of Data Collection'),
+                  subtitle: const Text('Do not collect any usage data'),
+                  value: privacySettings.dataCollectionOptOut,
+                  onChanged: (value) {
+                    ref.read(privacyControllerProvider.notifier).updateSettings(
+                          privacySettings.copyWith(
+                            dataCollectionOptOut: value,
+                          ),
+                        );
+                  },
                 ),
+
                 const SizedBox(height: 32),
+
+                // Info section
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -128,19 +91,20 @@ class _ParentPrivacySettingsScreenState
                     border: Border.all(color: Colors.blue[200]!),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Column(
+                  child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Privacy Information',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
-                        'Your privacy is important to us. These toggles control usage data collection.',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        'Your privacy is important to us. These settings control what data we collect and how it is used to improve your experience.',
+                        style: TextStyle(fontSize: 13),
                       ),
                     ],
                   ),

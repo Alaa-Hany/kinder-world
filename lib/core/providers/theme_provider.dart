@@ -3,90 +3,71 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/theme/theme_palette.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ThemeSettings {
+class ThemeState {
   final String paletteId;
   final ThemeMode mode;
 
-  const ThemeSettings({
+  const ThemeState({
     required this.paletteId,
     required this.mode,
   });
 
-  ThemeSettings copyWith({
+  ThemeState copyWith({
     String? paletteId,
     ThemeMode? mode,
   }) {
-    return ThemeSettings(
+    return ThemeState(
       paletteId: paletteId ?? this.paletteId,
       mode: mode ?? this.mode,
     );
   }
 }
 
-final themeControllerProvider =
-    StateNotifierProvider<ThemeController, ThemeSettings>((ref) {
-  return ThemeController();
-});
-
-final themePaletteProvider = Provider<ThemePalette>((ref) {
-  final paletteId = ref.watch(themeControllerProvider).paletteId;
-  return ThemePalettes.byId(paletteId);
-});
-
-class ThemeController extends StateNotifier<ThemeSettings> {
-  static const String _modeKey = 'theme_mode';
-  static const String _paletteKey = 'theme_palette_id';
+class ThemeController extends StateNotifier<ThemeState> {
+  static const _paletteKey = 'theme_palette_id';
+  static const _modeKey = 'theme_mode';
 
   ThemeController()
       : super(
-          const ThemeSettings(
+          const ThemeState(
             paletteId: ThemePalettes.defaultPaletteId,
             mode: ThemeMode.system,
           ),
         ) {
-    _loadSettings();
+    _loadFromStorage();
   }
 
-  Future<void> _loadSettings() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final storedMode = prefs.getInt(_modeKey);
-      final storedPalette = prefs.getString(_paletteKey);
+  Future<void> _loadFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedPalette =
+        prefs.getString(_paletteKey) ?? ThemePalettes.defaultPaletteId;
+    final savedModeIndex = prefs.getInt(_modeKey) ?? ThemeMode.system.index;
+    final clampedIndex =
+      savedModeIndex.clamp(0, ThemeMode.values.length - 1).toInt();
+    final mode = ThemeMode.values[clampedIndex];
 
-      final resolvedMode = (storedMode != null &&
-              storedMode >= 0 &&
-              storedMode < ThemeMode.values.length)
-          ? ThemeMode.values[storedMode]
-          : ThemeMode.system;
-      final resolvedPalette =
-          storedPalette ?? ThemePalettes.defaultPaletteId;
-
-      state = state.copyWith(
-        mode: resolvedMode,
-        paletteId: resolvedPalette,
-      );
-    } catch (e) {
-      // Keep defaults on failure.
-    }
-  }
-
-  Future<void> setMode(ThemeMode mode) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_modeKey, mode.index);
-      state = state.copyWith(mode: mode);
-    } catch (e) {
-      // Ignore persistence failures.
-    }
+    state = state.copyWith(paletteId: savedPalette, mode: mode);
   }
 
   Future<void> setPalette(String paletteId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_paletteKey, paletteId);
-      state = state.copyWith(paletteId: paletteId);
-    } catch (e) {
-      // Ignore persistence failures.
-    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_paletteKey, paletteId);
+    state = state.copyWith(paletteId: paletteId);
+  }
+
+  Future<void> setMode(ThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_modeKey, mode.index);
+    state = state.copyWith(mode: mode);
   }
 }
+
+final themeControllerProvider =
+    StateNotifierProvider<ThemeController, ThemeState>((ref) {
+  return ThemeController();
+});
+
+final themePaletteProvider = Provider<ThemePalette>((ref) {
+  final state = ref.watch(themeControllerProvider);
+  return ThemePalettes.byId(state.paletteId);
+});
