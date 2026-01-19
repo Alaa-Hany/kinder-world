@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/app.dart';
 
 class LanguageSelectionScreen extends ConsumerStatefulWidget {
@@ -47,8 +46,11 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
   void _selectLanguage(String languageCode) {
     // Update app locale
     ref.read(localeProvider.notifier).state = Locale(languageCode);
-    
+  }
+
+  void _continueToNextScreen() {
     // Navigate to onboarding
+    final currentLocale = ref.read(localeProvider);
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         context.go('/onboarding');
@@ -59,6 +61,8 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final languages = [
       {
         'code': 'en',
@@ -99,20 +103,20 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: colors.primary,
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
+                            color: colors.primary.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.language,
                         size: 60,
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -120,10 +124,9 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                     // Title
                     Text(
                       l10n.chooseLanguageTitle,
-                      style: const TextStyle(
+                      style: textTheme.titleLarge?.copyWith(
                         fontSize: AppConstants.largeFontSize,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -131,9 +134,9 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                     // Subtitle
                     Text(
                       l10n.chooseLanguageSubtitle,
-                      style: const TextStyle(
+                      style: textTheme.bodyMedium?.copyWith(
                         fontSize: AppConstants.fontSize,
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 48),
@@ -146,13 +149,11 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                     // Continue Button
                     ElevatedButton(
                       onPressed: () {
-                        // Use current locale or default to English
-                        final currentLocale = ref.read(localeProvider);
-                        _selectLanguage(currentLocale.languageCode);
+                        _continueToNextScreen();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
+                        backgroundColor: colors.primary,
+                        foregroundColor: colors.onPrimary,
                         minimumSize: const Size(double.infinity, 56),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -180,6 +181,7 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
 
   Widget _buildLanguageCard(Map<String, dynamic> language) {
     final isSelected = ref.watch(localeProvider).languageCode == language['code'];
+    final colors = Theme.of(context).colorScheme;
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -190,15 +192,15 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.white,
+            color: isSelected ? colors.primary : colors.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.lightGrey,
+              color: isSelected ? colors.primary : colors.outlineVariant,
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.05),
+                color: colors.shadow.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -222,7 +224,7 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                     style: TextStyle(
                       fontSize: AppConstants.fontSize,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? AppColors.white : AppColors.textPrimary,
+                      color: isSelected ? colors.onPrimary : colors.onSurface,
                     ),
                   ),
                 ],
@@ -234,17 +236,17 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? AppColors.white : Colors.transparent,
+                  color: isSelected ? colors.onPrimary : Colors.transparent,
                   border: Border.all(
-                    color: isSelected ? AppColors.white : AppColors.grey,
+                    color: isSelected ? colors.onPrimary : colors.onSurfaceVariant,
                     width: 2,
                   ),
                 ),
                 child: isSelected
-                    ? const Icon(
+                    ? Icon(
                         Icons.check,
                         size: 16,
-                        color: AppColors.primary,
+                        color: colors.primary,
                       )
                     : null,
               ),

@@ -38,10 +38,10 @@ class ThemeModeToggle extends StatelessWidget {
             height: height,
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isDark ? Colors.black : Colors.white,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(height / 2),
               border: Border.all(
-                color: isDark ? Colors.white24 : Colors.black12,
+                color: colors.outlineVariant,
                 width: 1.5,
               ),
             ),
@@ -56,7 +56,7 @@ class ThemeModeToggle extends StatelessWidget {
                         child: Icon(
                           Icons.wb_sunny_outlined,
                           size: 18,
-                          color: isDark ? Colors.white38 : Colors.black87,
+                          color: isDark ? colors.onSurfaceVariant : colors.onSurface,
                         ),
                       ),
                       Padding(
@@ -64,7 +64,7 @@ class ThemeModeToggle extends StatelessWidget {
                         child: Icon(
                           Icons.nights_stay_outlined,
                           size: 18,
-                          color: isDark ? Colors.white : Colors.black38,
+                          color: isDark ? colors.onSurface : colors.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -81,7 +81,7 @@ class ThemeModeToggle extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: colors.shadow.withOpacity(0.25),
+                          color: colors.shadow.withValues(alpha: 0.25),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),

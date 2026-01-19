@@ -78,7 +78,7 @@ class ChildProfileScreen extends ConsumerWidget {
                       color: colors.primary,
                       width: 4,
                     ),
-                    color: colors.primary.withOpacity(0.2),
+                    color: colors.primary.withValues(alpha: 0.2),
                   ),
                   child: AvatarView(
                     avatarId: child.avatar,
@@ -126,7 +126,7 @@ class ChildProfileScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: colors.shadow.withOpacity(0.08),
+                      color: colors.shadow.withValues(alpha: 0.08),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -185,7 +185,7 @@ class ChildProfileScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: colors.shadow.withOpacity(0.08),
+                      color: colors.shadow.withValues(alpha: 0.08),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -223,7 +223,7 @@ class ChildProfileScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: colors.shadow.withOpacity(0.08),
+                      color: colors.shadow.withValues(alpha: 0.08),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -262,7 +262,7 @@ class ChildProfileScreen extends ConsumerWidget {
                 icon: const Icon(Icons.settings),
                 label: Text(l10n.settings),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colors.surfaceVariant,
+                  backgroundColor: colors.surfaceContainerHighest,
                   foregroundColor: colors.onSurface,
                   minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
@@ -364,7 +364,7 @@ class ChildProfileScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
             value: value,
-            backgroundColor: colors.surfaceVariant,
+            backgroundColor: colors.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation<Color>(color),
             minHeight: 8,
           ),
@@ -379,7 +379,7 @@ class ChildProfileScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: colors.primary.withOpacity(0.1),
+        color: colors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -402,7 +402,7 @@ class ChildProfileScreen extends ConsumerWidget {
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: AppColors.xpColor.withOpacity(0.1),
+            color: AppColors.xpColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(

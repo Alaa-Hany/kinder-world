@@ -44,6 +44,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final pages = [
       OnboardingPage(
         title: l10n.learn,
@@ -85,9 +87,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   onPressed: _skip,
                   child: Text(
                     l10n.skip,
-                    style: const TextStyle(
+                    style: textTheme.bodyMedium?.copyWith(
                       fontSize: AppConstants.fontSize,
-                      color: AppColors.textSecondary,
+                      color: colors.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -116,7 +118,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               count: pages.length,
               effect: ExpandingDotsEffect(
                 activeDotColor: pages[_currentPage].color,
-                dotColor: AppColors.lightGrey,
+                dotColor: colors.surfaceContainerHighest,
                 dotHeight: 8,
                 dotWidth: 8,
                 spacing: 8,
@@ -132,7 +134,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 onPressed: _nextPage,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: pages[_currentPage].color,
-                  foregroundColor: AppColors.white,
+                  foregroundColor: colors.onPrimary,
                   minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -155,6 +157,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   Widget _buildOnboardingPage(OnboardingPage page) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -194,10 +198,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 // Subtitle
                 Text(
                   page.subtitle,
-                  style: const TextStyle(
+                  style: textTheme.titleSmall?.copyWith(
                     fontSize: AppConstants.fontSize,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -206,9 +209,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 // Description
                 Text(
                   page.description,
-                  style: const TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,

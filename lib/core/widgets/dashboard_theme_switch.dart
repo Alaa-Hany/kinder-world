@@ -12,38 +12,62 @@ class DashboardThemeSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final knobAlignment = value ? Alignment.centerRight : Alignment.centerLeft;
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 48,
-        height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        width: 60,
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: value ? Colors.greenAccent : Colors.grey.shade300,
+          color: colors.surface,
           border: Border.all(
-            color: value ? Colors.green : Colors.grey.shade400,
-            width: 2,
+            color: colors.outlineVariant,
+            width: 1.5,
           ),
         ),
-        child: Align(
-          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: value ? Colors.green : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(
+                    Icons.wb_sunny_outlined,
+                    size: 16,
+                    color: value ? colors.onSurfaceVariant : colors.onSurface,
+                  ),
+                  Icon(
+                    Icons.nights_stay_outlined,
+                    size: 16,
+                    color: value ? colors.onSurface : colors.onSurfaceVariant,
+                  ),
+                ],
+              ),
             ),
-          ),
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 200),
+              alignment: knobAlignment,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.shadow.withValues(alpha: 0.2),
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

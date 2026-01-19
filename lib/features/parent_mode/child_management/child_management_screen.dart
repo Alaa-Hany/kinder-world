@@ -1,9 +1,11 @@
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kinder_world/router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/app.dart';
@@ -52,23 +54,51 @@ class _ChildManagementScreenState
     _AvatarOption(
       id: 'avatar_2',
       assetPath: 'assets/images/avatars/boy2.png',
-      icon: Icons.sentiment_satisfied,
-      backgroundColor: Color(0xFFF3E5F5),
-      iconColor: Color(0xFF8E24AA),
+      icon: Icons.sentiment_satisfied_alt,
+      backgroundColor: Color(0xFFFFF3E0),
+      iconColor: Color(0xFFFB8C00),
     ),
     _AvatarOption(
       id: 'avatar_3',
       assetPath: 'assets/images/avatars/girl1.png',
-      icon: Icons.sentiment_very_satisfied,
-      backgroundColor: Color(0xFFE8F5E9),
-      iconColor: Color(0xFF43A047),
+      icon: Icons.emoji_emotions,
+      backgroundColor: Color(0xFFF3E5F5),
+      iconColor: Color(0xFF8E24AA),
     ),
     _AvatarOption(
       id: 'avatar_4',
       assetPath: 'assets/images/avatars/girl2.png',
+      icon: Icons.mood,
+      backgroundColor: Color(0xFFE8F5E9),
+      iconColor: Color(0xFF43A047),
+    ),
+    _AvatarOption(
+      id: 'avatar_5',
+      assetPath: '',
       icon: Icons.star,
-      backgroundColor: Color(0xFFFFF3E0),
-      iconColor: Color(0xFFFB8C00),
+      backgroundColor: Color(0xFFFFF9C4),
+      iconColor: Color(0xFFF57F17),
+    ),
+    _AvatarOption(
+      id: 'avatar_6',
+      assetPath: '',
+      icon: Icons.pets,
+      backgroundColor: Color(0xFFFFE0B2),
+      iconColor: Color(0xFFE65100),
+    ),
+    _AvatarOption(
+      id: 'avatar_7',
+      assetPath: '',
+      icon: Icons.favorite,
+      backgroundColor: Color(0xFFFCE4EC),
+      iconColor: Color(0xFFC2185B),
+    ),
+    _AvatarOption(
+      id: 'avatar_8',
+      assetPath: '',
+      icon: Icons.rocket_launch,
+      backgroundColor: Color(0xFFE1F5FE),
+      iconColor: Color(0xFF0277BD),
     ),
   ];
   Future<List<ChildProfile>>? _childrenFuture;
@@ -435,6 +465,7 @@ class _ChildManagementScreenState
                                 await repo.deleteChildProfile(child.id);
                             if (!mounted) return;
                             if (mounted) {
+                              // ignore: use_build_context_synchronously
                               Navigator.of(dialogContext).pop();
                             }
                             if (deleted) {
@@ -519,7 +550,7 @@ class _ChildManagementScreenState
   }) {
     final option = _avatarForValue(avatarId ?? avatarPath);
     final resolvedBackground =
-        option?.backgroundColor ?? AppColors.primary.withOpacity(0.1);
+        option?.backgroundColor ?? AppColors.primary.withValues(alpha: 0.1);
     final resolvedPath =
         option?.assetPath.isNotEmpty == true ? option!.assetPath : avatarPath;
 
@@ -550,6 +581,12 @@ class _ChildManagementScreenState
         title: Text(l10n.childManagement),
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: () {
+            context.go(Routes.parentDashboard);
+          },
+        ),
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -684,6 +721,7 @@ class _ChildManagementScreenState
 
           if (!mounted) return;
           final parentContext = context;
+          // ignore: use_build_context_synchronously
           final messenger = ScaffoldMessenger.of(parentContext);
           String name = '';
           int? age;
@@ -693,11 +731,16 @@ class _ChildManagementScreenState
           bool isSaving = false;
 
           await showDialog<void>(
+            // ignore: use_build_context_synchronously
             context: parentContext,
             builder: (dialogContext) {
               return StatefulBuilder(
                 builder: (context, setDialogState) {
-                  final canSave = name.trim().isNotEmpty &&
+                  final trimmedName = name.trim();
+                  final isValidName = trimmedName.isNotEmpty && 
+                                      trimmedName.toLowerCase() != 'child' && 
+                                      trimmedName.length >= 2;
+                  final canSave = isValidName &&
                       picturePassword.length == 3 &&
                       !isSaving;
                   final showPasswordError =
@@ -719,7 +762,16 @@ class _ChildManagementScreenState
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           TextField(
-                            decoration: InputDecoration(labelText: l10n.childName),
+                            decoration: InputDecoration(
+                              labelText: l10n.childName,
+                              errorText: name.trim().isEmpty 
+                                ? null
+                                : (name.trim().toLowerCase() == 'child'
+                                  ? 'Please enter a real name'
+                                  : (name.trim().length < 2
+                                    ? 'Name must be at least 2 characters'
+                                    : null)),
+                            ),
                             textCapitalization: TextCapitalization.words,
                             keyboardType: TextInputType.name,
                             inputFormatters: [
@@ -782,7 +834,7 @@ class _ChildManagementScreenState
                                       border: Border.all(
                                         color: isSelected
                                             ? AppColors.primary
-                                            : Theme.of(context).colorScheme.surfaceVariant,
+                                            : Theme.of(context).colorScheme.surfaceContainerHighest,
                                         width: 2,
                                       ),
                                     ),
@@ -838,7 +890,7 @@ class _ChildManagementScreenState
                                       border: Border.all(
                                         color: isSelected
                                             ? option.color
-                                            : Theme.of(context).colorScheme.surfaceVariant,
+                                            : Theme.of(context).colorScheme.surfaceContainerHighest,
                                         width: 2,
                                       ),
                                     ),
@@ -870,6 +922,8 @@ class _ChildManagementScreenState
 
                                 final trimmedName = name.trim();
                                 if (trimmedName.isEmpty ||
+                                    trimmedName.toLowerCase() == 'child' ||
+                                    trimmedName.length < 2 ||
                                     picturePassword.length != 3) {
                                   setDialogState(() {
                                     isSaving = false;
@@ -964,6 +1018,7 @@ class _ChildManagementScreenState
 
                                 if (!mounted) return;
                                 if (mounted) {
+                                  // ignore: use_build_context_synchronously
                                   Navigator.of(dialogContext).pop();
                                 }
                                 if (_cachedParentId != null) {
@@ -993,7 +1048,7 @@ class _ChildManagementScreenState
           );
         },
         backgroundColor: AppColors.primary,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -1081,7 +1136,7 @@ class _ChildManagementScreenState
                             ),
                           );
                         },
-                        icon: Icon(Icons.copy, size: 16),
+                        icon: const Icon(Icons.copy, size: 16),
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints.tightFor(
@@ -1128,12 +1183,12 @@ class _ChildManagementScreenState
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     MoodTypes.getEmoji(child.currentMood ?? MoodTypes.happy),
-                    style: TextStyle(fontSize: 22),
+                    style: const TextStyle(fontSize: 22),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1142,7 +1197,7 @@ class _ChildManagementScreenState
                   child: IconButton(
                     onPressed: () =>
                         context.push('/parent/reports', extra: child.id),
-                    icon: Icon(Icons.pie_chart),
+                    icon: const Icon(Icons.pie_chart),
                     color: AppColors.primary,
                     iconSize: 20,
                     padding: EdgeInsets.zero,
@@ -1158,7 +1213,7 @@ class _ChildManagementScreenState
                   message: l10n.delete,
                   child: IconButton(
                     onPressed: () => _confirmDeleteChild(child),
-                    icon: Icon(Icons.delete_outline),
+                    icon: const Icon(Icons.delete_outline),
                     color: AppColors.error,
                     iconSize: 20,
                     padding: EdgeInsets.zero,

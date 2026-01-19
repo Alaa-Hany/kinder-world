@@ -522,7 +522,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: colors.shadow.withOpacity(0.08),
+            color: colors.shadow.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -534,7 +534,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
             avatarId: child.avatar,
             avatarPath: child.avatarPath,
             radius: 30,
-            backgroundColor: colors.primary.withOpacity(0.2),
+            backgroundColor: colors.primary.withValues(alpha: 0.2),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -578,7 +578,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     if (children.isEmpty) {
       return const SizedBox();
     }
-    final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     final totalTime = children.fold<int>(0, (sum, child) => sum + child.totalTimeSpent);
@@ -643,7 +642,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colors.shadow.withOpacity(0.08),
+            color: colors.shadow.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -713,9 +712,9 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colors.primary.withOpacity(0.1),
+        color: colors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.primary.withOpacity(0.3)),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -726,7 +725,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: colors.primary.withOpacity(0.2),
+                  color: colors.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.psychology, color: colors.primary, size: 20),
@@ -932,7 +931,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: colors.shadow.withOpacity(0.08),
+            color: colors.shadow.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

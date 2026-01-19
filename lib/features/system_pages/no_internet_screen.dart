@@ -44,6 +44,8 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -73,23 +75,22 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                 const SizedBox(height: 40),
                 
                 // Title
-                const Text(
+                Text(
                   'No Internet Connection',
-                  style: TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     fontSize: AppConstants.largeFontSize * 1.2,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 
                 // Description
-                const Text(
+                Text(
                   'Don\'t worry! You can still use offline features. Some content may be limited until you\'re back online.',
-                  style: TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -100,19 +101,18 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: colors.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.lightGrey),
+                    border: Border.all(color: colors.outlineVariant),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Available Offline:',
-                        style: TextStyle(
+                        style: textTheme.titleSmall?.copyWith(
                           fontSize: AppConstants.fontSize,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -157,7 +157,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                   label: const Text('Try Again'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
+                    foregroundColor: colors.onPrimary,
                     minimumSize: const Size(double.infinity, 56),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -190,6 +190,8 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
   }
 
   Widget _buildOfflineFeature(IconData icon, String text) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Row(
       children: [
         Container(
@@ -208,9 +210,9 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
         const SizedBox(width: 12),
         Text(
           text,
-          style: const TextStyle(
+          style: textTheme.bodyMedium?.copyWith(
             fontSize: AppConstants.fontSize,
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
           ),
         ),
       ],

@@ -48,6 +48,8 @@ class _ErrorScreenState extends ConsumerState<ErrorScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -84,12 +86,11 @@ class _ErrorScreenState extends ConsumerState<ErrorScreen>
                 const SizedBox(height: 40),
                 
                 // Title
-                const Text(
+                Text(
                   'Oops! Something went wrong',
-                  style: TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     fontSize: AppConstants.largeFontSize * 1.2,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -99,26 +100,25 @@ class _ErrorScreenState extends ConsumerState<ErrorScreen>
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: colors.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.lightGrey),
+                    border: Border.all(color: colors.outlineVariant),
                   ),
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'Error Details:',
-                        style: TextStyle(
+                        style: textTheme.titleSmall?.copyWith(
                           fontSize: AppConstants.fontSize,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         widget.error,
-                        style: const TextStyle(
+                        style: textTheme.bodySmall?.copyWith(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colors.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -141,7 +141,7 @@ class _ErrorScreenState extends ConsumerState<ErrorScreen>
                   label: const Text('Go Back'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
+                    foregroundColor: colors.onPrimary,
                     minimumSize: const Size(double.infinity, 56),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),

@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/widgets/themed_card.dart';
 
 class PlayScreen extends ConsumerWidget {
   const PlayScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -19,20 +22,19 @@ class PlayScreen extends ConsumerWidget {
             children: [
               // Header
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Play & Fun',
-                style: TextStyle(
+                style: textTheme.titleLarge?.copyWith(
                   fontSize: AppConstants.largeFontSize * 1.5,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Enjoy games, stories, and entertainment!',
-                style: TextStyle(
+                style: textTheme.bodyMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 40),
@@ -87,24 +89,23 @@ class PlayScreen extends ConsumerWidget {
   }
 
   Widget _buildGameCard(BuildContext context, String title, IconData icon, Color color, String subtitle, String category) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: () {
         context.go('/child/play/category/$category');
       },
       borderRadius: BorderRadius.circular(20),
-      child: Container(
+      child: ThemedCard(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -124,19 +125,18 @@ class PlayScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
+              style: textTheme.titleMedium?.copyWith(
                 fontSize: AppConstants.fontSize,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: textTheme.bodySmall?.copyWith(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),

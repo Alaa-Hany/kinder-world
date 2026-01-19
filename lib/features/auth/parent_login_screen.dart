@@ -37,7 +37,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
     });
 
     final success = await authController.loginParent(
-      email: _emailController.text.trim(),
+      email: _emailController.text.trim().toLowerCase(),
       password: _passwordController.text,
     );
 
@@ -64,9 +64,11 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final isLoading = _isLoading || authState.isLoading;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final outlineBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: AppColors.grey),
+      borderSide: BorderSide(color: colors.outlineVariant),
     );
 
     InputDecoration buildDecoration({
@@ -78,15 +80,15 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
       return InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.textIcon),
+        prefixIcon: Icon(icon, color: colors.onSurfaceVariant),
         suffixIcon: suffix,
         filled: true,
-        fillColor: AppColors.surface,
-        labelStyle: const TextStyle(
-          color: AppColors.textPrimary,
+        fillColor: colors.surface,
+        labelStyle: textTheme.bodyMedium?.copyWith(
+          color: colors.onSurface,
           fontWeight: FontWeight.w600,
         ),
-        hintStyle: const TextStyle(color: AppColors.textSecondary),
+        hintStyle: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
         enabledBorder: outlineBorder,
         focusedBorder: outlineBorder.copyWith(
           borderSide: const BorderSide(color: AppColors.primary),
@@ -103,7 +105,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.onSurface),
           onPressed: () => context.go('/select-user-type'),
         ),
       ),
@@ -117,20 +119,19 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
               children: [
                 // Header
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Parent Login',
-                  style: TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     fontSize: AppConstants.largeFontSize * 1.2,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Welcome back! Please sign in to continue.',
-                  style: TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -142,7 +143,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                   textCapitalization: TextCapitalization.none,
                   autocorrect: false,
                   enableSuggestions: false,
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: textTheme.bodyMedium?.copyWith(color: colors.onSurface),
                   decoration: buildDecoration(
                     label: 'Email',
                     hint: 'Enter your email',
@@ -164,7 +165,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: textTheme.bodyMedium?.copyWith(color: colors.onSurface),
                   decoration: buildDecoration(
                     label: 'Password',
                     hint: 'Enter your password',
@@ -174,7 +175,7 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                         _obscurePassword
                             ? Icons.visibility
                             : Icons.visibility_off,
-                        color: AppColors.textIcon,
+                        color: colors.onSurfaceVariant,
                       ),
                       onPressed: () {
                         setState(() {
@@ -215,14 +216,13 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                     onPressed: isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
+                      foregroundColor: colors.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: isLoading
-                        ? const CircularProgressIndicator(
-                            color: AppColors.white)
+                        ? CircularProgressIndicator(color: colors.onPrimary)
                         : const Text(
                             'Login',
                             style: TextStyle(
@@ -238,22 +238,23 @@ class _ParentLoginScreenState extends ConsumerState<ParentLoginScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child:
-                          Divider(color: AppColors.grey.withValues(alpha: 0.3)),
+                      child: Divider(
+                        color: colors.outlineVariant.withValues(alpha: 0.6),
+                      ),
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
                         'OR',
                         style: TextStyle(
-                          color: AppColors.textSecondary,
                           fontSize: 14,
                         ),
                       ),
                     ),
                     Expanded(
-                      child:
-                          Divider(color: AppColors.grey.withValues(alpha: 0.3)),
+                      child: Divider(
+                        color: colors.outlineVariant.withValues(alpha: 0.6),
+                      ),
                     ),
                   ],
                 ),

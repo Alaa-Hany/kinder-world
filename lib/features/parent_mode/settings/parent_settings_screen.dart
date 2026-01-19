@@ -23,6 +23,12 @@ class ParentSettingsScreen extends ConsumerWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(l10n.settings),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: () {
+            context.go(Routes.parentDashboard);
+          },
+        ),
       ),
       body: SafeArea(
         child: ListView(
@@ -108,7 +114,7 @@ class ParentSettingsScreen extends ConsumerWidget {
               Icons.language,
               onTap: () {
                 _safeNavigate(
-                  () => context.go(Routes.language),
+                  () => context.push(Routes.parentLanguage),
                 );
               },
             ),
@@ -211,9 +217,10 @@ class ParentSettingsScreen extends ConsumerWidget {
                 await ref
                     .read(childSessionControllerProvider.notifier)
                     .endChildSession();
-                // Calling logout will clear authToken, triggering GoRouter.redirect
-                // Do NOT call context.go() here to avoid double navigation
                 await ref.read(authControllerProvider.notifier).logout();
+                if (context.mounted) {
+                  context.go(Routes.selectUserType);
+                }
               },
               icon: const Icon(Icons.logout),
               label: Text(l10n.logout),

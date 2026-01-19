@@ -15,6 +15,8 @@ class CategoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activities = _getMockActivities(category);
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -22,15 +24,14 @@ class CategoryScreen extends ConsumerWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.onSurface),
           onPressed: () => context.go('/child/play'),
         ),
         title: Text(
           _getCategoryDisplayName(category),
-          style: const TextStyle(
+          style: textTheme.titleMedium?.copyWith(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
           ),
         ),
       ),
@@ -53,13 +54,13 @@ class CategoryScreen extends ConsumerWidget {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.2),
+                        color: colors.onPrimary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: Icon(
                         _getCategoryIcon(category),
                         size: 30,
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -69,17 +70,17 @@ class CategoryScreen extends ConsumerWidget {
                         children: [
                           Text(
                             _getCategoryDisplayName(category),
-                            style: const TextStyle(
+                            style: textTheme.titleLarge?.copyWith(
                               fontSize: AppConstants.largeFontSize,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.white,
+                              color: colors.onPrimary,
                             ),
                           ),
                           Text(
                             '${activities.length} activities available',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.white.withValues(alpha: 0.8),
+                              color: colors.onPrimary.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -91,12 +92,11 @@ class CategoryScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Activities list
-              const Text(
+              Text(
                 'Choose an Activity',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -333,17 +333,19 @@ class _ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.05),
+              color: colors.shadow.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -359,19 +361,18 @@ class _ActivityCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               activity['title'],
-              style: const TextStyle(
+              style: textTheme.titleSmall?.copyWith(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
               activity['description'],
-              style: const TextStyle(
+              style: textTheme.bodySmall?.copyWith(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -379,17 +380,17 @@ class _ActivityCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.access_time,
                   size: 16,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '${activity['duration']} min',
-                  style: const TextStyle(
+                  style: textTheme.bodySmall?.copyWith(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(width: 12),

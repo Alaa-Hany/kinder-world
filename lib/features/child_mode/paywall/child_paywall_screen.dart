@@ -37,13 +37,13 @@ class _ChildPaywallScreenState extends ConsumerState<ChildPaywallScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(l10n.paywallTitle),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
       ),
       body: SafeArea(
         child: Padding(
@@ -54,11 +54,11 @@ class _ChildPaywallScreenState extends ConsumerState<ChildPaywallScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.05),
+                      color: colors.shadow.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -86,18 +86,17 @@ class _ChildPaywallScreenState extends ConsumerState<ChildPaywallScreen> {
                         children: [
                           Text(
                             l10n.paywallPrice,
-                            style: const TextStyle(
+                            style: textTheme.titleMedium?.copyWith(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             l10n.premiumFeatures,
-                            style: const TextStyle(
+                            style: textTheme.bodySmall?.copyWith(
                               fontSize: 14,
-                              color: AppColors.textSecondary,
+                              color: colors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -109,10 +108,9 @@ class _ChildPaywallScreenState extends ConsumerState<ChildPaywallScreen> {
               const SizedBox(height: 24),
               Text(
                 l10n.premiumFeatures,
-                style: const TextStyle(
+                style: textTheme.titleSmall?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -127,24 +125,24 @@ class _ChildPaywallScreenState extends ConsumerState<ChildPaywallScreen> {
                 child: ElevatedButton(
                   onPressed: _isProcessing ? null : _handleSubscribe,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   child: _isProcessing
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 18,
                           width: 18,
                           child: CircularProgressIndicator(
-                            color: AppColors.white,
+                            color: colors.onPrimary,
                             strokeWidth: 2,
                           ),
                         )
                       : Text(
                           l10n.paywallSubscribe,
-                          style: const TextStyle(
+                          style: textTheme.titleSmall?.copyWith(
                             fontSize: AppConstants.fontSize,
                             fontWeight: FontWeight.w600,
                           ),
@@ -158,8 +156,8 @@ class _ChildPaywallScreenState extends ConsumerState<ChildPaywallScreen> {
                 child: OutlinedButton(
                   onPressed: _openPaymentMethods,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary),
+                    foregroundColor: colors.primary,
+                    side: BorderSide(color: colors.primary),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -175,6 +173,8 @@ class _ChildPaywallScreenState extends ConsumerState<ChildPaywallScreen> {
   }
 
   Widget _buildFeatureItem(IconData icon, String text) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -191,9 +191,9 @@ class _ChildPaywallScreenState extends ConsumerState<ChildPaywallScreen> {
           const SizedBox(width: 10),
           Text(
             text,
-            style: const TextStyle(
+            style: textTheme.bodySmall?.copyWith(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.onSurfaceVariant,
             ),
           ),
         ],

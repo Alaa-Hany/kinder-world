@@ -54,6 +54,8 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -77,20 +79,20 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: colors.primary,
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
+                          color: colors.primary.withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.people,
                       size: 60,
-                      color: AppColors.white,
+                      color: colors.onPrimary,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -98,10 +100,9 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   // Title
                   Text(
                     l10n.selectUserType,
-                    style: const TextStyle(
+                    style: textTheme.titleLarge?.copyWith(
                       fontSize: AppConstants.largeFontSize * 1.2,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -109,9 +110,9 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                   // Subtitle
                   Text(
                     l10n.selectUserTypeSubtitle,
-                    style: const TextStyle(
+                    style: textTheme.bodyMedium?.copyWith(
                       fontSize: AppConstants.fontSize,
-                      color: AppColors.textSecondary,
+                      color: colors.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 48),
@@ -140,9 +141,9 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
                       l10n.coppaGdprNote,
-                      style: const TextStyle(
+                      style: textTheme.bodySmall?.copyWith(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -163,17 +164,19 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
     Color color,
     String userType,
   ) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: () => _selectUserType(userType),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.05),
+              color: colors.shadow.withValues(alpha: 0.05),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -208,18 +211,17 @@ class _UserTypeSelectionScreenState extends ConsumerState<UserTypeSelectionScree
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: textTheme.titleMedium?.copyWith(
                       fontSize: AppConstants.largeFontSize,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     description,
-                    style: const TextStyle(
+                    style: textTheme.bodyMedium?.copyWith(
                       fontSize: AppConstants.fontSize,
-                      color: AppColors.textSecondary,
+                      color: colors.onSurfaceVariant,
                       height: 1.4,
                     ),
                   ),

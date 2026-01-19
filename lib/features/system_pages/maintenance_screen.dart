@@ -42,6 +42,8 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -76,23 +78,22 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
               const SizedBox(height: 40),
               
               // Title
-              const Text(
+              Text(
                 'Under Maintenance',
-                style: TextStyle(
+                style: textTheme.titleLarge?.copyWith(
                   fontSize: AppConstants.largeFontSize * 1.2,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               
               // Description
-              const Text(
+              Text(
                 'We\'re making Kinder World even better for you and your children! Please try again in a few minutes.',
-                style: TextStyle(
+                style: textTheme.bodyMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -103,35 +104,34 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.lightGrey),
+                  border: Border.all(color: colors.outlineVariant),
                 ),
-                child: const Column(
+                child: Column(
                   children: [
                     Text(
                       'Estimated Completion',
-                      style: TextStyle(
+                      style: textTheme.titleSmall?.copyWith(
                         fontSize: AppConstants.fontSize,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       '30 minutes',
-                      style: TextStyle(
+                      style: textTheme.titleLarge?.copyWith(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: AppColors.warning,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       '2:30 PM - 3:00 PM UTC',
-                      style: TextStyle(
+                      style: textTheme.bodySmall?.copyWith(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -143,19 +143,18 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.lightGrey),
+                  border: Border.all(color: colors.outlineVariant),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'What\'s Coming:',
-                      style: TextStyle(
+                      style: textTheme.titleSmall?.copyWith(
                         fontSize: AppConstants.fontSize,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -173,11 +172,11 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
               const SizedBox(height: 32),
               
               // Social Media Links
-              const Text(
+              Text(
                 'Follow us for updates:',
-                style: TextStyle(
+                style: textTheme.bodySmall?.copyWith(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 16),
@@ -201,6 +200,8 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
   }
 
   Widget _buildFeatureItem(IconData icon, String text) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Row(
       children: [
         Container(
@@ -219,9 +220,9 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
         const SizedBox(width: 12),
         Text(
           text,
-          style: const TextStyle(
+          style: textTheme.bodyMedium?.copyWith(
             fontSize: AppConstants.fontSize,
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
           ),
         ),
       ],

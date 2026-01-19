@@ -33,7 +33,6 @@ class ThemePalette {
     return base.copyWith(
       primary: primary,
       secondary: secondary,
-      background: isDark ? darkBackground : lightBackground,
       surface: isDark ? darkSurface : lightSurface,
     );
   }

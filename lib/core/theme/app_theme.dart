@@ -8,7 +8,6 @@ class AppTheme {
   static ThemeData lightTheme({required ThemePalette palette, bool isChildFriendly = true}) {
     final scheme = palette.colorScheme(Brightness.light).copyWith(
       surface: palette.lightSurface,
-      background: palette.lightBackground,
     );
     return _themeFromScheme(scheme, isChildFriendly);
   }
@@ -16,17 +15,16 @@ class AppTheme {
   static ThemeData darkTheme({required ThemePalette palette, bool isChildFriendly = true}) {
     final scheme = palette.colorScheme(Brightness.dark).copyWith(
       surface: palette.darkSurface,
-      background: palette.darkBackground,
     );
     return _themeFromScheme(scheme, isChildFriendly);
   }
 
   static ThemeData _themeFromScheme(ColorScheme scheme, bool isChildFriendly) {
     final textPrimary = scheme.brightness == Brightness.dark
-        ? Colors.white.withOpacity(0.92)
-        : scheme.onBackground;
+        ? scheme.onSurface.withValues(alpha: 0.92)
+        : scheme.onSurface;
     final textSecondary = scheme.brightness == Brightness.dark
-        ? Colors.white.withOpacity(0.72)
+        ? scheme.onSurface.withValues(alpha: 0.72)
         : scheme.onSurfaceVariant;
 
     final textTheme = TextTheme(
@@ -87,7 +85,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: scheme,
       brightness: scheme.brightness,
-      scaffoldBackgroundColor: scheme.background,
+      scaffoldBackgroundColor: scheme.surface,
       fontFamily: 'SFPro',
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
@@ -104,7 +102,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        shadowColor: scheme.shadow.withOpacity(0.08),
+        shadowColor: scheme.shadow.withValues(alpha: 0.08),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: scheme.surface,
@@ -143,8 +141,8 @@ class AppTheme {
       ),
       iconTheme: IconThemeData(color: textPrimary),
       chipTheme: ChipThemeData(
-        backgroundColor: scheme.surfaceVariant,
-        disabledColor: scheme.surfaceVariant.withOpacity(0.5),
+        backgroundColor: scheme.surfaceContainerHighest,
+        disabledColor: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
         selectedColor: scheme.secondaryContainer,
         secondarySelectedColor: scheme.secondaryContainer,
         labelStyle: textTheme.bodySmall!,
@@ -156,7 +154,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surfaceVariant.withOpacity(0.9),
+        fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.9),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: scheme.outlineVariant),
@@ -176,7 +174,7 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         labelStyle: textTheme.bodyMedium?.copyWith(color: textSecondary),
         hintStyle: textTheme.bodyMedium?.copyWith(
-          color: textSecondary.withOpacity(0.9),
+          color: textSecondary.withValues(alpha: 0.9),
         ),
         prefixIconColor: textSecondary,
         suffixIconColor: textSecondary,

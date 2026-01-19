@@ -30,6 +30,7 @@ class _ParentHelpScreenState extends ConsumerState<ParentHelpScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final query = _searchController.text.trim();
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -65,17 +66,24 @@ class _ParentHelpScreenState extends ConsumerState<ParentHelpScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.help_outline, size: 72, color: Colors.grey),
+                  Icon(
+                    Icons.help_outline,
+                    size: 72,
+                    color: colors.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     query.isEmpty ? 'No FAQs yet' : 'No results found',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colors.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'We are preparing helpful articles for you.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: colors.onSurfaceVariant),
                   ),
                 ],
               ),

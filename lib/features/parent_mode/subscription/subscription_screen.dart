@@ -1,19 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/providers/auth_controller.dart';
+import 'package:kinder_world/core/providers/plan_provider.dart';
+import 'package:kinder_world/core/providers/subscription_provider.dart';
+import 'package:kinder_world/core/subscription/plan_info.dart';
+import 'package:kinder_world/core/widgets/themed_card.dart';
+import 'package:kinder_world/features/child_mode/paywall/payment_methods_screen.dart';
+import 'package:kinder_world/router.dart';
 
-class SubscriptionScreen extends ConsumerWidget {
+class SubscriptionScreen extends ConsumerStatefulWidget {
   const SubscriptionScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SubscriptionScreen> createState() => _SubscriptionScreenState();
+}
+
+class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
+  bool _isProcessing = false;
+  PlanTier? _processingTier;
+
+  String _planTitle(PlanTier tier) {
+    switch (tier) {
+      case PlanTier.free:
+        return 'Free Plan';
+      case PlanTier.premium:
+        return 'Premium Plan';
+      case PlanTier.familyPlus:
+        return 'Family Plan';
+    }
+  }
+
+  Future<void> _applyPlan(PlanTier tier) async {
+    await ref.read(authControllerProvider.notifier).applyPlanSelection(tier);
+    ref.invalidate(planInfoProvider);
+  }
+
+  Future<void> _selectPlan({
+    required PlanTier tier,
+    required bool requiresPayment,
+  }) async {
+    if (_isProcessing) return;
+    setState(() {
+      _isProcessing = true;
+      _processingTier = tier;
+    });
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      if (requiresPayment) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const PaymentMethodsScreen()),
+        );
+        if (!mounted) return;
+
+        final activated = await ref
+            .read(subscriptionServiceProvider)
+            .activateSubscription(tier);
+        if (!activated) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Failed to activate subscription.')),
+          );
+          return;
+        }
+      }
+
+      await _applyPlan(tier);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('${_planTitle(tier)} activated.')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isProcessing = false;
+        _processingTier = null;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final plan =
+        ref.watch(planInfoProvider).asData?.value ?? PlanInfo.fromTier(PlanTier.free);
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Subscription'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -24,46 +101,43 @@ class SubscriptionScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               
               // Current Plan
-              Container(
+              ThemedCard(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
-                ),
+                borderRadius: BorderRadius.circular(16),
+                surfaceColor: colors.secondaryContainer,
+                border: Border.all(color: colors.secondary),
                 child: Row(
                   children: [
                     Container(
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.2),
+                        color: colors.secondary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.star,
                         size: 30,
-                        color: AppColors.success,
+                        color: colors.secondary,
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Family Plan',
-                            style: TextStyle(
+                            _planTitle(plan.tier),
+                            style: textTheme.titleMedium?.copyWith(
                               fontSize: AppConstants.fontSize,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
                             ),
                           ),
                           Text(
-                            'Active until Dec 31, 2024',
-                            style: TextStyle(
+                            'Subscription Active',
+                            style: textTheme.bodySmall?.copyWith(
                               fontSize: 14,
-                              color: AppColors.textSecondary,
+                              color: colors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -72,13 +146,13 @@ class SubscriptionScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.success,
+                        color: colors.primary,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Active',
-                        style: TextStyle(
-                          color: AppColors.white,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colors.onPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -90,61 +164,60 @@ class SubscriptionScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Features
-              const Text(
+              Text(
                 'Your Plan Includes:',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
               
-              _buildFeatureItem(Icons.people, 'Up to 3 child profiles'),
-              _buildFeatureItem(Icons.school, 'Unlimited activities'),
-              _buildFeatureItem(Icons.bar_chart, 'Advanced reports'),
-              _buildFeatureItem(Icons.psychology, 'AI insights'),
-              _buildFeatureItem(Icons.download, 'Offline downloads'),
-              _buildFeatureItem(Icons.support, 'Priority support'),
+              _buildFeatureItem(
+                context,
+                Icons.people,
+                'Up to ${plan.maxChildren} child profiles',
+              ),
+              _buildFeatureItem(context, Icons.school, 'Unlimited activities'),
+              _buildFeatureItem(context, Icons.bar_chart, 'Advanced reports'),
+              _buildFeatureItem(context, Icons.psychology, 'AI insights'),
+              _buildFeatureItem(context, Icons.download, 'Offline downloads'),
+              _buildFeatureItem(context, Icons.support, 'Priority support'),
               
               const SizedBox(height: 32),
               
               // Billing Information
-              Container(
+              ThemedCard(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.shadow.withValues(alpha: 0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Billing Information',
-                      style: TextStyle(
+                      style: textTheme.titleMedium?.copyWith(
                         fontSize: AppConstants.fontSize,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
                     
-                    _buildBillingRow('Next Payment', 'Dec 31, 2024'),
-                    _buildBillingRow('Amount', '\$9.99/month'),
-                    _buildBillingRow('Payment Method', '**** **** **** 1234'),
+                    _buildBillingRow(context, 'Next Payment', 'Dec 31, 2024'),
+                    _buildBillingRow(context, 'Amount', '\$9.99/month'),
+                    _buildBillingRow(context, 'Payment Method', '**** **** **** 1234'),
                     
                     const SizedBox(height: 20),
                     
                     OutlinedButton(
                       onPressed: () {
-                        // TODO: Manage billing
+                        context.push(Routes.parentBilling);
                       },
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
@@ -158,17 +231,18 @@ class SubscriptionScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Available Plans
-              const Text(
+              Text(
                 'Available Plans',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
               
               _buildPlanCard(
+                context,
+                plan,
                 'Free Plan',
                 '\$0',
                 'Basic features only',
@@ -177,11 +251,13 @@ class SubscriptionScreen extends ConsumerWidget {
                   '1 child profile',
                   'Basic reports',
                 ],
-                false,
+                PlanTier.free,
               ),
               const SizedBox(height: 16),
               
               _buildPlanCard(
+                context,
+                plan,
                 'Family Plan',
                 '\$9.99',
                 'Best for families',
@@ -193,7 +269,7 @@ class SubscriptionScreen extends ConsumerWidget {
                   'Offline downloads',
                   'Priority support',
                 ],
-                true,
+                PlanTier.familyPlus,
               ),
               
               const SizedBox(height: 40),
@@ -204,7 +280,9 @@ class SubscriptionScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFeatureItem(IconData icon, String text) {
+  Widget _buildFeatureItem(BuildContext context, IconData icon, String text) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -213,17 +291,17 @@ class SubscriptionScreen extends ConsumerWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.success.withValues(alpha: 0.1),
+              color: colors.secondaryContainer,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 16, color: AppColors.success),
+            child: Icon(icon, size: 16, color: colors.secondary),
           ),
           const SizedBox(width: 12),
           Text(
             text,
-            style: const TextStyle(
+            style: textTheme.bodyMedium?.copyWith(
               fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
+              color: colors.onSurfaceVariant,
             ),
           ),
         ],
@@ -231,7 +309,13 @@ class SubscriptionScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBillingRow(String label, String value) {
+  Widget _buildBillingRow(
+    BuildContext context,
+    String label,
+    String value,
+  ) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -239,17 +323,16 @@ class SubscriptionScreen extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: textTheme.bodyMedium?.copyWith(
               fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
+              color: colors.onSurfaceVariant,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: textTheme.bodyMedium?.copyWith(
               fontSize: AppConstants.fontSize,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
             ),
           ),
         ],
@@ -258,29 +341,32 @@ class SubscriptionScreen extends ConsumerWidget {
   }
 
   Widget _buildPlanCard(
+    BuildContext context,
+    PlanInfo currentPlan,
     String title,
     String price,
     String subtitle,
     List<String> features,
-    bool isRecommended,
+    PlanTier tier,
   ) {
-    return Container(
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isRecommended = tier == PlanTier.familyPlus;
+    final isCurrent = currentPlan.tier == tier;
+    return ThemedCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isRecommended ? AppColors.primary : AppColors.lightGrey,
-          width: isRecommended ? 2 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: isRecommended ? colors.primary : colors.outlineVariant,
+        width: isRecommended ? 2 : 1,
       ),
+      boxShadow: [
+        BoxShadow(
+          color: colors.shadow.withValues(alpha: 0.08),
+          blurRadius: 10,
+          offset: const Offset(0, 5),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -288,13 +374,13 @@ class SubscriptionScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: colors.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 'RECOMMENDED',
-                style: TextStyle(
-                  color: AppColors.white,
+                style: textTheme.labelSmall?.copyWith(
+                  color: colors.onPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -306,10 +392,9 @@ class SubscriptionScreen extends ConsumerWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const Spacer(),
@@ -318,17 +403,16 @@ class SubscriptionScreen extends ConsumerWidget {
                 children: [
                   Text(
                     price,
-                    style: const TextStyle(
+                    style: textTheme.titleLarge?.copyWith(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: textTheme.bodySmall?.copyWith(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: colors.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -337,21 +421,31 @@ class SubscriptionScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           
-          ...features.map((feature) => _buildFeatureText(feature)),
+          ...features.map((feature) => _buildFeatureText(context, feature)),
           
           const SizedBox(height: 20),
           
           ElevatedButton(
-            onPressed: () {
-              // TODO: Implement plan selection
-            },
+            onPressed: isCurrent || _isProcessing
+                ? null
+                : () => _selectPlan(
+                      tier: tier,
+                      requiresPayment: tier != PlanTier.free,
+                    ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isRecommended ? AppColors.primary : AppColors.grey,
-              foregroundColor: AppColors.white,
+              backgroundColor: isRecommended
+                  ? colors.primary
+                  : colors.surfaceContainerHighest,
+              foregroundColor:
+                  isRecommended ? colors.onPrimary : colors.onSurface,
               minimumSize: const Size(double.infinity, 48),
             ),
             child: Text(
-              isRecommended ? 'Current Plan' : 'Choose Plan',
+              isCurrent
+                  ? 'Current Plan'
+                  : _processingTier == tier
+                      ? 'Processing...'
+                      : 'Choose Plan',
             ),
           ),
         ],
@@ -359,18 +453,20 @@ class SubscriptionScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFeatureText(String text) {
+  Widget _buildFeatureText(BuildContext context, String text) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
-          const Icon(Icons.check, size: 16, color: AppColors.success),
+          Icon(Icons.check, size: 16, color: colors.primary),
           const SizedBox(width: 8),
           Text(
             text,
-            style: const TextStyle(
+            style: textTheme.bodySmall?.copyWith(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.onSurfaceVariant,
             ),
           ),
         ],

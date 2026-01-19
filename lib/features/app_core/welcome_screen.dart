@@ -58,6 +58,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -86,20 +88,20 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                   width: 150,
                   height: 150,
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
+                    color: colors.primary,
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.3),
+                        color: colors.primary.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.child_care,
                     size: 80,
-                    color: AppColors.white,
+                    color: colors.onPrimary,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -107,10 +109,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 // Welcome Title
                 Text(
                   l10n.welcomeTitle,
-                  style: const TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     fontSize: AppConstants.largeFontSize * 1.2,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -119,9 +120,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 // Subtitle
                 Text(
                   l10n.welcomeSubtitle,
-                  style: const TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -160,8 +161,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 ElevatedButton(
                   onPressed: _navigateToUserTypeSelection,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.onPrimary,
                     minimumSize: const Size(double.infinity, 56),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -180,9 +181,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 // Privacy note
                 Text(
                   l10n.coppaGdprNote,
-                  style: const TextStyle(
+                  style: textTheme.bodySmall?.copyWith(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
                     ],
@@ -197,6 +198,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   }
 
   Widget _buildFeatureItem(IconData icon, String label, Color color) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       children: [
         Container(
@@ -215,9 +218,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(
+          style: textTheme.bodySmall?.copyWith(
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
           ),
         ),
       ],

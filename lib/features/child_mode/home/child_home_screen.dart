@@ -570,7 +570,7 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                       ),
                       Text(
                         '$todayActivities/$targetActivities',
-                        style: TextStyle(
+                      style: const TextStyle(
                           fontSize: AppConstants.fontSize,
                           fontWeight: FontWeight.bold,
                           color: AppColors.success,
@@ -752,35 +752,36 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      '+50 XP Bonus',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.xpColor,
-                      ),
+                  const Text(
+                    '+50 XP Bonus',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.xpColor,
                     ),
-                  ],
-                ),
-              ),
-              
-              ElevatedButton(
-                onPressed: () {
-                  context.go('/child/play');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                child: const Text('Start'),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                context.go('/child/play');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Start Activity'),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 }

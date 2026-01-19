@@ -46,12 +46,8 @@ class ParentNotificationsScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(24, 24, 24, 0),
-              child: PlanStatusBanner(margin: EdgeInsets.zero),
-            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -69,31 +65,12 @@ class ParentNotificationsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.recommendedForYou,
-                            style: textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        if (isSmartLocked) const PremiumBadge(),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.planAiInsightsPro,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
                     if (isSmartLocked)
                       PremiumSectionUpsell(
-                        title: l10n.planFeatureInPremium,
+                        title: l10n.recommendedForYou,
                         description: l10n.planAiInsightsPro,
                         buttonLabel: l10n.upgradeNow,
-                        showBadge: false,
+                        showBadge: true,
                         padding: const EdgeInsets.all(12),
                       ),
                   ],

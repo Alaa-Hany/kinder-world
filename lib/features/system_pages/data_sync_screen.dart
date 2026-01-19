@@ -88,21 +88,22 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.onSurface),
           onPressed: () => context.go('/parent/settings'),
         ),
-        title: const Text(
+        title: Text(
           'Data Sync',
-          style: TextStyle(
+          style: textTheme.titleMedium?.copyWith(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
           ),
         ),
       ),
@@ -144,10 +145,9 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
               // Sync status
               Text(
                 _syncStatus,
-                style: const TextStyle(
+                style: textTheme.titleLarge?.copyWith(
                   fontSize: AppConstants.largeFontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -159,7 +159,7 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
                     value: _syncProgress,
-                    backgroundColor: AppColors.lightGrey,
+                    backgroundColor: colors.surfaceContainerHighest,
                     valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                     minHeight: 8,
                   ),
@@ -167,9 +167,9 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
                 const SizedBox(height: 8),
                 Text(
                   '${(_syncProgress * 100).toInt()}%',
-                  style: const TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: 16,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -180,11 +180,11 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.05),
+                      color: colors.shadow.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -238,15 +238,15 @@ class _DataSyncScreenState extends ConsumerState<DataSyncScreen>
                     ),
                   ),
                   child: _isSyncing
-                      ? const CircularProgressIndicator(color: AppColors.white)
-                      : const Text(
-                          'Sync Now',
-                          style: TextStyle(
-                            fontSize: AppConstants.fontSize,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.white,
-                          ),
+                    ? CircularProgressIndicator(color: colors.onPrimary)
+                    : Text(
+                        'Sync Now',
+                        style: textTheme.titleSmall?.copyWith(
+                          fontSize: AppConstants.fontSize,
+                          fontWeight: FontWeight.bold,
+                          color: colors.onPrimary,
                         ),
+                      ),
                 ),
               ),
             ],
@@ -272,6 +272,8 @@ class _SyncDetailItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Row(
       children: [
         Container(
@@ -292,9 +294,8 @@ class _SyncDetailItem extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
+            style: textTheme.bodyMedium?.copyWith(
               fontSize: 16,
-              color: AppColors.textPrimary,
             ),
           ),
         ),
@@ -318,9 +319,9 @@ class _SyncDetailItem extends StatelessWidget {
         
         Text(
           value,
-          style: const TextStyle(
+          style: textTheme.bodySmall?.copyWith(
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
           ),
         ),
       ],

@@ -67,7 +67,9 @@ class _ParentProfileScreenState extends ConsumerState<ParentProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.primary,
         duration: const Duration(seconds: 3),
       ),
     );
@@ -104,7 +106,7 @@ class _ParentProfileScreenState extends ConsumerState<ParentProfileScreen> {
         data: (user) {
           if (user == null) {
             return Center(
-              child: Text(l10n?.error ?? 'User data unavailable'),
+            child: Text(l10n?.error ?? 'User data unavailable'),
             );
           }
           // Initialize controller with user data
@@ -124,8 +126,8 @@ class _ParentProfileScreenState extends ConsumerState<ParentProfileScreen> {
                       children: [
                         AvatarView(
                           radius: 48,
-                          backgroundColor:
-                              AppColors.primary.withOpacity(0.2),
+                            backgroundColor:
+                              AppColors.primary.withValues(alpha: 0.2),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -199,8 +201,10 @@ class _ParentProfileScreenState extends ConsumerState<ParentProfileScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      border: Border.all(color: Colors.blue[200]!),
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(

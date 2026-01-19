@@ -31,11 +31,13 @@ import 'package:kinder_world/features/parent_mode/settings/parent_settings_scree
 import 'package:kinder_world/features/parent_mode/settings/screens/profile_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/screens/change_password_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/screens/theme_screen.dart';
+import 'package:kinder_world/features/parent_mode/settings/screens/language_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/screens/privacy_settings_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/screens/help_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/screens/contact_us_screen.dart';
 import 'package:kinder_world/features/parent_mode/settings/screens/about_screen.dart';
 import 'package:kinder_world/features/parent_mode/subscription/subscription_screen.dart';
+import 'package:kinder_world/features/parent_mode/subscription/billing_management_screen.dart';
 import 'package:kinder_world/features/parent_mode/notifications/parent_notifications_screen.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
 
@@ -75,6 +77,7 @@ class Routes {
   static const parentControls = '/parent/controls';
   static const parentSettings = '/parent/settings';
   static const parentSubscription = '/parent/subscription';
+  static const parentBilling = '/parent/billing';
   static const parentNotifications = '/parent/notifications';
   static const parentDataSync = '/parent/data-sync';
   
@@ -82,6 +85,7 @@ class Routes {
   static const parentProfile = '/parent/profile';
   static const parentChangePassword = '/parent/change-password';
   static const parentTheme = '/parent/theme';
+  static const parentLanguage = '/parent/language';
   static const parentPrivacySettings = '/parent/privacy-settings';
   static const parentHelp = '/parent/help';
   static const parentContactUs = '/parent/contact-us';
@@ -363,6 +367,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ParentThemeScreen(),
       ),
       GoRoute(
+        path: Routes.parentLanguage,
+        builder: (context, state) => const ParentLanguageScreen(),
+      ),
+      GoRoute(
         path: Routes.parentPrivacySettings,
         builder: (context, state) => const ParentPrivacySettingsScreen(),
       ),
@@ -381,6 +389,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.parentSubscription,
         builder: (context, state) => const SubscriptionScreen(),
+      ),
+      GoRoute(
+        path: Routes.parentBilling,
+        builder: (context, state) => const BillingManagementScreen(),
       ),
       GoRoute(
         path: Routes.parentNotifications,

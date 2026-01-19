@@ -146,9 +146,10 @@ class AuthRepository {
     required String password,
   }) async {
     try {
-      _logger.d('Attempting parent login for: $email');
+      final normalizedEmail = email.trim().toLowerCase();
+      _logger.d('Attempting parent login for: $normalizedEmail');
 
-      if (email.isEmpty || password.isEmpty) {
+      if (normalizedEmail.isEmpty || password.isEmpty) {
         _logger.w('Login failed: Empty credentials');
         return null;
       }
@@ -156,7 +157,7 @@ class AuthRepository {
       final response = await _networkService.post<Map<String, dynamic>>(
         '/auth/login',
         data: {
-          'email': email,
+          'email': normalizedEmail,
           'password': password,
         },
       );
@@ -192,7 +193,8 @@ class AuthRepository {
     required String confirmPassword,
   }) async {
     try {
-      _logger.d('Attempting parent registration for: $email');
+      final normalizedEmail = email.trim().toLowerCase();
+      _logger.d('Attempting parent registration for: $normalizedEmail');
 
       // Validation
       if (password != confirmPassword) {
@@ -209,7 +211,7 @@ class AuthRepository {
         '/auth/register',
         data: {
           'name': name,
-          'email': email,
+          'email': normalizedEmail,
           'password': password,
           'confirmPassword': confirmPassword,
         },
@@ -306,7 +308,7 @@ class AuthRepository {
   }) async {
     try {
       final trimmedName = name.trim();
-      final trimmedEmail = parentEmail.trim();
+      final trimmedEmail = parentEmail.trim().toLowerCase();
 
       if (trimmedName.isEmpty ||
           trimmedEmail.isEmpty ||

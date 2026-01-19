@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -138,7 +139,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                           color: isSelected ? color : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected ? color : Theme.of(context).colorScheme.surfaceVariant,
+                            color: isSelected ? color : Theme.of(context).colorScheme.surfaceContainerHighest,
                           ),
                         ),
                         child: Row(
@@ -183,7 +184,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.error_outline,
                                   size: 64,
                                   color: AppColors.error,
@@ -204,7 +205,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                                         .read(contentControllerProvider.notifier)
                                         .loadAllActivities();
                                   },
-                                  child: Text('Retry'),
+                                  child: const Text('Retry'),
                                 ),
                               ],
                             ),
@@ -219,15 +220,15 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                                       size: 64,
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
-                                    SizedBox(height: 16),
+                                    const SizedBox(height: 16),
                                     Text(
                                       'No activities available',
                                       style: TextStyle(
-                                        fontSize: AppConstants.fontSize,
+                                        fontSize: 16,
                                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       ),
                                     ),
-                                    SizedBox(height: 8),
+                                    const SizedBox(height: 8),
                                     Text(
                                       'Try adjusting your filters.',
                                       style: TextStyle(
@@ -435,7 +436,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                   image: activity.thumbnailUrl.isNotEmpty
                       ? DecorationImage(

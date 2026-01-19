@@ -25,7 +25,8 @@ class ParentChildProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final fallback = child.name.isNotEmpty ? child.name[0] : '?';
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -54,10 +55,9 @@ class ParentChildProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 child.name,
-                style: const TextStyle(
+                style: textTheme.titleLarge?.copyWith(
                   fontSize: AppConstants.largeFontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
@@ -65,9 +65,9 @@ class ParentChildProfileScreen extends StatelessWidget {
                 child.age > 0
                     ? '${l10n.yearsOld(child.age)} - ${l10n.level} ${child.level}'
                     : '— - ${l10n.level} ${child.level}',
-                style: const TextStyle(
+                style: textTheme.bodySmall?.copyWith(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 20),
@@ -96,11 +96,11 @@ class ParentChildProfileScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: colors.surface,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.black.withValues(alpha: 0.05),
+                        color: colors.shadow.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -111,10 +111,9 @@ class ParentChildProfileScreen extends StatelessWidget {
                     children: [
                       Text(
                         l10n.childInterests,
-                        style: const TextStyle(
+                        style: textTheme.titleSmall?.copyWith(
                           fontSize: AppConstants.fontSize,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -139,7 +138,7 @@ class ParentChildProfileScreen extends StatelessWidget {
                   label: Text(l10n.activityReports),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
+                    foregroundColor: colors.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -164,7 +163,7 @@ class ParentChildProfileScreen extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.15),
+        color: AppColors.primary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(size / 2),
         border: Border.all(
           color: AppColors.primary,

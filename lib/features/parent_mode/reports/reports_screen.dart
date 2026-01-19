@@ -8,12 +8,12 @@ import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/subscription/plan_info.dart';
 import 'package:kinder_world/core/providers/plan_provider.dart';
 import 'package:kinder_world/core/widgets/plan_status_banner.dart';
 import 'package:kinder_world/core/widgets/avatar_view.dart';
 import 'package:kinder_world/core/widgets/premium_section_upsell.dart';
+import 'package:kinder_world/core/widgets/themed_card.dart';
 
 enum ReportPeriod { week, month, year }
 
@@ -67,26 +67,29 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     }
   }
 
-  List<_ActivitySegment> _activitySegments(AppLocalizations l10n) {
+  List<_ActivitySegment> _activitySegments(
+    AppLocalizations l10n,
+    ColorScheme colors,
+  ) {
     return [
       _ActivitySegment(
         value: 30,
-        color: AppColors.educational,
+        color: colors.primary,
         label: l10n.educationalContent,
       ),
       _ActivitySegment(
         value: 25,
-        color: AppColors.entertaining,
+        color: colors.secondary,
         label: l10n.entertainment,
       ),
       _ActivitySegment(
         value: 25,
-        color: AppColors.skillful,
+        color: colors.tertiary,
         label: l10n.skillfulActivities,
       ),
       _ActivitySegment(
         value: 20,
-        color: AppColors.behavioral,
+        color: colors.error,
         label: l10n.behavioralSkills,
       ),
     ];
@@ -192,7 +195,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   avatarId: child.avatar,
                   avatarPath: child.avatarPath,
                   radius: 20,
-                  backgroundColor: AppColors.primary.withOpacity(0.2),
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.2),
                 ),
                 title: Text(child.name),
                 subtitle: Text(
@@ -247,8 +253,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               builder: (context, childrenSnapshot) {
                 if (childrenSnapshot.connectionState == ConnectionState.waiting &&
                     childrenSnapshot.data == null) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
+                  return Center(
+                    child: CircularProgressIndicator(color: colors.primary),
                   );
                 }
 
@@ -272,7 +278,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 final selectedChild =
                     _selectedChild ?? (children.isNotEmpty ? children.first : null);
                 final metrics = _periodMetrics();
-                final segments = _activitySegments(l10n);
+                final segments = _activitySegments(l10n, colors);
                 final textDirection = Directionality.of(context);
 
                 return SingleChildScrollView(
@@ -299,39 +305,23 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       const SizedBox(height: 24),
 
                       // Child Selection
-                      Container(
+                      ThemedCard(
                         padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: colors.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colors.shadow.withValues(alpha: 0.08),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors.shadow.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
                         child: Row(
                           children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: colors.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  selectedChild?.name.isNotEmpty == true
-                                      ? selectedChild!.name[0]
-                                      : '?',
-                                  style: textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colors.primary,
-                                  ),
-                                ),
-                              ),
+                            AvatarView(
+                              avatarId: selectedChild?.avatar,
+                              avatarPath: selectedChild?.avatarPath,
+                              radius: 25,
+                              backgroundColor: colors.primaryContainer,
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -464,19 +454,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     required List<_ActivitySegment> segments,
     required TextDirection textDirection,
   }) {
-    return Container(
+    return ThemedCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: colors.shadow.withValues(alpha: 0.08),
+          blurRadius: 10,
+          offset: const Offset(0, 5),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -551,19 +538,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     required ColorScheme colors,
     required TextTheme textTheme,
   }) {
-    return Container(
+    return ThemedCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: colors.shadow.withValues(alpha: 0.08),
+          blurRadius: 10,
+          offset: const Offset(0, 5),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -623,19 +607,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   ) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Container(
+    return ThemedCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: colors.shadow.withValues(alpha: 0.08),
+          blurRadius: 10,
+          offset: const Offset(0, 5),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -647,22 +628,22 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildProgressMetric(
-                'Activities',
-                activities,
-                AppColors.success,
-                Icons.check_circle,
-              ),
+          _buildProgressMetric(
+            'Activities',
+            activities,
+            colors.primary,
+            Icons.check_circle,
+          ),
               _buildProgressMetric(
                 'Avg Score',
                 score,
-                AppColors.xpColor,
+            colors.secondary,
                 Icons.star,
               ),
               _buildProgressMetric(
                 'Time',
                 time,
-                AppColors.info,
+            colors.tertiary,
                 Icons.timer,
               ),
             ],

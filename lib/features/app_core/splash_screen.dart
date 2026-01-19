@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -60,8 +59,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: colors.primary,
       body: SafeArea(
         child: Center(
           child: AnimatedBuilder(
@@ -86,7 +87,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     borderRadius: BorderRadius.circular(40),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.black.withValues(alpha: 0.2),
+                        color: colors.shadow.withValues(alpha: 0.2),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -103,12 +104,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 const SizedBox(height: 40),
                 
                 // App Title
-                const Text(
+                Text(
                   'Kinder World',
-                  style: TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     fontSize: AppConstants.largeFontSize,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.white,
+                    color: colors.onPrimary,
                     letterSpacing: 2,
                   ),
                 ),
@@ -117,16 +118,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 // Tagline
                 Text(
                   'Learn. Play. Grow.',
-                  style: TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.white.withValues(alpha: 0.8),
+                    color: colors.onPrimary.withValues(alpha: 0.8),
                   ),
                 ),
                 const SizedBox(height: 60),
                 
                 // Loading indicator
-                const CircularProgressIndicator(
-                  color: AppColors.white,
+                CircularProgressIndicator(
+                  color: colors.onPrimary,
                   strokeWidth: 3,
                 ),
                 const SizedBox(height: 20),
@@ -134,9 +135,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 // Loading text
                 Text(
                   'Loading...',
-                  style: TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.white.withValues(alpha: 0.7),
+                    color: colors.onPrimary.withValues(alpha: 0.7),
                   ),
                 ),
               ],

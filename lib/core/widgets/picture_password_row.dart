@@ -125,8 +125,8 @@ class PicturePasswordRow extends StatelessWidget {
     // Ensure better visibility in both light and dark themes
     final borderColor = resolvedColor.withValues(alpha: 0.6);
     final fillColor = id == null
-        ? colors.surfaceVariant.withOpacity(0.5)
-        : resolvedColor.withValues(alpha: 0.15);
+      ? colors.surfaceContainerHighest.withValues(alpha: 0.5)
+      : resolvedColor.withValues(alpha: 0.15);
     final iconColor = resolvedColor; // Use full opacity for icons
     
     final icon = option?.icon;

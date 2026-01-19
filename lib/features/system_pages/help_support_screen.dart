@@ -9,21 +9,22 @@ class HelpSupportScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.onSurface),
           onPressed: () => context.go('/parent/settings'),
         ),
-        title: const Text(
+        title: Text(
           'Help & Support',
-          style: TextStyle(
+          style: textTheme.titleMedium?.copyWith(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
           ),
         ),
       ),
@@ -50,30 +51,29 @@ class HelpSupportScreen extends ConsumerWidget {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.help_outline,
                         size: 30,
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Need Help?',
-                            style: TextStyle(
+                            style: textTheme.titleLarge?.copyWith(
                               fontSize: AppConstants.largeFontSize,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
                             ),
                           ),
                           Text(
                             'We\'re here to support you',
-                            style: TextStyle(
+                            style: textTheme.bodyMedium?.copyWith(
                               fontSize: 16,
-                              color: AppColors.textSecondary,
+                              color: colors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -85,12 +85,11 @@ class HelpSupportScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // FAQ Section
-              const Text(
+              Text(
                 'Frequently Asked Questions',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -127,12 +126,11 @@ class HelpSupportScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Contact Support
-              const Text(
+              Text(
                 'Contact Support',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -140,11 +138,11 @@ class HelpSupportScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.05),
+                      color: colors.shadow.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -185,12 +183,11 @@ class HelpSupportScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Additional Resources
-              const Text(
+              Text(
                 'Additional Resources',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -198,11 +195,11 @@ class HelpSupportScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.05),
+                      color: colors.shadow.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -248,12 +245,12 @@ class HelpSupportScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // App version
-              const Center(
+              Center(
                 child: Text(
                   'Kinder World v${AppConstants.appVersion}',
-                  style: TextStyle(
+                  style: textTheme.bodySmall?.copyWith(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -283,13 +280,15 @@ class _FAQItemState extends State<_FAQItem> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.05),
+            color: colors.shadow.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -311,17 +310,16 @@ class _FAQItemState extends State<_FAQItem> {
                   Expanded(
                     child: Text(
                       widget.question,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                  style: textTheme.titleSmall?.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                     ),
                   ),
                   Icon(
                     _isExpanded ? Icons.expand_less : Icons.expand_more,
                     size: 24,
-                    color: AppColors.textSecondary,
+                color: colors.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -333,9 +331,9 @@ class _FAQItemState extends State<_FAQItem> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Text(
                 widget.answer,
-                style: const TextStyle(
+                style: textTheme.bodySmall?.copyWith(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                 ),
               ),
             ),
@@ -360,6 +358,8 @@ class _ContactOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -386,27 +386,26 @@ class _ContactOption extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: textTheme.titleSmall?.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                 ),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: textTheme.bodySmall?.copyWith(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
           ),
           
-          const Icon(
+          Icon(
             Icons.chevron_right,
             size: 24,
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
           ),
         ],
       ),
@@ -427,6 +426,8 @@ class _ResourceItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -450,17 +451,16 @@ class _ResourceItem extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: textTheme.bodyMedium?.copyWith(
                 fontSize: 16,
-                color: AppColors.textPrimary,
               ),
             ),
           ),
           
-          const Icon(
+          Icon(
             Icons.chevron_right,
             size: 24,
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
           ),
         ],
       ),

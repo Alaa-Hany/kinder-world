@@ -56,7 +56,7 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
     
     final success = await authController.registerParent(
       name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
+      email: _emailController.text.trim().toLowerCase(),
       password: _passwordController.text,
       confirmPassword: _confirmPasswordController.text,
     );
@@ -88,13 +88,15 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.onSurface),
           onPressed: () => context.go('/parent/login'),
         ),
       ),
@@ -108,20 +110,19 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
               children: [
                 // Header
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Create Account',
-                  style: TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     fontSize: AppConstants.largeFontSize * 1.2,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Join Kinder World and start your child\'s learning journey',
-                  style: TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: AppConstants.fontSize,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -206,6 +207,18 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                     if (value.length < 6) {
                       return 'Password must be at least 6 characters';
                     }
+                    // Check for uppercase letter
+                    if (!value.contains(RegExp(r'[A-Z]'))) {
+                      return 'Password must include uppercase letter';
+                    }
+                    // Check for number
+                    if (!value.contains(RegExp(r'[0-9]'))) {
+                      return 'Password must include number';
+                    }
+                    // Check for special character
+                    if (!value.contains(RegExp(r'[!@#$%^&*()_+\-=\[\]{};:'"'"'",.<>?]'))) {
+                      return 'Password must include special character (!@#\$%^&*)';
+                    }
                     return null;
                   },
                 ),
@@ -256,25 +269,25 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                     ),
                     Expanded(
                       child: RichText(
-                        text: const TextSpan(
-                          style: TextStyle(
+                        text: TextSpan(
+                          style: textTheme.bodySmall?.copyWith(
                             fontSize: 14,
-                            color: AppColors.textSecondary,
+                            color: colors.onSurfaceVariant,
                           ),
                           children: [
-                            TextSpan(text: 'I agree to the '),
+                            const TextSpan(text: 'I agree to the '),
                             TextSpan(
                               text: 'Terms of Service',
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: colors.primary,
                                 decoration: TextDecoration.underline,
                               ),
                             ),
-                            TextSpan(text: ' and '),
+                            const TextSpan(text: ' and '),
                             TextSpan(
                               text: 'Privacy Policy',
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: colors.primary,
                                 decoration: TextDecoration.underline,
                               ),
                             ),
@@ -294,13 +307,13 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                     onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
+                      foregroundColor: colors.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: AppColors.white)
+                        ? CircularProgressIndicator(color: colors.onPrimary)
                         : const Text(
                             'Create Account',
                             style: TextStyle(
@@ -316,10 +329,10 @@ class _ParentRegisterScreenState extends ConsumerState<ParentRegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'Already have an account? ',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
                         fontSize: 14,
                       ),
                     ),

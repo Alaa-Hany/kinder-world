@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/providers/change_password_controller.dart';
+import 'package:kinder_world/router.dart';
 
 class ParentChangePasswordScreen extends ConsumerStatefulWidget {
   const ParentChangePasswordScreen({super.key});
@@ -41,6 +43,7 @@ class _ParentChangePasswordScreenState
   Widget build(BuildContext context) {
     final passwordState = ref.watch(changePasswordControllerProvider);
     final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -140,8 +143,8 @@ class _ParentChangePasswordScreenState
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  border: Border.all(color: Colors.red[200]!),
+                  color: colors.errorContainer,
+                  border: Border.all(color: colors.error),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -149,7 +152,7 @@ class _ParentChangePasswordScreenState
                     error: (err, _) => err.toString(),
                     orElse: () => '',
                   ),
-                  style: TextStyle(color: Colors.red[700]),
+                  style: TextStyle(color: colors.onErrorContainer),
                 ),
               ),
             const SizedBox(height: 16),
@@ -162,7 +165,6 @@ class _ParentChangePasswordScreenState
                   loading: () => null,
                   orElse: () => () async {
                     final messenger = ScaffoldMessenger.of(context);
-                    final navigator = Navigator.of(context);
                     
                     final success = await ref
                         .read(changePasswordControllerProvider.notifier)
@@ -173,27 +175,26 @@ class _ParentChangePasswordScreenState
                         );
 
                     if (success && mounted) {
+                      // ignore: use_build_context_synchronously
                       messenger.showSnackBar(
                         const SnackBar(
-                          content: Text(
-                            'Password changed successfully',
-                          ),
-                          duration: Duration(seconds: 2),
+                          content: Text('تم تغيير كلمة المرور'),
+                          duration: Duration(seconds: 3),
                         ),
                       );
-                      navigator.pop();
+                      if (!mounted) return;
+                      // ignore: use_build_context_synchronously
+                      context.go(Routes.parentSettings);
                     }
                   },
                 ),
                 child: passwordState.maybeWhen(
-                  loading: () => const SizedBox(
+                  loading: () => SizedBox(
                     height: 24,
                     width: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white,
-                      ),
+                      valueColor: AlwaysStoppedAnimation<Color>(colors.onPrimary),
                     ),
                   ),
                   orElse: () => const Text('Update Password'),

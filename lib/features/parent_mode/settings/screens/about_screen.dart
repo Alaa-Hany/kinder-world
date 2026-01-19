@@ -28,6 +28,8 @@ class _ParentAboutScreenState extends ConsumerState<ParentAboutScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,11 +41,11 @@ class _ParentAboutScreenState extends ConsumerState<ParentAboutScreen> {
         child: Column(
           children: [
             const SizedBox(height: 24),
-            const Icon(Icons.school, size: 80, color: Colors.blue),
+            Icon(Icons.school, size: 80, color: colors.primary),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Kinder World',
-              style: TextStyle(
+              style: textTheme.titleLarge?.copyWith(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),

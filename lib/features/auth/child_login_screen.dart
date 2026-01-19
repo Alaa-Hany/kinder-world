@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -59,23 +60,51 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     _AvatarOption(
       id: 'avatar_2',
       assetPath: 'assets/images/avatars/boy2.png',
-      icon: Icons.sentiment_satisfied,
-      backgroundColor: Color(0xFFF3E5F5),
-      iconColor: Color(0xFF8E24AA),
+      icon: Icons.sentiment_satisfied_alt,
+      backgroundColor: Color(0xFFFFF3E0),
+      iconColor: Color(0xFFFB8C00),
     ),
     _AvatarOption(
       id: 'avatar_3',
       assetPath: 'assets/images/avatars/girl1.png',
-      icon: Icons.sentiment_very_satisfied,
-      backgroundColor: Color(0xFFE8F5E9),
-      iconColor: Color(0xFF43A047),
+      icon: Icons.emoji_emotions,
+      backgroundColor: Color(0xFFF3E5F5),
+      iconColor: Color(0xFF8E24AA),
     ),
     _AvatarOption(
       id: 'avatar_4',
       assetPath: 'assets/images/avatars/girl2.png',
+      icon: Icons.mood,
+      backgroundColor: Color(0xFFE8F5E9),
+      iconColor: Color(0xFF43A047),
+    ),
+    _AvatarOption(
+      id: 'avatar_5',
+      assetPath: '',
       icon: Icons.star,
-      backgroundColor: Color(0xFFFFF3E0),
-      iconColor: Color(0xFFFB8C00),
+      backgroundColor: Color(0xFFFFF9C4),
+      iconColor: Color(0xFFF57F17),
+    ),
+    _AvatarOption(
+      id: 'avatar_6',
+      assetPath: '',
+      icon: Icons.pets,
+      backgroundColor: Color(0xFFFFE0B2),
+      iconColor: Color(0xFFE65100),
+    ),
+    _AvatarOption(
+      id: 'avatar_7',
+      assetPath: '',
+      icon: Icons.favorite,
+      backgroundColor: Color(0xFFFCE4EC),
+      iconColor: Color(0xFFC2185B),
+    ),
+    _AvatarOption(
+      id: 'avatar_8',
+      assetPath: '',
+      icon: Icons.rocket_launch,
+      backgroundColor: Color(0xFFE1F5FE),
+      iconColor: Color(0xFF0277BD),
     ),
   ];
 
@@ -99,7 +128,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       prefixIcon: Icon(icon, color: colors.onSurfaceVariant),
       suffixIcon: suffix,
       filled: true,
-      fillColor: colors.surfaceVariant,
+      fillColor: colors.surfaceContainerHighest,
       labelStyle: textTheme.bodyMedium?.copyWith(
         color: colors.onSurfaceVariant,
         fontWeight: FontWeight.w600,
@@ -450,6 +479,10 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
   }
 
   int _resolveAgeFromApi(Map<String, dynamic> data, ChildProfile? existing) {
+    // Prioritize existing age if it's valid
+    final existingAge = existing?.age ?? 0;
+    if (existingAge > 0) return existingAge;
+    
     final apiAge = _parseInt(data['age'], 0);
     final birthDate = _parseBirthDate(
       data['birthdate'] ??
@@ -461,13 +494,13 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
     if (kDebugMode) {
       debugPrint(
-        'Child age resolve: apiAge=$apiAge, birthDate=$birthDate, computedAge=$computedAge, existing=${existing?.age}',
+        'Child age resolve: apiAge=$apiAge, birthDate=$birthDate, computedAge=$computedAge, existing=$existingAge',
       );
     }
 
     if (apiAge > 0) return apiAge;
     if (computedAge > 0) return computedAge;
-    return existing?.age ?? 0;
+    return 0;
   }
 
   ChildProfile? _mergeChildProfileFromApi(
@@ -481,9 +514,15 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
     final now = DateTime.now();
     final apiName = data['name']?.toString().trim();
-    final resolvedName = (apiName != null && apiName.isNotEmpty)
+    final existingName = existing?.name;
+    // Don't use existing name if it's the same as the ID (default placeholder)
+    final hasRealName = existingName != null && 
+                        existingName.isNotEmpty && 
+                        existingName != childId &&
+                        existingName.toLowerCase() != 'child';
+    final resolvedName = (apiName != null && apiName.isNotEmpty && apiName != childId && apiName.toLowerCase() != 'child')
         ? apiName
-        : (existing?.name ?? childId);
+        : (hasRealName ? existingName : childId);
     final age = _resolveAgeFromApi(data, existing);
     final existingLevel = existing?.level ?? 0;
     final level =
@@ -589,13 +628,26 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
     }
 
     final now = DateTime.now();
+    
+    // Ensure we have a valid name - use childId as fallback if needed
+    String finalName;
+    if (childProfile != null && 
+        childProfile.name.isNotEmpty && 
+        childProfile.name != childId &&
+        childProfile.name.toLowerCase() != 'child') {
+      finalName = childProfile.name;
+    } else if (!isDefaultName && 
+               resolvedFallback != null && 
+               resolvedFallback.toLowerCase() != 'child') {
+      finalName = resolvedFallback;
+    } else {
+      // Use child ID as a final fallback to allow login
+      finalName = childId;
+    }
+    
     final newProfile = ChildProfile(
       id: childId,
-      name: (childProfile != null && childProfile.name.isNotEmpty)
-          ? childProfile.name
-          : (!isDefaultName && resolvedFallback != null
-              ? resolvedFallback
-              : childId),
+      name: finalName,
       age: childProfile?.age ?? 0,
       avatar: childProfile?.avatar ?? _avatarOptions.first.id,
       interests: childProfile?.interests ?? const [],
@@ -686,9 +738,11 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
   }
 
   Future<void> _showCreateProfileDialog(AppLocalizations l10n) async {
+    if (!mounted) return;
     final parentContext = context;
     final storedParentEmail =
         await ref.read(secureStorageProvider).getParentEmail();
+    if (!mounted) return;
     final parentEmailController =
         TextEditingController(text: storedParentEmail ?? '');
     final childNameController = TextEditingController();
@@ -722,19 +776,31 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       });
     }
 
+    // ignore: use_build_context_synchronously
     await showDialog<void>(
+      // ignore: use_build_context_synchronously
       context: parentContext,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final childName = childNameController.text.trim();
             final parentEmail = parentEmailController.text.trim();
-            final canSave = childName.isNotEmpty &&
+            final isValidName = childName.isNotEmpty && 
+                                childName.toLowerCase() != 'child' && 
+                                childName.length >= 2;
+            final canSave = isValidName &&
                 isValidEmail(parentEmail) &&
                 selectedPassword.length == 3 &&
                 !isSaving;
-            final nameError =
-                nameTouched && childName.isEmpty ? l10n.fieldRequired : null;
+            final nameError = nameTouched
+                ? (childName.isEmpty
+                    ? l10n.fieldRequired
+                    : (childName.toLowerCase() == 'child'
+                        ? 'Please enter a real name'
+                        : (childName.length < 2
+                            ? 'Name must be at least 2 characters'
+                            : null)))
+                : null;
             final emailError = emailTouched && !isValidEmail(parentEmail)
                 ? (parentEmail.isEmpty ? l10n.fieldRequired : l10n.invalidEmail)
                 : null;
@@ -770,7 +836,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                           decoration: InputDecoration(
                             labelText: l10n.childName,
                             errorText: nameError,
-                            prefixIcon: Icon(Icons.person),
+                            prefixIcon: const Icon(Icons.person),
                           ),
                           textCapitalization: TextCapitalization.words,
                           onChanged: (_) => setDialogState(() {
@@ -783,7 +849,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                           decoration: InputDecoration(
                             labelText: l10n.parentEmail,
                             errorText: emailError,
-                            prefixIcon: Icon(Icons.email),
+                            prefixIcon: const Icon(Icons.email),
                           ),
                           keyboardType: TextInputType.emailAddress,
                           textCapitalization: TextCapitalization.none,
@@ -842,7 +908,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                                     border: Border.all(
                                       color: isSelected
                                           ? AppColors.primary
-                                          : Theme.of(context).colorScheme.surfaceVariant,
+                                          : Theme.of(context).colorScheme.surfaceContainerHighest,
                                       width: 2,
                                     ),
                                   ),
@@ -914,7 +980,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                                     border: Border.all(
                                       color: isSelected
                                           ? option.color
-                                          : Theme.of(context).colorScheme.surfaceVariant,
+                                          : Theme.of(context).colorScheme.surfaceContainerHighest,
                                       width: 2,
                                     ),
                                   ),
@@ -957,6 +1023,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                                             parentEmailController.text.trim();
 
                                         if (trimmedName.isEmpty ||
+                                            trimmedName.toLowerCase() == 'child' ||
+                                            trimmedName.length < 2 ||
                                             !isValidEmail(trimmedEmail) ||
                                             selectedPassword.length != 3) {
                                           setDialogState(() {
@@ -1093,6 +1161,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
                                         if (mounted) {
                                           // Pop dialog first while dialogContext is valid
+                                          // ignore: use_build_context_synchronously
                                           Navigator.of(dialogContext).pop();
                                         }
                                         if (mounted) {
@@ -1102,11 +1171,11 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                                       }
                                     : null,
                                 child: isSaving
-                                    ? SizedBox(
+                                    ? const SizedBox(
                                         height: 16,
                                         width: 16,
                                         child: CircularProgressIndicator(
-                                          color: Theme.of(context).colorScheme.surface,
+                                          color: Color(0xFFFFFFFF),
                                           strokeWidth: 2,
                                         ),
                                       )
@@ -1125,6 +1194,8 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
         );
       },
     );
+
+    if (!mounted) return;
 
     childNameController.dispose();
     parentEmailController.dispose();
@@ -1338,7 +1409,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
           height: 48,
           child: OutlinedButton.icon(
             onPressed: _isLoading ? null : () => _showCreateProfileDialog(l10n),
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             label: Text(l10n.createChildProfile),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
@@ -1513,7 +1584,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                       : Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isSelected ? option.color : Theme.of(context).colorScheme.surfaceVariant,
+                    color: isSelected ? option.color : Theme.of(context).colorScheme.surfaceContainerHighest,
                     width: 2,
                   ),
                 ),
@@ -1574,7 +1645,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
               : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surfaceVariant,
+            color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1647,7 +1718,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).colorScheme.surfaceVariant),
+          border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
         ),
         child: Column(
           children: [

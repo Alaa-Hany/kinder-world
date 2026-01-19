@@ -102,7 +102,7 @@ class _ParentContactUsScreenState extends ConsumerState<ParentContactUsScreen> {
                     error: (err, _) => err.toString(),
                     orElse: () => '',
                   ),
-                  style: TextStyle(color: Colors.red[700]),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
             const SizedBox(height: 16),
@@ -115,8 +115,11 @@ class _ParentContactUsScreenState extends ConsumerState<ParentContactUsScreen> {
                   loading: () => null,
                   orElse: () => () async {
                     // Validation
+                    final messenger = ScaffoldMessenger.of(context);
+                    final navigator = Navigator.of(context);
+                    
                     if (_subjectController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      messenger.showSnackBar(
                         const SnackBar(
                           content: Text('Please enter a subject'),
                         ),
@@ -125,7 +128,7 @@ class _ParentContactUsScreenState extends ConsumerState<ParentContactUsScreen> {
                     }
 
                     if (_messageController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      messenger.showSnackBar(
                         const SnackBar(
                           content: Text('Please enter a message'),
                         ),
@@ -141,25 +144,26 @@ class _ParentContactUsScreenState extends ConsumerState<ParentContactUsScreen> {
                         );
 
                     if (success && mounted) {
-                      _subjectController.clear();
-                      _messageController.clear();
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      messenger.showSnackBar(
                         const SnackBar(
-                          content: Text('Message sent'),
+                          content: Text(
+                            'Message sent successfully. We\'ll get back to you soon.',
+                          ),
                           duration: Duration(seconds: 3),
                         ),
                       );
+                      navigator.pop();
                     }
                   },
                 ),
                 child: supportState.maybeWhen(
-                  loading: () => const SizedBox(
+                  loading: () => SizedBox(
                     height: 24,
                     width: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white,
+                        Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                   ),

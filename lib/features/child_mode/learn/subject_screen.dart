@@ -16,6 +16,8 @@ class SubjectScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Mock lessons data
     final lessons = _getMockLessons(subject);
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -23,15 +25,14 @@ class SubjectScreen extends ConsumerWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.onSurface),
           onPressed: () => context.go('/child/learn'),
         ),
         title: Text(
           _getSubjectDisplayName(subject),
-          style: const TextStyle(
+          style: textTheme.titleMedium?.copyWith(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
           ),
         ),
       ),
@@ -54,13 +55,13 @@ class SubjectScreen extends ConsumerWidget {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.2),
+                        color: colors.onPrimary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: Icon(
                         _getSubjectIcon(subject),
                         size: 30,
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -70,17 +71,17 @@ class SubjectScreen extends ConsumerWidget {
                         children: [
                           Text(
                             _getSubjectDisplayName(subject),
-                            style: const TextStyle(
+                            style: textTheme.titleLarge?.copyWith(
                               fontSize: AppConstants.largeFontSize,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.white,
+                              color: colors.onPrimary,
                             ),
                           ),
                           Text(
                             '${lessons.length} lessons available',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.white.withValues(alpha: 0.8),
+                              color: colors.onPrimary.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -92,12 +93,11 @@ class SubjectScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               
               // Lessons list
-              const Text(
+              Text(
                 'Available Lessons',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -281,17 +281,19 @@ class _LessonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.05),
+              color: colors.shadow.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -322,34 +324,33 @@ class _LessonCard extends StatelessWidget {
                 children: [
                   Text(
                     lesson['title'],
-                    style: const TextStyle(
+                    style: textTheme.titleSmall?.copyWith(
                       fontSize: AppConstants.fontSize,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     lesson['description'],
-                    style: const TextStyle(
+                    style: textTheme.bodySmall?.copyWith(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: colors.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.access_time,
                         size: 16,
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${lesson['duration']} min',
-                        style: const TextStyle(
+                        style: textTheme.bodySmall?.copyWith(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colors.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -376,14 +377,14 @@ class _LessonCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.lightGrey,
+                color: colors.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 lesson['difficulty'],
-                style: const TextStyle(
+                style: textTheme.bodySmall?.copyWith(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                 ),
               ),
             ),

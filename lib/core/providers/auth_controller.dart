@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/models/user.dart';
 import 'package:kinder_world/core/repositories/auth_repository.dart';
 import 'package:kinder_world/core/services/auth_service.dart';
+import 'package:kinder_world/core/subscription/plan_info.dart';
 import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
@@ -81,8 +82,9 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     
     try {
+      final normalizedEmail = email.trim().toLowerCase();
       final user = await _authRepository.loginParent(
-        email: email,
+        email: normalizedEmail,
         password: password,
       );
       
@@ -92,7 +94,7 @@ class AuthController extends StateNotifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
         );
-        await _applyPremiumOverride(email);
+        await _applyPremiumOverride(normalizedEmail);
         _logger.d('Parent login successful: ${user.id}');
         return true;
       } else {
@@ -122,9 +124,10 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     
     try {
+      final normalizedEmail = email.trim().toLowerCase();
       final user = await _authRepository.registerParent(
         name: name,
-        email: email,
+        email: normalizedEmail,
         password: password,
         confirmPassword: confirmPassword,
       );
@@ -135,7 +138,7 @@ class AuthController extends StateNotifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
         );
-        await _applyPremiumOverride(email);
+        await _applyPremiumOverride(normalizedEmail);
         _logger.d('Parent registration successful: ${user.id}');
         return true;
       } else {
@@ -373,6 +376,21 @@ class AuthController extends StateNotifier<AuthState> {
             isPremium ? SubscriptionStatus.active : SubscriptionStatus.expired,
       ),
     );
+  }
+
+  Future<void> applyPlanSelection(PlanTier tier) async {
+    switch (tier) {
+      case PlanTier.free:
+        await setPremiumStatus(false);
+        break;
+      case PlanTier.premium:
+        await setPremiumStatus(true);
+        break;
+      case PlanTier.familyPlus:
+        await _authRepository.savePlanType('family_plus');
+        await setPremiumStatus(true);
+        break;
+    }
   }
 
   Future<void> _applyPremiumOverride(String email) async {

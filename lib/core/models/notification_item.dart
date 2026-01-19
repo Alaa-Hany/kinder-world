@@ -42,7 +42,7 @@ class NotificationItem with _$NotificationItem {
 
   // Check if notification is urgent
   bool get isUrgent {
-    return priority == NotificationPriority.urgent;
+    return priority == NotificationPriority.high;
   }
 
   // Check if notification is for parent
@@ -178,28 +178,12 @@ class NotificationTypes {
 // Notification priorities
 class NotificationPriority {
   static const String low = 'low';
-  static const String normal = 'normal';
+  static const String medium = 'medium';
   static const String high = 'high';
-  static const String urgent = 'urgent';
   
   static const List<String> all = [
-    low, normal, high, urgent
+    low, medium, high
   ];
-  
-  static Color getColor(String priority) {
-    switch (priority) {
-      case urgent:
-        return Colors.red;
-      case high:
-        return Colors.orange;
-      case normal:
-        return Colors.blue;
-      case low:
-        return Colors.grey;
-      default:
-        return Colors.blue;
-    }
-  }
 }
 
 // Notification data keys

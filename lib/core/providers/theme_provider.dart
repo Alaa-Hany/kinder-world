@@ -31,7 +31,7 @@ class ThemeController extends StateNotifier<ThemeState> {
       : super(
           const ThemeState(
             paletteId: ThemePalettes.defaultPaletteId,
-            mode: ThemeMode.system,
+            mode: ThemeMode.light,
           ),
         ) {
     _loadFromStorage();
@@ -41,7 +41,7 @@ class ThemeController extends StateNotifier<ThemeState> {
     final prefs = await SharedPreferences.getInstance();
     final savedPalette =
         prefs.getString(_paletteKey) ?? ThemePalettes.defaultPaletteId;
-    final savedModeIndex = prefs.getInt(_modeKey) ?? ThemeMode.system.index;
+    final savedModeIndex = prefs.getInt(_modeKey) ?? ThemeMode.light.index;
     final clampedIndex =
       savedModeIndex.clamp(0, ThemeMode.values.length - 1).toInt();
     final mode = ThemeMode.values[clampedIndex];

@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -91,7 +92,7 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.textPrimary),
+          icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => context.go('/child/learn'),
         ),
         title: AnimatedBuilder(
@@ -99,7 +100,7 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
           builder: (context, child) {
             return LinearProgressIndicator(
               value: _progressAnimation.value,
-              backgroundColor: AppColors.lightGrey,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.success),
             );
           },
@@ -109,7 +110,7 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
             onPressed: _nextStep,
             child: Text(
               _currentStep == 4 ? 'Finish' : 'Next',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
@@ -157,7 +158,7 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
               color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(60),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.school,
               size: 60,
               color: AppColors.primary,
@@ -168,10 +169,10 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
           // Lesson title
           Text(
             lesson['title'],
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppConstants.largeFontSize * 1.2,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             textAlign: TextAlign.center,
           ),
@@ -180,9 +181,9 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
           // Lesson description
           Text(
             lesson['description'],
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
           ),
@@ -223,12 +224,12 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Start Learning!',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.white,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
               ),
             ),
@@ -244,12 +245,12 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Learning Content',
             style: TextStyle(
               fontSize: AppConstants.largeFontSize,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 24),
@@ -258,11 +259,11 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.05),
+                  color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -271,12 +272,12 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Today we will learn about:',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -304,9 +305,9 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
                 
                 Text(
                   lesson['content'] ?? 'This is where the main learning content would be displayed. It could include text, images, videos, or interactive elements.',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -323,12 +324,12 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Let\'s Practice!',
             style: TextStyle(
               fontSize: AppConstants.largeFontSize,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 24),
@@ -337,11 +338,11 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.05),
+                  color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -350,12 +351,12 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Interactive Activity',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -394,12 +395,12 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Quick Quiz',
             style: TextStyle(
               fontSize: AppConstants.largeFontSize,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 24),
@@ -408,11 +409,11 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.05),
+                  color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -421,20 +422,20 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Question 1 of 3',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'What did you learn in this lesson?',
                   style: TextStyle(
                     fontSize: AppConstants.fontSize,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -485,7 +486,7 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
               color: AppColors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(60),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.celebration,
               size: 60,
               color: AppColors.success,
@@ -493,21 +494,21 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
           ),
           const SizedBox(height: 32),
           
-          const Text(
+          Text(
             'Great Job!',
             style: TextStyle(
               fontSize: AppConstants.largeFontSize * 1.2,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
           
-          const Text(
+          Text(
             'You completed the lesson!',
             style: TextStyle(
               fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 32),
@@ -516,11 +517,11 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.05),
+                  color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -568,12 +569,12 @@ class _LessonFlowScreenState extends ConsumerState<LessonFlowScreen>
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Continue',
                 style: TextStyle(
                   fontSize: AppConstants.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.white,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
               ),
             ),
@@ -620,17 +621,17 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -657,10 +658,10 @@ class _AnswerOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.white,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.lightGrey,
+            color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -671,18 +672,18 @@ class _AnswerOption extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? AppColors.primary : AppColors.lightGrey,
+                color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
               child: isSelected
-                  ? const Icon(Icons.check, size: 16, color: AppColors.white)
+                  ? Icon(Icons.check, size: 16, color: Theme.of(context).colorScheme.surface)
                   : null,
             ),
             const SizedBox(width: 12),
             Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -717,17 +718,17 @@ class _ResultItem extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],

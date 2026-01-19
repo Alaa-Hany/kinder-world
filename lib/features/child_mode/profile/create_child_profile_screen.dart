@@ -119,7 +119,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.2),
+                      color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -127,8 +127,8 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                 ),
                 child: Text(
                   message,
-                  style: const TextStyle(
-                    color: AppColors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.surface,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -321,7 +321,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () {
             if (_currentStep > 0) {
               setState(() {
@@ -332,12 +332,12 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
             }
           },
         ),
-        title: const Text(
+        title: Text(
           'Create Child Profile',
           style: TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -356,7 +356,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                       decoration: BoxDecoration(
                         color: index <= _currentStep 
                             ? AppColors.primary 
-                            : AppColors.lightGrey,
+                            : Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -413,9 +413,9 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                       ),
                       child: Text(
                         _currentStep == 3 ? 'Create Profile' : 'Next',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: AppConstants.fontSize,
-                          color: AppColors.white,
+                          color: Theme.of(context).colorScheme.surface,
                         ),
                       ),
                     ),
@@ -451,20 +451,20 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Tell us about your child',
             style: TextStyle(
               fontSize: AppConstants.largeFontSize,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'This helps us personalize their learning experience',
             style: TextStyle(
               fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 32),
@@ -474,7 +474,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
             controller: _nameController,
             decoration: InputDecoration(
               labelText: 'Child\'s Name',
-              labelStyle: const TextStyle(color: AppColors.textSecondary),
+              labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -493,7 +493,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
             controller: _parentEmailController,
             decoration: InputDecoration(
               labelText: l10n.parentEmail,
-              labelStyle: const TextStyle(color: AppColors.textSecondary),
+              labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -519,12 +519,12 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
           const SizedBox(height: 24),
           
           // Age selector
-          const Text(
+          Text(
             'Age',
             style: TextStyle(
               fontSize: AppConstants.fontSize,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
@@ -556,20 +556,20 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Choose an avatar',
             style: TextStyle(
               fontSize: AppConstants.largeFontSize,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Pick a fun character to represent your child',
             style: TextStyle(
               fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 32),
@@ -596,10 +596,10 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.lightGrey,
+                      color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
                       width: isSelected ? 3 : 1,
                     ),
                   ),
@@ -639,20 +639,20 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'What are your child\'s interests?',
             style: TextStyle(
               fontSize: AppConstants.largeFontSize,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Select up to 5 interests (optional)',
             style: TextStyle(
               fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 32),
@@ -678,10 +678,10 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                   decoration: BoxDecoration(
                     color: isSelected 
                         ? AppColors.primary.withValues(alpha: 0.1)
-                        : AppColors.white,
+                        : Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.lightGrey,
+                      color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
                       width: isSelected ? 2 : 1,
                     ),
                   ),
@@ -691,7 +691,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                        color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -710,20 +710,20 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Create a picture password',
             style: TextStyle(
               fontSize: AppConstants.largeFontSize,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Select 3 pictures your child will remember',
             style: TextStyle(
               fontSize: AppConstants.fontSize,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 32),
@@ -733,9 +733,9 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
             height: 80,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.lightGrey),
+              border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -745,18 +745,18 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                   height: 50,
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.lightGrey,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.grey),
+                    border: Border.all(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   child: _picturePassword.length > index
                       ? Center(
-                          child: Text(
-                            _pictureOptions.firstWhere(
-                              (p) => p['id'] == _picturePassword[index]
-                            )['icon'],
-                            style: const TextStyle(fontSize: 24),
-                          ),
+                        child: Text(
+                          _pictureOptions.firstWhere(
+                            (p) => p['id'] == _picturePassword[index]
+                          )['icon'],
+                          style: const TextStyle(fontSize: 24),
+                        ),
                         )
                       : null,
                 );
@@ -787,10 +787,10 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                   decoration: BoxDecoration(
                     color: isSelected 
                         ? AppColors.primary.withValues(alpha: 0.2)
-                        : AppColors.white,
+                        : Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.lightGrey,
+                      color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
                       width: 2,
                     ),
                   ),
@@ -804,9 +804,9 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
                       const SizedBox(height: 4),
                       Text(
                         picture['name'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -820,3 +820,4 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
     );
   }
 }
+

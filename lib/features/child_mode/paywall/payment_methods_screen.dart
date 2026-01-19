@@ -60,13 +60,13 @@ class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(l10n.paymentMethodsTitle),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
       ),
       body: SafeArea(
         child: Padding(
@@ -78,9 +78,9 @@ class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
                     ? Center(
                         child: Text(
                           l10n.paymentMethodsEmpty,
-                          style: const TextStyle(
+                          style: textTheme.bodyMedium?.copyWith(
                             fontSize: AppConstants.fontSize,
-                            color: AppColors.textSecondary,
+                            color: colors.onSurfaceVariant,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -93,11 +93,11 @@ class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
                           return Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppColors.white,
+                              color: colors.surface,
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.black.withValues(alpha: 0.05),
+                                  color: colors.shadow.withValues(alpha: 0.05),
                                   blurRadius: 10,
                                   offset: const Offset(0, 5),
                                 ),
@@ -111,9 +111,8 @@ class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
                                 Expanded(
                                   child: Text(
                                     method,
-                                    style: const TextStyle(
+                                    style: textTheme.bodyMedium?.copyWith(
                                       fontSize: AppConstants.fontSize,
-                                      color: AppColors.textPrimary,
                                     ),
                                   ),
                                 ),
@@ -144,8 +143,8 @@ class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
                   icon: const Icon(Icons.add),
                   label: Text(l10n.addPaymentMethod),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -159,8 +158,8 @@ class _PaymentMethodsScreenState extends ConsumerState<PaymentMethodsScreen> {
                 child: OutlinedButton(
                   onPressed: () => _openPaymentPortal(l10n),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary),
+                    foregroundColor: colors.primary,
+                    side: BorderSide(color: colors.primary),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

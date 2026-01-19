@@ -93,6 +93,8 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
   @override
   Widget build(BuildContext context) {
     final pinState = ref.watch(parentPinProvider);
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -100,7 +102,7 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.onSurface),
           onPressed: () => context.go('/welcome'),
         ),
       ),
@@ -118,21 +120,20 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
               ),
               const SizedBox(height: 32),
               
-              const Text(
+              Text(
                 'Parent Access',
-                style: TextStyle(
+                style: textTheme.titleLarge?.copyWith(
                   fontSize: AppConstants.largeFontSize * 1.2,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               
-              const Text(
+              Text(
                 'Enter your PIN to continue',
-                style: TextStyle(
+                style: textTheme.bodyMedium?.copyWith(
                   fontSize: AppConstants.fontSize,
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 48),
@@ -157,8 +158,8 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: _enteredPin.length > index
-                            ? colors.primary
-                            : colors.surfaceVariant,
+                          ? colors.primary
+                          : colors.surfaceContainerHighest,
                       ),
                     );
                   }),
@@ -235,12 +236,12 @@ class _ParentPinScreenState extends ConsumerState<ParentPinScreen>
                     ),
                   );
                 },
-                child: const Text(
+                child: Text(
                   'Forgot PIN?',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
               ),
             ],
@@ -264,16 +265,18 @@ class _NumberButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.1),
+              color: colors.shadow.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -284,14 +287,13 @@ class _NumberButton extends StatelessWidget {
               ? Icon(
                   icon,
                   size: 32,
-                  color: AppColors.textPrimary,
+                  color: colors.onSurface,
                 )
               : Text(
                   number!,
-                  style: const TextStyle(
+                  style: textTheme.titleLarge?.copyWith(
                     fontSize: AppConstants.largeFontSize,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                 ),
         ),

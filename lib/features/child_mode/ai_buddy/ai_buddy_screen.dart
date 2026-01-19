@@ -344,7 +344,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: TextField(
@@ -393,7 +393,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).colorScheme.surfaceVariant),
+          border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

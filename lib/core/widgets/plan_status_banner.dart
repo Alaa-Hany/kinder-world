@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kinder_world/core/localization/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/providers/plan_provider.dart';
 import 'package:kinder_world/core/subscription/plan_info.dart';
-import 'package:kinder_world/core/theme/app_colors.dart';
 
 class PlanStatusBanner extends ConsumerWidget {
   final EdgeInsetsGeometry margin;
@@ -54,9 +52,9 @@ class PlanStatusBanner extends ConsumerWidget {
                       color: colors.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.stars,
-                      color: AppColors.primary,
+                      color: colors.primary,
                       size: 20,
                     ),
                   ),

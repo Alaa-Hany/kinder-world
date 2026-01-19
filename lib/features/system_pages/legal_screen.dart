@@ -14,6 +14,8 @@ class LegalScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final title = _getTitle(type);
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -22,15 +24,14 @@ class LegalScreen extends ConsumerWidget {
         elevation: 0,
         title: Text(
           title,
-          style: const TextStyle(
+          style: textTheme.titleMedium?.copyWith(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppColors.textPrimary),
+            icon: Icon(Icons.refresh, color: colors.onSurface),
             onPressed: () {},
           ),
         ],
@@ -59,9 +60,9 @@ class LegalScreen extends ConsumerWidget {
                 Text(
                   _getPlaceholder(type),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: 16,
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                     height: 1.5,
                   ),
                 ),

@@ -10,6 +10,8 @@ class ParentPrivacySettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final privacyState = ref.watch(privacyProvider);
     final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -87,24 +89,24 @@ class ParentPrivacySettingsScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    border: Border.all(color: Colors.blue[200]!),
+                    color: colors.primaryContainer,
+                    border: Border.all(color: colors.primary),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Privacy Information',
-                        style: TextStyle(
+                        style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         'Your privacy is important to us. These settings control what data we collect and how it is used to improve your experience.',
-                        style: TextStyle(fontSize: 13),
+                        style: textTheme.bodySmall?.copyWith(fontSize: 13),
                       ),
                     ],
                   ),
