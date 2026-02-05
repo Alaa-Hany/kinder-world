@@ -7,6 +7,7 @@ import 'package:kinder_world/core/models/activity.dart';
 import 'package:kinder_world/core/providers/activity_filter_controller.dart';
 import 'package:kinder_world/core/providers/content_controller.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
+import 'package:kinder_world/core/widgets/child_header.dart';
 
 class LearnScreen extends ConsumerStatefulWidget {
   const LearnScreen({super.key});
@@ -19,10 +20,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _slideAnimation;
-
-  // Mock User Data
-  final String _userName = 'Ava';
-  final String _userLevel = 'Level 1';
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -80,6 +78,31 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
     },
   ];
 
+  final List<Map<String, String>> _searchItems = const [
+    {'title': 'Behavioral', 'route': 'behavioral'},
+    {'title': 'Educational', 'route': 'educational'},
+    {'title': 'Skillful', 'route': 'skillful'},
+    {'title': 'Entertaining', 'route': 'entertaining'},
+    {'title': 'Values', 'route': 'behavioral'},
+    {'title': 'Methods', 'route': 'behavioral'},
+    {'title': 'Activities', 'route': 'behavioral'},
+    {'title': 'Value Details', 'route': 'behavioral'},
+    {'title': 'Method Content', 'route': 'behavioral'},
+    {'title': 'Stories', 'route': 'entertaining'},
+    {'title': 'Games', 'route': 'entertaining'},
+    {'title': 'Music', 'route': 'entertaining'},
+    {'title': 'Videos', 'route': 'entertaining'},
+    {'title': 'Subjects', 'route': 'educational'},
+    {'title': 'Lessons', 'route': 'educational'},
+    {'title': 'Lesson Detail', 'route': 'educational'},
+    {'title': 'Skills', 'route': 'skillful'},
+    {'title': 'Skill Details', 'route': 'skillful'},
+    {'title': 'Skill Video', 'route': 'skillful'},
+    {'title': 'Behavioral Values', 'route': 'behavioral'},
+    {'title': 'Behavioral Methods', 'route': 'behavioral'},
+  ];
+
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -98,66 +121,34 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Hello Ava Header
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundImage: const AssetImage('assets/images/avatar_ava.png'),
-                      backgroundColor: Colors.grey[200],
-                      child: const Icon(Icons.person, color: Colors.white),
+                TextField(
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                  onSubmitted: (value) {
+                    final query = value.trim().toLowerCase();
+                    if (query.isEmpty) return;
+                    final match = _searchItems.firstWhere(
+                      (c) => (c['title'] as String).toLowerCase() == query,
+                      orElse: () => {},
+                    );
+                    if (match.isNotEmpty) {
+                      _openCategory(context, match['route'] as String);
+                    }
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search pages...',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Hello, $_userName',
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _userLevel,
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                SizedBox(
-                                  width: 60,
-                                  height: 6,
-                                  child: LinearProgressIndicator(
-                                    value: 0.3,
-                                    backgroundColor: AppColors.primary.withOpacity(0.2),
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                const ChildHeader(
+                  padding: EdgeInsets.only(bottom: 24),
+                ),
 
                 // 2. Chat Bubble Message
                 Align(
@@ -179,7 +170,7 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                         const SizedBox(width: 12),
                         Flexible(
                           child: Text(
-                            "Let's try a new skill today!",
+                            "Let's explore and learn something fun!",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -193,27 +184,8 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
                 ),
                 const SizedBox(height: 30),
 
-                // 3. Main Categories Grid
                 Expanded(
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.05,
-                    ),
-                    itemCount: _categories.length,
-                    itemBuilder: (context, index) {
-                      final category = _categories[index];
-                      return _buildCategoryCard(
-                        context,
-                        category['title'],
-                        category['image'],
-                        category['color'],
-                        category['route'],
-                      );
-                    },
-                  ),
+                  child: _buildSearchResults(context),
                 ),
               ],
             ),
@@ -221,6 +193,101 @@ class _LearnScreenState extends ConsumerState<LearnScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildSearchResults(BuildContext context) {
+    final query = _searchQuery.trim().toLowerCase();
+    final results = query.isEmpty
+        ? _categories
+        : _searchItems
+            .where((c) => (c['title'] as String).toLowerCase().contains(query))
+            .toList();
+
+    if (results.isEmpty) {
+      return Center(
+        child: Text(
+          'No pages found',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1.05,
+      ),
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final category = results[index];
+        if (category.containsKey('image')) {
+          return _buildCategoryCard(
+            context,
+            category['title'],
+            category['image'],
+            category['color'],
+            category['route'],
+          );
+        }
+        return InkWell(
+          onTap: () => _openCategory(context, category['route']),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                category['title'],
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: AppConstants.fontSize,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _openCategory(BuildContext context, String route) {
+    switch (route) {
+      case 'educational':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const EducationalScreen()),
+        );
+        break;
+      case 'behavioral':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const BehavioralScreen()),
+        );
+        break;
+      case 'skillful':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const SkillfulScreen()),
+        );
+        break;
+      case 'entertaining':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const EntertainingScreen()),
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   Widget _buildCategoryCard(
@@ -391,6 +458,7 @@ class EntertainingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const ChildHeader(compact: true),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -553,18 +621,26 @@ class EntertainmentDetailScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.9,
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return _buildContentCard(context, item['title'], item['image']);
-          },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const ChildHeader(compact: true),
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.9,
+                ),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return _buildContentCard(context, item['title'], item['image']);
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -661,6 +737,7 @@ class BehavioralScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const ChildHeader(compact: true),
             Text(
               "Let's practice kindness today!",
               style: TextStyle(
@@ -785,18 +862,26 @@ class ValueDetailsScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.85,
-          ),
-          itemCount: _methods.length,
-          itemBuilder: (context, index) {
-            final method = _methods[index];
-            return _buildMethodCard(context, method['title'], method['image']);
-          },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const ChildHeader(compact: true),
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: _methods.length,
+                itemBuilder: (context, index) {
+                  final method = _methods[index];
+                  return _buildMethodCard(context, method['title'], method['image']);
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -862,22 +947,18 @@ class ValueDetailsScreen extends StatelessWidget {
 }
 
 // Level 3: Method Content Screen
-class MethodContentScreen extends StatelessWidget {
+class MethodContentScreen extends ConsumerWidget {
   final String methodTitle;
-
-  final String userName = 'Alex';
 
   const MethodContentScreen({super.key, required this.methodTitle});
 
   final List<Map<String, dynamic>> _activities = const [
-    {'title': 'Activity 1', 'image': ''},
-    {'title': 'Activity 2', 'image': ''},
-    {'title': 'Activity 3', 'image': ''},
-    {'title': 'Activity 4', 'image': ''},
+    {'title': 'Kindness Challenge', 'image': ''},
+    {'title': 'Respect & Sharing', 'image': ''},
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Color(0xFFE8F5E9),
       body: SafeArea(
@@ -902,41 +983,10 @@ class MethodContentScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundImage: const AssetImage('assets/images/avatar_ava.png'),
-                      child: const Icon(Icons.person),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Hello, $userName',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.behavioral.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Level 1',
-                              style: TextStyle(
-                                color: AppColors.behavioral,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
+                    const Expanded(
+                      child: ChildHeader(
+                        compact: true,
+                        padding: EdgeInsets.zero,
                       ),
                     ),
                   ],
@@ -978,20 +1028,16 @@ class MethodContentScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.0,
+                Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: _activities.map((activity) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: _buildActivityCard(context, activity['title']),
+                      );
+                    }).toList(),
                   ),
-                  itemCount: _activities.length,
-                  itemBuilder: (context, index) {
-                    final act = _activities[index];
-                    return _buildActivityCard(context, act['title']);
-                  },
                 ),
               ],
             ),
@@ -1006,6 +1052,7 @@ class MethodContentScreen extends StatelessWidget {
       onTap: () {},
       borderRadius: BorderRadius.circular(20),
       child: Container(
+        height: 140,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -1020,33 +1067,30 @@ class MethodContentScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.behavioral.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.extension,
-                      color: AppColors.behavioral,
-                      size: 40,
-                    ),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.behavioral.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.extension,
+                    color: AppColors.behavioral,
+                    size: 32,
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -1087,6 +1131,7 @@ class SkillfulScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const ChildHeader(compact: true),
             Text(
               'Let\'s create something fun!',
               style: TextStyle(
@@ -1251,6 +1296,13 @@ class _SkillDetailScreenState extends State<SkillDetailScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child: ChildHeader(
+                compact: true,
+                padding: EdgeInsets.only(bottom: 12),
               ),
             ),
             Padding(
@@ -1473,6 +1525,13 @@ class SkillVideoScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child: ChildHeader(
+                compact: true,
+                padding: EdgeInsets.only(bottom: 12),
+              ),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
@@ -1633,6 +1692,7 @@ class EducationalScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const ChildHeader(compact: true),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -1790,6 +1850,13 @@ class _EducationalSubjectScreenState extends State<EducationalSubjectScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child: ChildHeader(
+                compact: true,
+                padding: EdgeInsets.only(bottom: 12),
               ),
             ),
             Padding(
@@ -2075,6 +2142,13 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                   ),
                   const SizedBox(width: 40),
                 ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child: ChildHeader(
+                compact: true,
+                padding: EdgeInsets.only(bottom: 12),
               ),
             ),
             Expanded(

@@ -4,9 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
 import 'package:kinder_world/core/localization/app_localizations.dart';
 import 'package:kinder_world/core/providers/auth_controller.dart';
+import 'package:kinder_world/core/providers/avatar_picker_provider.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
+import 'package:kinder_world/core/providers/theme_provider.dart';
+import 'package:kinder_world/core/theme/theme_palette.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/widgets/avatar_view.dart';
+import 'package:kinder_world/core/widgets/child_header.dart';
+import 'package:kinder_world/core/widgets/picture_password_row.dart';
+import 'package:kinder_world/app.dart';
 
 // ==========================================
 // 1. Child Profile Screen (Main Screen)
@@ -22,6 +28,7 @@ class ChildProfileScreen extends ConsumerWidget {
     final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
     final child = ref.watch(currentChildProvider);
+    final childName = (child?.name.isNotEmpty ?? false) ? child!.name : child?.id;
 
     if (child == null) {
       return Scaffold(
@@ -70,28 +77,40 @@ class ChildProfileScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: 20),
               Center(
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: colors.primary,
-                      width: 4,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const SettingsAvatarSelectionScreen(),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(60),
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: colors.primary,
+                        width: 4,
+                      ),
+                      color: colors.primary.withValues(alpha: 0.2),
                     ),
-                    color: colors.primary.withValues(alpha: 0.2),
-                  ),
-                  child: AvatarView(
-                    avatarId: child.avatar,
-                    avatarPath: child.avatarPath,
-                    radius: 56,
-                    backgroundColor: Colors.transparent,
+                    child: AvatarView(
+                      avatarId: child.avatar,
+                      avatarPath: child.avatarPath,
+                      radius: 56,
+                      backgroundColor: Colors.transparent,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
               Text(
-                child.name,
+                'Hello, ${childName ?? ''}',
                 style: textTheme.headlineSmall?.copyWith(
                   fontSize: AppConstants.largeFontSize * 1.2,
                   fontWeight: FontWeight.bold,
@@ -339,17 +358,17 @@ class ChildProfileScreen extends ConsumerWidget {
 // 2. Child Settings Screen
 // ==========================================
 
-class ChildSettingsScreen extends StatefulWidget {
+class ChildSettingsScreen extends ConsumerStatefulWidget {
   const ChildSettingsScreen({super.key});
 
   @override
-  State<ChildSettingsScreen> createState() => _ChildSettingsScreenState();
+  ConsumerState<ChildSettingsScreen> createState() => _ChildSettingsScreenState();
 }
 
-class _ChildSettingsScreenState extends State<ChildSettingsScreen> {
+class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
   bool _soundEnabled = true;
   bool _musicEnabled = true;
-  bool _notificationsEnabled = true;
+  String _settingsQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -357,6 +376,7 @@ class _ChildSettingsScreenState extends State<ChildSettingsScreen> {
     final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
     final l10n = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
 
     return Scaffold(
       backgroundColor: colors.surfaceContainerLow,
@@ -369,73 +389,163 @@ class _ChildSettingsScreenState extends State<ChildSettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // 1. Account Section
-          _buildSectionHeader(context, "Account"),
-          const SizedBox(height: 10),
-          _buildSettingsCard(
-            context,
-            children: [
-              _buildListTile(context, title: "Edit Profile", icon: Icons.person_outline, onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsEditProfileScreen()));
-              }),
-              _buildDivider(),
-              _buildListTile(context, title: "Change Avatar", icon: Icons.face_retouching_natural_outlined, onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsAvatarSelectionScreen()));
-              }),
-            ],
-          ),
-          const SizedBox(height: 30),
-
-          // 2. Preferences Section
-          _buildSectionHeader(context, "Preferences"),
-          const SizedBox(height: 10),
-          _buildSettingsCard(
-            context,
-            children: [
-              _buildSwitchTile(context, title: "Sound Effects", icon: Icons.volume_up_outlined, value: _soundEnabled, onChanged: (val) => setState(() => _soundEnabled = val)),
-              _buildDivider(),
-              _buildSwitchTile(context, title: "Background Music", icon: Icons.music_note_outlined, value: _musicEnabled, onChanged: (val) => setState(() => _musicEnabled = val)),
-              _buildDivider(),
-              _buildSwitchTile(context, title: "Notifications", icon: Icons.notifications_outlined, value: _notificationsEnabled, onChanged: (val) => setState(() => _notificationsEnabled = val)),
-            ],
-          ),
-          const SizedBox(height: 30),
-
-          // 3. App Section
-          _buildSectionHeader(context, "App Settings"),
-          const SizedBox(height: 10),
-          _buildSettingsCard(
-            context,
-            children: [
-              _buildListTile(context, title: "Language", subtitle: "English (US)", icon: Icons.language_outlined, onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsLanguageScreen()));
-              }),
-              _buildDivider(),
-              _buildListTile(context, title: "About Us", icon: Icons.info_outline, onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsAboutUsScreen()));
-              }),
-              _buildDivider(),
-              _buildListTile(context, title: "Privacy Policy", icon: Icons.lock_outline, onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPrivacyPolicyScreen()));
-              }),
-            ],
-          ),
-          const SizedBox(height: 30),
-
-          // 4. Danger Zone
-          _buildSettingsCard(
-            context,
-            color: Colors.red[50],
-            children: [
-              _buildListTile(context, title: "Reset Progress", icon: Icons.refresh, iconColor: Colors.red, titleColor: Colors.red, onTap: () {
-                _showResetDialog(context);
-              }),
-            ],
+          const ChildHeader(compact: true),
+          TextField(
+            onChanged: (value) => setState(() => _settingsQuery = value),
+            onSubmitted: (value) => _openSettingByQuery(value, locale),
+            decoration: InputDecoration(
+              hintText: 'Search settings...',
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: colors.surfaceContainerHighest,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+            ),
           ),
           const SizedBox(height: 20),
+          ..._buildFilteredSettings(context, locale),
         ],
       ),
     );
+  }
+
+  List<Widget> _buildFilteredSettings(BuildContext context, Locale locale) {
+    final query = _settingsQuery.trim().toLowerCase();
+    bool match(String text) =>
+        query.isEmpty || text.toLowerCase().contains(query);
+
+    final sections = <Widget>[];
+
+    if (match('account') || match('edit profile') || match('change avatar')) {
+      sections.add(_buildSectionHeader(context, "Account"));
+      sections.add(const SizedBox(height: 10));
+      sections.add(_buildSettingsCard(
+        context,
+        children: [
+          _buildListTile(context, title: "Edit Profile", icon: Icons.person_outline, onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsEditProfileScreen()));
+          }),
+          _buildDivider(),
+          _buildListTile(context, title: "Change Avatar", icon: Icons.face_retouching_natural_outlined, onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsAvatarSelectionScreen()));
+          }),
+        ],
+      ));
+      sections.add(const SizedBox(height: 30));
+    }
+
+    if (match('preferences') || match('sound') || match('music')) {
+      sections.add(_buildSectionHeader(context, "Preferences"));
+      sections.add(const SizedBox(height: 10));
+      sections.add(_buildSettingsCard(
+        context,
+        children: [
+          _buildSwitchTile(context, title: "Sound Effects", icon: Icons.volume_up_outlined, value: _soundEnabled, onChanged: (val) => setState(() => _soundEnabled = val)),
+          _buildDivider(),
+          _buildSwitchTile(context, title: "Background Music", icon: Icons.music_note_outlined, value: _musicEnabled, onChanged: (val) => setState(() => _musicEnabled = val)),
+        ],
+      ));
+      sections.add(const SizedBox(height: 30));
+    }
+
+    if (match('app') || match('language') || match('themes') || match('about') || match('privacy')) {
+      sections.add(_buildSectionHeader(context, "App Settings"));
+      sections.add(const SizedBox(height: 10));
+      sections.add(_buildSettingsCard(
+        context,
+        children: [
+          _buildListTile(context, title: "Language", subtitle: _languageLabel(locale), icon: Icons.language_outlined, onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsLanguageScreen()));
+          }),
+          _buildDivider(),
+          _buildListTile(context, title: "Themes", subtitle: "Light & Calm", icon: Icons.color_lens_outlined, onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ChildThemeScreen()));
+          }),
+          _buildDivider(),
+          _buildListTile(context, title: "About Us", icon: Icons.info_outline, onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsAboutUsScreen()));
+          }),
+          _buildDivider(),
+          _buildListTile(context, title: "Privacy Policy", icon: Icons.lock_outline, onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPrivacyPolicyScreen()));
+          }),
+        ],
+      ));
+      sections.add(const SizedBox(height: 30));
+    }
+
+    if (match('danger') || match('reset')) {
+      sections.add(_buildSectionHeader(context, "Danger Zone"));
+      sections.add(const SizedBox(height: 10));
+      sections.add(_buildSettingsCard(
+        context,
+        color: Colors.red.withValues(alpha: 0.05),
+        children: [
+          _buildListTile(context, title: "Reset Progress", icon: Icons.refresh, iconColor: Colors.red, titleColor: Colors.red, onTap: () {
+            _showResetDialog(context);
+          }),
+        ],
+      ));
+    }
+
+    if (sections.isEmpty) {
+      return [
+        Center(
+          child: Text(
+            'No settings found',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ),
+      ];
+    }
+
+    return sections;
+  }
+
+  void _openSettingByQuery(String value, Locale locale) {
+    final query = value.trim().toLowerCase();
+    if (query.isEmpty) return;
+
+    if (query == 'edit profile' || query == 'profile') {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const SettingsEditProfileScreen()));
+      return;
+    }
+    if (query == 'change avatar' || query == 'avatar') {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const SettingsAvatarSelectionScreen()));
+      return;
+    }
+    if (query == 'language' ||
+        query == _languageLabel(locale).toLowerCase() ||
+        query == 'اللغة') {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const SettingsLanguageScreen()));
+      return;
+    }
+    if (query == 'themes' || query == 'theme' || query == 'الثيمات' || query == 'المظهر') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ChildThemeScreen()),
+      );
+      return;
+    }
+    if (query == 'about' || query == 'about us' || query == 'حول' || query == 'من نحن') {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const SettingsAboutUsScreen()));
+      return;
+    }
+    if (query == 'privacy' || query == 'privacy policy' || query == 'الخصوصية' || query == 'سياسة الخصوصية') {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const SettingsPrivacyPolicyScreen()));
+      return;
+    }
+    if (query == 'reset' || query == 'reset progress' || query == 'إعادة الضبط' || query == 'اعادة الضبط') {
+      _showResetDialog(context);
+      return;
+    }
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {
@@ -473,6 +583,16 @@ class _ChildSettingsScreenState extends State<ChildSettingsScreen> {
       trailing: onTap != null ? Icon(Icons.arrow_forward_ios, size: 16, color: colors.onSurfaceVariant) : null,
       onTap: onTap,
     );
+  }
+
+  String _languageLabel(Locale locale) {
+    switch (locale.languageCode) {
+      case 'ar':
+        return 'العربية؟';
+      case 'en':
+      default:
+        return 'English (US)';
+    }
   }
 
   Widget _buildSwitchTile(BuildContext context, {required String title, required IconData icon, required bool value, required ValueChanged<bool> onChanged}) {
@@ -522,18 +642,19 @@ class _ChildSettingsScreenState extends State<ChildSettingsScreen> {
 // 3. NEW: Settings Language Selection Screen (Renamed to avoid conflict)
 // ==========================================
 
-class SettingsLanguageScreen extends StatefulWidget {
+class SettingsLanguageScreen extends ConsumerWidget {
   const SettingsLanguageScreen({super.key});
 
   @override
-  State<SettingsLanguageScreen> createState() => _SettingsLanguageScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+    final colors = Theme.of(context).colorScheme;
 
-class _SettingsLanguageScreenState extends State<SettingsLanguageScreen> {
-  String _selectedLang = 'English (US)'; // Mock current language
+    final languages = const [
+      {'code': 'en', 'name': 'English (US)'},
+      {'code': 'ar', 'name': '???????'},
+    ];
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Select Language", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -541,49 +662,56 @@ class _SettingsLanguageScreenState extends State<SettingsLanguageScreen> {
       ),
       body: ListView(
         children: [
-          _buildLanguageTile(context, 'English (US)', 'assets/icons/flag_us.png', 'English (US)'),
-          _buildLanguageTile(context, 'العربية', 'assets/icons/flag_eg.png', 'العربية'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageTile(BuildContext context, String title, String flagPath, String value) {
-    final isSelected = _selectedLang == value;
-    final colors = Theme.of(context).colorScheme;
-
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedLang = value;
-        });
-        // Mock saving logic
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Language changed to $title")));
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        decoration: BoxDecoration(
-          color: isSelected ? colors.primary.withValues(alpha: 0.1) : Colors.transparent,
-        ),
-        child: Row(
-          children: [
-            // Placeholder for Flag Image
-            Container(
-              width: 40,
-              height: 30,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(5),
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: ChildHeader(compact: true),
+          ),
+          ...languages.map((language) {
+            final isSelected = locale.languageCode == language['code'];
+            return InkWell(
+              onTap: () {
+                ref.read(localeProvider.notifier).state =
+                    Locale(language['code'] as String);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Language changed to ${language['name']}")),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? colors.primary.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: const Icon(Icons.flag, size: 20),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Text(
+                        language['name'] as String,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    if (isSelected)
+                      Icon(Icons.check_circle, color: colors.primary),
+                  ],
+                ),
               ),
-              child: Icon(Icons.flag, size: 20),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Text(title, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
-            ),
-            if (isSelected) Icon(Icons.check_circle, color: colors.primary),
-          ],
-        ),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -593,66 +721,106 @@ class _SettingsLanguageScreenState extends State<SettingsLanguageScreen> {
 // 4. NEW: Settings Avatar Selection Screen (Renamed)
 // ==========================================
 
-class SettingsAvatarSelectionScreen extends StatefulWidget {
+class SettingsAvatarSelectionScreen extends ConsumerStatefulWidget {
   const SettingsAvatarSelectionScreen({super.key});
 
   @override
-  State<SettingsAvatarSelectionScreen> createState() => _SettingsAvatarSelectionScreenState();
+  ConsumerState<SettingsAvatarSelectionScreen> createState() =>
+      _SettingsAvatarSelectionScreenState();
 }
 
-class _SettingsAvatarSelectionScreenState extends State<SettingsAvatarSelectionScreen> {
-  int _selectedAvatarIndex = 0;
+class _SettingsAvatarSelectionScreenState
+    extends ConsumerState<SettingsAvatarSelectionScreen> {
+  String? _selectedAvatarPath;
 
-  final List<String> _mockAvatars = List.generate(8, (index) => 'assets/images/avatar_${index + 1}.png');
+  @override
+  void initState() {
+    super.initState();
+    final child = ref.read(currentChildProvider);
+    _selectedAvatarPath = child?.avatarPath.isNotEmpty == true
+        ? child!.avatarPath
+        : (child?.avatar.isNotEmpty == true ? child!.avatar : null);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final avatars = ref.watch(availableAvatarsProvider);
+    final child = ref.watch(currentChildProvider);
+    final selectedPath = _selectedAvatarPath ??
+        (avatars.isNotEmpty ? avatars.first : AppConstants.defaultChildAvatar);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Choose Avatar", style: TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Avatar Saved")));
-            },
+            onPressed: child == null
+                ? null
+                : () async {
+                    final updated = child.copyWith(
+                      avatar: selectedPath,
+                      avatarPath: selectedPath,
+                    );
+                    await ref
+                        .read(childSessionControllerProvider.notifier)
+                        .updateChildProfile(updated);
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Avatar Saved")),
+                    );
+                  },
             child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(20),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 20,
-          mainAxisSpacing: 20,
-          childAspectRatio: 1.0,
-        ),
-        itemCount: _mockAvatars.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedAvatarIndex = index;
-              });
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _selectedAvatarIndex == index ? Theme.of(context).colorScheme.primary : Colors.transparent,
-                  width: 4,
-                ),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: ChildHeader(compact: true),
+          ),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(20),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
+                childAspectRatio: 1.0,
               ),
-              child: CircleAvatar(
-                backgroundColor: Colors.grey[200],
-                backgroundImage: AssetImage(_mockAvatars[index]),
-                onBackgroundImageError: (exception, stackTrace) {},
-              ),
+              itemCount: avatars.length,
+              itemBuilder: (context, index) {
+                final avatarPath = avatars[index];
+                final isSelected = selectedPath == avatarPath;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedAvatarPath = avatarPath;
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.transparent,
+                        width: 4,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: AssetImage(avatarPath),
+                      onBackgroundImageError: (exception, stackTrace) {},
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -662,21 +830,69 @@ class _SettingsAvatarSelectionScreenState extends State<SettingsAvatarSelectionS
 // 5. NEW: Settings Edit Profile Screen (Renamed)
 // ==========================================
 
-class SettingsEditProfileScreen extends StatefulWidget {
+class SettingsEditProfileScreen extends ConsumerStatefulWidget {
   const SettingsEditProfileScreen({super.key});
 
   @override
-  State<SettingsEditProfileScreen> createState() => _SettingsEditProfileScreenState();
+  ConsumerState<SettingsEditProfileScreen> createState() =>
+      _SettingsEditProfileScreenState();
 }
 
-class _SettingsEditProfileScreenState extends State<SettingsEditProfileScreen> {
+class _SettingsEditProfileScreenState
+    extends ConsumerState<SettingsEditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController(text: "Ava"); // Mock initial value
+  late final TextEditingController _nameController;
+  final List<String> _selectedPictures = [];
+
+  @override
+  void initState() {
+    super.initState();
+    final child = ref.read(currentChildProvider);
+    _nameController = TextEditingController(text: child?.name ?? '');
+    if (child != null && child.picturePassword.isNotEmpty) {
+      _selectedPictures.addAll(child.picturePassword.take(3));
+    }
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  void _togglePicture(String pictureId) {
+    setState(() {
+      if (_selectedPictures.contains(pictureId)) {
+        _selectedPictures.remove(pictureId);
+      } else if (_selectedPictures.length < 3) {
+        _selectedPictures.add(pictureId);
+      }
+    });
+  }
+
+  Future<void> _saveProfile(BuildContext context) async {
+    final child = ref.read(currentChildProvider);
+    if (child == null) return;
+
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedPictures.length != 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select 3 pictures')),
+      );
+      return;
+    }
+
+    final updated = child.copyWith(
+      name: _nameController.text.trim(),
+      picturePassword: List<String>.from(_selectedPictures),
+    );
+
+    await ref.read(childSessionControllerProvider.notifier).updateChildProfile(updated);
+
+    if (!mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Profile Updated')));
   }
 
   @override
@@ -689,14 +905,31 @@ class _SettingsEditProfileScreenState extends State<SettingsEditProfileScreen> {
         title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const ChildHeader(compact: true),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  AvatarView(
+                    avatarId: ref.watch(currentChildProvider)?.avatar,
+                    avatarPath: ref.watch(currentChildProvider)?.avatarPath,
+                    radius: 24,
+                    backgroundColor: Colors.transparent,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text("Change your avatar from Profile screen",
+                        style: theme.textTheme.bodySmall),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Text("Name", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               TextFormField(
@@ -708,21 +941,64 @@ class _SettingsEditProfileScreenState extends State<SettingsEditProfileScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Please enter a name';
+                  if (value == null || value.trim().isEmpty) return 'Please enter a name';
                   return null;
                 },
               ),
-              const Spacer(),
+              const SizedBox(height: 24),
+              Text("Picture Password", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text("Choose exactly 3 pictures", style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
+              const SizedBox(height: 8),
+              PicturePasswordRow(
+                picturePassword: _selectedPictures,
+                size: 24,
+                showPlaceholders: true,
+              ),
+              const SizedBox(height: 12),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: picturePasswordOptions.length,
+                itemBuilder: (context, index) {
+                  final option = picturePasswordOptions[index];
+                  final isSelected = _selectedPictures.contains(option.id);
+                  return InkWell(
+                    onTap: () => _togglePicture(option.id),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? option.color.withValues(alpha: 0.2)
+                            : colors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? option.color
+                              : colors.surfaceContainerHighest,
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        option.icon,
+                        size: 28,
+                        color: option.color,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profile Updated")));
-                    }
-                  },
+                  onPressed: () => _saveProfile(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primary,
                     foregroundColor: colors.onPrimary,
@@ -735,6 +1011,137 @@ class _SettingsEditProfileScreenState extends State<SettingsEditProfileScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 5.5 NEW: Child Theme Screen
+// ==========================================
+
+class ChildThemeScreen extends ConsumerWidget {
+  const ChildThemeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeSettings = ref.watch(themeControllerProvider);
+    final colors = Theme.of(context).colorScheme;
+
+    final palettes = const [
+      ThemePalettes.blue,
+      ThemePalettes.green,
+      ThemePalettes.sunset,
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Themes', style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const ChildHeader(compact: true),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: colors.outlineVariant),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.shadow.withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.dark_mode),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text('Dark / Light'),
+                ),
+                Switch(
+                  value: themeSettings.mode == ThemeMode.dark,
+                  onChanged: (value) {
+                    ref.read(themeControllerProvider.notifier).setMode(
+                          value ? ThemeMode.dark : ThemeMode.light,
+                        );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Choose a calm color',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 12),
+          ...palettes.map((palette) {
+            final isSelected = themeSettings.paletteId == palette.id;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: InkWell(
+                onTap: () => ref
+                    .read(themeControllerProvider.notifier)
+                    .setPalette(palette.id),
+                borderRadius: BorderRadius.circular(16),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: colors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? colors.primary : colors.outlineVariant,
+                      width: isSelected ? 2 : 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.shadow.withValues(alpha: 0.12),
+                        blurRadius: 22,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: palette.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          palette.name,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                      if (isSelected)
+                        Icon(Icons.check_circle, color: colors.primary),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -759,6 +1166,7 @@ class SettingsAboutUsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
+            const ChildHeader(compact: true),
             Center(child: Icon(Icons.child_care, size: 80, color: theme.colorScheme.primary)),
             const SizedBox(height: 20),
             Text("Kinder World App", style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
@@ -815,6 +1223,7 @@ class SettingsPrivacyPolicyScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const ChildHeader(compact: true),
             Text("Last Updated: October 2023", style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
             const SizedBox(height: 20),
             Text("1. Introduction", style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),

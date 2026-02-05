@@ -7,6 +7,9 @@ import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/models/progress_record.dart';
 import 'package:kinder_world/core/providers/child_session_controller.dart';
 import 'package:kinder_world/core/providers/progress_controller.dart';
+import 'package:kinder_world/core/providers/theme_provider.dart';
+import 'package:kinder_world/core/widgets/child_header.dart';
+import 'package:kinder_world/features/child_mode/profile/child_profile_screen.dart';
 
 class ChildHomeScreen extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -90,8 +93,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildNavItem(0, Icons.home, 'Home'),
-                  _buildNavItem(1, Icons.school, 'Learn'),
-                  _buildNavItem(2, Icons.games, 'Play'),
+                  _buildNavItem(1, Icons.toys, 'Explore'),
+                  _buildNavItem(2, Icons.emoji_emotions, 'Fun'),
                   _buildNavItem(3, Icons.psychology, 'AI Buddy'),
                   _buildNavItem(4, Icons.person, 'Profile'),
                 ],
@@ -150,6 +153,8 @@ class ChildHomeContent extends ConsumerStatefulWidget {
 }
 
 class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
+  int _selectedAxisIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -227,52 +232,51 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           floating: true,
-          title: Row(
-            children: [
-              // Child Avatar
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Center(
-                  child: Text(
-                    childProfile.name[0],
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.surface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              
-              // Greeting
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hello, ${childProfile.name}!',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSize,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    'Ready to learn today?',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          title: const ChildHeader(
+            compact: true,
+            padding: EdgeInsets.zero,
           ),
           actions: [
+            IconButton(
+              icon: Icon(
+                Icons.color_lens_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ChildThemeScreen(),
+                  ),
+                );
+              },
+            ),
+            Consumer(
+              builder: (context, ref, _) {
+                final themeState = ref.watch(themeControllerProvider);
+                final isDark = themeState.mode == ThemeMode.dark;
+                return IconButton(
+                  icon: Icon(
+                    isDark ? Icons.light_mode : Icons.dark_mode,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  onPressed: () {
+                    ref.read(themeControllerProvider.notifier).setMode(
+                          isDark ? ThemeMode.light : ThemeMode.dark,
+                        );
+                  },
+                );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.settings, color: Theme.of(context).colorScheme.onSurface),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ChildSettingsScreen(),
+                  ),
+                );
+              },
+            ),
             // Mood indicator
             Container(
               padding: const EdgeInsets.all(8),
@@ -320,8 +324,8 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
                 _buildDailyGoal(childProfile),
                 const SizedBox(height: 24),
                 
-                // Recommended Activities
-                _buildRecommendedActivities(),
+                // My Activities History
+                _buildMyActivitiesHistory(),
                 const SizedBox(height: 24),
                 
                 // Activity of the Day
@@ -598,12 +602,61 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
     );
   }
 
-  Widget _buildRecommendedActivities() {
+  Widget _buildMyActivitiesHistory() {
+    final axes = [
+      _AxisHistory(
+        index: 0,
+        label: 'Behavior',
+        color: AppColors.behavioral,
+        icon: Icons.favorite,
+        items: const [
+          _HistoryItem(title: 'Sharing Stars', subtitle: 'Today - 8 min', xp: 30),
+          _HistoryItem(title: 'Kind Words', subtitle: 'Yesterday - 6 min', xp: 20),
+          _HistoryItem(title: 'Helping Hands', subtitle: '2 days ago - 10 min', xp: 40),
+        ],
+      ),
+      _AxisHistory(
+        index: 1,
+        label: 'Learning',
+        color: AppColors.educational,
+        icon: Icons.school,
+        items: const [
+          _HistoryItem(title: 'Numbers Adventure', subtitle: 'Today - 12 min', xp: 45),
+          _HistoryItem(title: 'Color Quest', subtitle: 'Yesterday - 7 min', xp: 25),
+          _HistoryItem(title: 'Story Time', subtitle: '2 days ago - 9 min', xp: 35),
+        ],
+      ),
+      _AxisHistory(
+        index: 2,
+        label: 'Skills',
+        color: AppColors.skillful,
+        icon: Icons.extension,
+        items: const [
+          _HistoryItem(title: 'Puzzle Builder', subtitle: 'Today - 5 min', xp: 18),
+          _HistoryItem(title: 'Shape Match', subtitle: 'Yesterday - 8 min', xp: 28),
+          _HistoryItem(title: 'Memory Game', subtitle: '2 days ago - 11 min', xp: 38),
+        ],
+      ),
+      _AxisHistory(
+        index: 3,
+        label: 'Fun',
+        color: AppColors.entertaining,
+        icon: Icons.music_note,
+        items: const [
+          _HistoryItem(title: 'Dance Party', subtitle: 'Today - 6 min', xp: 22),
+          _HistoryItem(title: 'Sing Along', subtitle: 'Yesterday - 5 min', xp: 18),
+          _HistoryItem(title: 'Magic Show', subtitle: '2 days ago - 9 min', xp: 32),
+        ],
+      ),
+    ];
+
+    final selectedAxis = axes[_selectedAxisIndex];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recommended for You',
+          'My Activities',
           style: TextStyle(
             fontSize: AppConstants.fontSize,
             fontWeight: FontWeight.bold,
@@ -611,69 +664,144 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
           ),
         ),
         const SizedBox(height: 16),
-        
-        SizedBox(
-          height: 150,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: 4,
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              final activities = [
-                {'icon': Icons.science, 'title': 'Science Lab', 'color': AppColors.skillful},
-                {'icon': Icons.book, 'title': 'Story Time', 'color': AppColors.behavioral},
-                {'icon': Icons.music_note, 'title': 'Music Fun', 'color': AppColors.entertaining},
-                {'icon': Icons.extension, 'title': 'Puzzle Game', 'color': AppColors.educational},
-              ];
-              
-              final activity = activities[index];
-              
-              return GestureDetector(
-                onTap: () {
-                  context.go('/child/play');
-                },
-                child: Container(
-                  width: 120,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: (activity['color'] as Color).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          activity['icon'] as IconData,
-                          size: 25,
-                          color: activity['color'] as Color,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        activity['title'] as String,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List.generate(axes.length, (index) {
+              final axis = axes[index];
+              final isSelected = index == _selectedAxisIndex;
+              return Padding(
+                padding: EdgeInsets.only(right: index == axes.length - 1 ? 0 : 12),
+                child: _buildAxisChip(axis, isSelected),
               );
-            },
+            }),
           ),
         ),
+        const SizedBox(height: 16),
+        Column(
+          children: List.generate(selectedAxis.items.length, (index) {
+            final item = selectedAxis.items[index];
+            return Padding(
+              padding: EdgeInsets.only(bottom: index == selectedAxis.items.length - 1 ? 0 : 12),
+              child: _buildHistoryCard(item, selectedAxis),
+            );
+          }),
+        ),
       ],
+    );
+  }
+
+  Widget _buildAxisChip(_AxisHistory axis, bool isSelected) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedAxisIndex = axis.index;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? axis.color.withValues(alpha: 0.2) : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? axis.color : Theme.of(context).colorScheme.surfaceContainerHighest,
+            width: 1.2,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: axis.color.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(axis.icon, size: 18, color: isSelected ? axis.color : Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Text(
+              axis.label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? axis.color : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryCard(_HistoryItem item, _AxisHistory axis) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: axis.color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(axis.icon, color: axis.color, size: 26),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  style: TextStyle(
+                    fontSize: AppConstants.fontSize,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.subtitle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: axis.color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '+${item.xp} XP',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: axis.color,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -784,4 +912,32 @@ class _ChildHomeContentState extends ConsumerState<ChildHomeContent> {
     ),
   );
 }
+}
+
+class _AxisHistory {
+  final int index;
+  final String label;
+  final Color color;
+  final IconData icon;
+  final List<_HistoryItem> items;
+
+  const _AxisHistory({
+    required this.index,
+    required this.label,
+    required this.color,
+    required this.icon,
+    required this.items,
+  });
+}
+
+class _HistoryItem {
+  final String title;
+  final String subtitle;
+  final int xp;
+
+  const _HistoryItem({
+    required this.title,
+    required this.subtitle,
+    required this.xp,
+  });
 }

@@ -51,60 +51,46 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
   final List<_AvatarOption> _avatarOptions = const [
     _AvatarOption(
-      id: 'avatar_1',
+      id: 'assets/images/avatars/boy1.png',
       assetPath: 'assets/images/avatars/boy1.png',
       icon: Icons.face,
       backgroundColor: Color(0xFFE3F2FD),
       iconColor: Color(0xFF1E88E5),
     ),
     _AvatarOption(
-      id: 'avatar_2',
+      id: 'assets/images/avatars/boy2.png',
       assetPath: 'assets/images/avatars/boy2.png',
       icon: Icons.sentiment_satisfied_alt,
       backgroundColor: Color(0xFFFFF3E0),
       iconColor: Color(0xFFFB8C00),
     ),
     _AvatarOption(
-      id: 'avatar_3',
+      id: 'assets/images/avatars/boy3.png',
+      assetPath: 'assets/images/avatars/boy3.png',
+      icon: Icons.face,
+      backgroundColor: Color(0xFFE1F5FE),
+      iconColor: Color(0xFF0277BD),
+    ),
+    _AvatarOption(
+      id: 'assets/images/avatars/girl1.png',
       assetPath: 'assets/images/avatars/girl1.png',
       icon: Icons.emoji_emotions,
       backgroundColor: Color(0xFFF3E5F5),
       iconColor: Color(0xFF8E24AA),
     ),
     _AvatarOption(
-      id: 'avatar_4',
+      id: 'assets/images/avatars/girl2.png',
       assetPath: 'assets/images/avatars/girl2.png',
       icon: Icons.mood,
       backgroundColor: Color(0xFFE8F5E9),
       iconColor: Color(0xFF43A047),
     ),
     _AvatarOption(
-      id: 'avatar_5',
-      assetPath: '',
-      icon: Icons.star,
-      backgroundColor: Color(0xFFFFF9C4),
-      iconColor: Color(0xFFF57F17),
-    ),
-    _AvatarOption(
-      id: 'avatar_6',
-      assetPath: '',
-      icon: Icons.pets,
-      backgroundColor: Color(0xFFFFE0B2),
-      iconColor: Color(0xFFE65100),
-    ),
-    _AvatarOption(
-      id: 'avatar_7',
-      assetPath: '',
-      icon: Icons.favorite,
+      id: 'assets/images/avatars/girl3.png',
+      assetPath: 'assets/images/avatars/girl3.png',
+      icon: Icons.face_retouching_natural,
       backgroundColor: Color(0xFFFCE4EC),
       iconColor: Color(0xFFC2185B),
-    ),
-    _AvatarOption(
-      id: 'avatar_8',
-      assetPath: '',
-      icon: Icons.rocket_launch,
-      backgroundColor: Color(0xFFE1F5FE),
-      iconColor: Color(0xFF0277BD),
     ),
   ];
 
@@ -600,6 +586,13 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
 
     if (existing != null) {
       var updatedProfile = existing;
+      if ((existing.avatarPath.isEmpty) &&
+          (existing.avatar.isNotEmpty)) {
+        updatedProfile = updatedProfile.copyWith(
+          avatarPath: existing.avatar,
+          updatedAt: DateTime.now(),
+        );
+      }
       if (selectedPassword.isNotEmpty &&
           !_samePictures(existing.picturePassword, selectedPassword)) {
         updatedProfile = updatedProfile.copyWith(
@@ -609,9 +602,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       }
       if (resolvedFallback != null &&
           !isDefaultName &&
-          (existing.name.isEmpty ||
-              existing.name == childId ||
-              existing.name == 'Child $childId')) {
+          existing.name != resolvedFallback) {
         updatedProfile = updatedProfile.copyWith(
           name: resolvedFallback,
           updatedAt: DateTime.now(),
@@ -650,6 +641,9 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       name: finalName,
       age: childProfile?.age ?? 0,
       avatar: childProfile?.avatar ?? _avatarOptions.first.id,
+      avatarPath: childProfile?.avatarPath.isNotEmpty == true
+          ? childProfile!.avatarPath
+          : (childProfile?.avatar ?? _avatarOptions.first.id),
       interests: childProfile?.interests ?? const [],
       level: childProfile?.level ?? 1,
       xp: childProfile?.xp ?? 0,
@@ -1109,6 +1103,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                                                   name: resolvedName,
                                                   age: age ?? 0,
                                                   avatar: selectedAvatar,
+                                                  avatarPath: selectedAvatar,
                                                   interests: const [],
                                                   level: 1,
                                                   xp: 0,
@@ -1134,6 +1129,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                                           name: resolvedName,
                                           age: age ?? existing?.age ?? 0,
                                           avatar: selectedAvatar,
+                                                  avatarPath: selectedAvatar,
                                           parentId: trimmedEmail,
                                           parentEmail: trimmedEmail,
                                           picturePassword: List<String>.from(

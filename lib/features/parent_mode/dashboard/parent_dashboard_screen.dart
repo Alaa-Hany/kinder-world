@@ -197,6 +197,11 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
     final level = existingLevel > 0 ? existingLevel : _parseInt(data['level'], 1);
     final avatar =
         existing?.avatar ?? data['avatar']?.toString() ?? 'avatar_1';
+    final resolvedAvatarPath = existing?.avatarPath.isNotEmpty == true
+        ? existing!.avatarPath
+        : (avatar.startsWith('assets/')
+            ? avatar
+            : AppConstants.defaultChildAvatar);
     final picturePassword = (existing?.picturePassword.isNotEmpty ?? false)
         ? existing!.picturePassword
         : _parseStringList(data['picture_password']);
@@ -210,6 +215,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen>
       name: resolvedName,
       age: age,
       avatar: avatar,
+      avatarPath: resolvedAvatarPath,
       interests: existing?.interests ?? _parseStringList(data['interests']),
       level: level,
       xp: existing?.xp ?? _parseInt(data['xp'], 0),

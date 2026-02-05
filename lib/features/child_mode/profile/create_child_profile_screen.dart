@@ -40,8 +40,10 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
   final List<String> _avatarOptions = [
     'assets/images/avatars/boy1.png',
     'assets/images/avatars/boy2.png',
+    'assets/images/avatars/boy3.png',
     'assets/images/avatars/girl1.png',
     'assets/images/avatars/girl2.png',
+    'assets/images/avatars/girl3.png',
   ];
   
   // Available interests
@@ -265,6 +267,7 @@ class _CreateChildProfileScreenState extends ConsumerState<CreateChildProfileScr
       name: resolvedName,
       age: _selectedAge,
       avatar: _selectedAvatar,
+      avatarPath: _selectedAvatar,
       interests: _selectedInterests,
       level: existing?.level ?? 1,
       xp: existing?.xp ?? 0,

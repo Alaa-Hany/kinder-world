@@ -11,9 +11,10 @@ class AvatarPickerNotifier extends StateNotifier<String> {
   static const List<String> availableAvatars = [
     'assets/images/avatars/boy1.png',
     'assets/images/avatars/boy2.png',
+    'assets/images/avatars/boy3.png',
     'assets/images/avatars/girl1.png',
     'assets/images/avatars/girl2.png',
-    'assets/images/avatars/girl1.png',
+    'assets/images/avatars/girl3.png',
   ];
 
   void selectAvatar(String avatarPath) {

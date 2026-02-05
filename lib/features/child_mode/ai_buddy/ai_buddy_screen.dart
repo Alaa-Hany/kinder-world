@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/widgets/child_header.dart';
 
 class AiBuddyScreen extends ConsumerStatefulWidget {
   const AiBuddyScreen({super.key});
@@ -222,6 +223,7 @@ class _AiBuddyScreenState extends ConsumerState<AiBuddyScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const ChildHeader(compact: true),
                   Row(
                     children: [
                       // AI Buddy Avatar

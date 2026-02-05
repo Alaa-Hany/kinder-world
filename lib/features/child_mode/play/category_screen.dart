@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kinder_world/core/theme/app_colors.dart';
 import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:kinder_world/core/widgets/child_header.dart';
 
 class CategoryScreen extends ConsumerWidget {
   final String category;
@@ -41,6 +42,7 @@ class CategoryScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const ChildHeader(compact: true),
               // Category header
               Container(
                 padding: const EdgeInsets.all(24),

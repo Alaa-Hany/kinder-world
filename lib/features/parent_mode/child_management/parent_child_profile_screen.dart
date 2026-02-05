@@ -18,8 +18,10 @@ class ParentChildProfileScreen extends StatelessWidget {
   static const Map<String, String> _avatarAssets = {
     'avatar_1': 'assets/images/avatars/boy1.png',
     'avatar_2': 'assets/images/avatars/boy2.png',
-    'avatar_3': 'assets/images/avatars/girl1.png',
-    'avatar_4': 'assets/images/avatars/girl2.png',
+    'avatar_3': 'assets/images/avatars/boy3.png',
+    'avatar_4': 'assets/images/avatars/girl1.png',
+    'avatar_5': 'assets/images/avatars/girl2.png',
+    'avatar_6': 'assets/images/avatars/girl3.png',
   };
 
   @override
