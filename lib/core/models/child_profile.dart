@@ -1,45 +1,38 @@
-// Workaround for analyzer: allow JsonKey on Freezed constructor params
-// (some analyzer versions report 'invalid_annotation_target')
-// ignore_for_file: invalid_annotation_target
-
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:kinder_world/core/constants/app_constants.dart';
+import 'package:hive/hive.dart';
 
 part 'child_profile.freezed.dart';
 part 'child_profile.g.dart';
 
 @freezed
 class ChildProfile with _$ChildProfile {
+  @HiveType(typeId: 2)
   const factory ChildProfile({
-    required String id,
-    required String name,
-    required int age,
-    required String avatar,
-    required List<String> interests,
-    required int level,
-    required int xp,
-    required int streak,
-    required List<String> favorites,
-    required String parentId,
-    @JsonKey(name: 'parent_email') String? parentEmail,
-    @JsonKey(name: 'picture_password') required List<String> picturePassword,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
-    @JsonKey(name: 'updated_at') required DateTime updatedAt,
-    @JsonKey(name: 'last_session') DateTime? lastSession,
-    @JsonKey(name: 'total_time_spent') required int totalTimeSpent,
-    @JsonKey(name: 'activities_completed') required int activitiesCompleted,
-    @JsonKey(name: 'current_mood') String? currentMood,
-    @JsonKey(name: 'learning_style') String? learningStyle,
-    @JsonKey(name: 'special_needs') List<String>? specialNeeds,
-    @JsonKey(name: 'accessibility_needs') List<String>? accessibilityNeeds,
-    @Default(AppConstants.defaultChildAvatar)
-    @JsonKey(name: 'avatar_path')
-    String avatarPath,
+    @HiveField(0) required String id,
+    @HiveField(1) required String name,
+    @HiveField(2) required int age,
+    @HiveField(3) required String avatar,
+    @HiveField(4) required List<String> interests,
+    @HiveField(5) required int level,
+    @HiveField(6) required int xp,
+    @HiveField(7) required int streak,
+    @HiveField(8) required List<String> favorites,
+    @HiveField(9) required String parentId,
+    @HiveField(10) @JsonKey(name: 'picture_password') required List<String> picturePassword,
+    @HiveField(11) @JsonKey(name: 'created_at') required DateTime createdAt,
+    @HiveField(12) @JsonKey(name: 'updated_at') required DateTime updatedAt,
+    @HiveField(13) @JsonKey(name: 'last_session') DateTime? lastSession,
+    @HiveField(14) @JsonKey(name: 'total_time_spent') required int totalTimeSpent,
+    @HiveField(15) @JsonKey(name: 'activities_completed') required int activitiesCompleted,
+    @HiveField(16) @JsonKey(name: 'current_mood') String? currentMood,
+    @HiveField(17) @JsonKey(name: 'learning_style') String? learningStyle,
+    @HiveField(18) @JsonKey(name: 'special_needs') List<String>? specialNeeds,
+    @HiveField(19) @JsonKey(name: 'accessibility_needs') List<String>? accessibilityNeeds,
   }) = _ChildProfile;
 
   const ChildProfile._();
 
-  factory ChildProfile.fromJson(Map<String, dynamic> json) =>
+  factory ChildProfile.fromJson(Map<String, dynamic> json) => 
       _$ChildProfileFromJson(json);
 
   // Helper methods
@@ -69,10 +62,9 @@ class LearningStyles {
 // Moods
 class ChildMoods {
   static const String happy = 'happy';
-  static const String excited = 'excited';
-  static const String calm = 'calm';
-  static const String tired = 'tired';
   static const String sad = 'sad';
+  static const String excited = 'excited';
+  static const String tired = 'tired';
   static const String angry = 'angry';
   
   static const List<String> all = [happy, excited, calm, tired, sad, angry];
@@ -113,13 +105,7 @@ class MoodTypes {
       case excited:
         return 'Excited';
       case calm:
-        return 'Calm';
-      case tired:
-        return 'Tired';
-      case sad:
-        return 'Sad';
-      case angry:
-        return 'Angry';
+        return '😌';
       default:
         return 'Neutral';
     }

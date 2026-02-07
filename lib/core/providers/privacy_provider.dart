@@ -1,67 +1,64 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kinder_world/core/models/privacy_settings.dart';
-import 'package:kinder_world/core/services/privacy_service.dart';
-import 'package:kinder_world/app.dart';
 
-// Privacy settings provider
-final privacyProvider =
-    FutureProvider.autoDispose<PrivacySettings>((ref) async {
-  final service = ref.watch(privacyServiceProvider);
-  return service.getPrivacySettings();
+const _privacyBox = 'privacy_settings';
+const _privacyKey = 'privacy_settings_value';
+
+final privacySettingsProvider = FutureProvider<PrivacySettings>((ref) async {
+  final box = Hive.box(_privacyBox);
+  final raw = box.get(_privacyKey);
+
+  if (raw != null) {
+    return _deserialize(raw);
+  }
+
+  final defaults = PrivacySettings.defaults();
+  await box.put(_privacyKey, defaults.toJson());
+  return defaults;
 });
 
-// Privacy controller for updates
-final privacyControllerProvider = StateNotifierProvider.autoDispose<
-    PrivacyController, AsyncValue<PrivacySettings>>(
+final privacyControllerProvider =
+    StateNotifierProvider<PrivacyController, AsyncValue<PrivacySettings>>(
   (ref) {
-    final service = ref.watch(privacyServiceProvider);
-    return PrivacyController(service: service);
+    final box = Hive.box(_privacyBox);
+    return PrivacyController(box: box);
   },
 );
 
 class PrivacyController extends StateNotifier<AsyncValue<PrivacySettings>> {
-  final PrivacyService _service;
+  final Box _box;
 
-  PrivacyController({
-    required PrivacyService service,
-  })  : _service = service,
-        super(const AsyncValue.loading());
+  PrivacyController({required Box box})
+      : _box = box,
+        super(const AsyncValue.loading()) {
+    loadSettings();
+  }
 
   Future<void> loadSettings() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _service.getPrivacySettings());
+    final raw = _box.get(_privacyKey);
+    final settings =
+        raw != null ? _deserialize(raw) : PrivacySettings.defaults();
+    state = AsyncValue.data(settings);
   }
 
   Future<bool> updateSettings(PrivacySettings settings) async {
-    // Optimistic update
     state = AsyncValue.data(settings);
-
     try {
-      final updated = await _service.updatePrivacySettings(settings);
-      if (updated != null) {
-        state = AsyncValue.data(updated);
-        return true;
-      } else {
-        // Rollback on error
-        final current = await _service.getPrivacySettings();
-        state = AsyncValue.data(current);
-        return false;
-      }
-    } catch (e) {
-      // Rollback on error
-      final current = await _service.getPrivacySettings();
-      state = AsyncValue.data(current);
+      await _box.put(_privacyKey, settings.toJson());
+      return true;
+    } catch (_) {
+      final currentSettings = _deserialize(_box.get(_privacyKey));
+      state = AsyncValue.data(currentSettings);
       return false;
     }
   }
 }
 
-// Service provider
-final privacyServiceProvider = Provider<PrivacyService>((ref) {
-  final networkService = ref.watch(networkServiceProvider);
-  final logger = ref.watch(loggerProvider);
-  return PrivacyService(
-    networkService: networkService,
-    logger: logger,
-  );
-});
+PrivacySettings _deserialize(dynamic raw) {
+  if (raw is Map) {
+    return PrivacySettings.fromJson(Map<String, dynamic>.from(raw));
+  }
+  return PrivacySettings.defaults();
+}

@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/repositories/child_repository.dart';
-import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
 // ==================== CHILD SESSION STATE ====================
@@ -36,7 +34,6 @@ class ChildSessionState {
   }
 
   bool get hasActiveSession => childId != null;
-  bool get hasProfile => childProfile != null;
 }
 
 // ==================== CHILD SESSION CONTROLLER ====================
@@ -51,17 +48,66 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
     required Logger logger,
   })  : _childRepository = childRepository,
         _logger = logger,
-        super(const ChildSessionState());
+        super(const ChildSessionState()) {
+    _initialize();
+  }
 
-  // ==================== SESSION MANAGEMENT ====================
+  /// Initialize child session from storage
+  Future<void> _initialize() async {
+    _logger.d('Initializing child session controller');
+    
+    // In a real app, this would load from secure storage
+    // For now, we'll use mock initialization
+    await loadMockChildProfile();
+  }
 
-  /// Start child session
+  /// Load mock child profile for development
+  Future<void> loadMockChildProfile() async {
+    try {
+      state = state.copyWith(isLoading: true);
+      
+      // Create mock child profile
+      final mockChild = const ChildProfile(
+        id: 'child1',
+        name: 'Ahmed',
+        age: 8,
+        avatar: 'assets/images/avatars/boy1.png',
+        interests: ['math', 'science'],
+        level: 3,
+        xp: 2500,
+        streak: 5,
+        favorites: ['activity1', 'activity2'],
+        parentId: 'parent1',
+        picturePassword: ['apple', 'ball', 'cat'],
+        createdAt: null,
+        updatedAt: null,
+        totalTimeSpent: 0,
+        activitiesCompleted: 0,
+        currentMood: 'happy',
+      );
+      
+      state = ChildSessionState(
+        childId: mockChild.id,
+        childProfile: mockChild,
+        isLoading: false,
+      );
+      
+      _logger.d('Mock child profile loaded: ${mockChild.name}');
+    } catch (e, stack) {
+      _logger.e('Error loading mock child profile', e, stack);
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load child profile',
+      );
+    }
+  }
+
   Future<bool> startChildSession({
     required String childId,
-    ChildProfile? childProfile,
+    required ChildProfile childProfile,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       // Load profile if not provided
       final profile = childProfile ?? await _childRepository.getChildProfile(childId);
@@ -76,14 +122,14 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
 
       state = ChildSessionState(
         childId: childId,
-        childProfile: profile,
+        childProfile: childProfile,
         isLoading: false,
       );
       
       _logger.d('Child session started: ${profile.name}');
       return true;
-    } catch (e) {
-      _logger.e('Error starting child session: $e');
+    } catch (e, stack) {
+      _logger.e('Error starting child session', e, stack);
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to start child session',
@@ -92,21 +138,51 @@ class ChildSessionController extends StateNotifier<ChildSessionState> {
     }
   }
 
-  /// End child session
+  Future<bool> loadChild(String childId) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final profile = await _childRepository.getChildProfile(childId);
+
+      if (profile != null) {
+        state = ChildSessionState(
+          childId: childId,
+          childProfile: profile,
+          isLoading: false,
+        );
+        _logger.d('Child loaded: ${profile.name}');
+        return true;
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Child profile not found',
+      );
+      return false;
+    } catch (e) {
+      _logger.e('Error loading child: $childId, $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load child profile',
+      );
+      return false;
+    }
+  }
+
   Future<bool> endChildSession() async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       state = const ChildSessionState(
         childId: null,
         childProfile: null,
         isLoading: false,
       );
-      
+
       _logger.d('Child session ended');
       return true;
-    } catch (e) {
-      _logger.e('Error ending child session: $e');
+    } catch (e, stack) {
+      _logger.e('Error ending child session', e, stack);
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to end child session',
@@ -404,7 +480,7 @@ final childSessionControllerProvider =
     StateNotifierProvider<ChildSessionController, ChildSessionState>((ref) {
   final childRepository = ref.watch(childRepositoryProvider);
   final logger = ref.watch(loggerProvider);
-  
+
   return ChildSessionController(
     childRepository: childRepository,
     logger: logger,
@@ -418,7 +494,6 @@ final hasChildSessionProvider = Provider<bool>((ref) {
   return ref.watch(childSessionControllerProvider).hasActiveSession;
 });
 
-/// Get current child profile
 final currentChildProvider = Provider<ChildProfile?>((ref) {
   return ref.watch(childSessionControllerProvider).childProfile;
 });

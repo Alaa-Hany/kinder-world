@@ -1,6 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Secure storage service for sensitive data
 class SecureStorage {
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
@@ -22,57 +21,40 @@ class SecureStorage {
   static const String _keyIsPremium = 'is_premium';
   static const String _keyPlanType = 'plan_type';
 
-  // ==================== AUTH TOKEN ====================
+  // Auth Token
+  Future<void> saveAuthToken(String token) async {
+    try {
+      await _storage.write(key: _authTokenKey, value: token);
+      _logger.d('Auth token saved successfully');
+    } catch (e) {
+      _logger.e('Error saving auth token: $e');
+      rethrow;
+    }
+  }
 
   Future<String?> getAuthToken() async {
     try {
-      return await _storage.read(key: _keyAuthToken);
+      return await _storage.read(key: _authTokenKey);
     } catch (e) {
+      _logger.e('Error reading auth token: $e');
       return null;
     }
   }
 
-  Future<bool> saveAuthToken(String token) async {
+  Future<void> deleteAuthToken() async {
     try {
-      await _storage.write(key: _keyAuthToken, value: token);
-      return true;
+      await _storage.delete(key: _authTokenKey);
+      _logger.d('Auth token deleted');
     } catch (e) {
-      return false;
+      _logger.e('Error deleting auth token: $e');
     }
   }
 
-  Future<bool> deleteAuthToken() async {
+  // Parent PIN
+  Future<void> saveParentPin(String pin) async {
     try {
-      await _storage.delete(key: _keyAuthToken);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // ==================== REFRESH TOKEN ====================
-
-  Future<String?> getRefreshToken() async {
-    try {
-      return await _storage.read(key: _keyRefreshToken);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<bool> saveRefreshToken(String token) async {
-    try {
-      await _storage.write(key: _keyRefreshToken, value: token);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> deleteRefreshToken() async {
-    try {
-      await _storage.delete(key: _keyRefreshToken);
-      return true;
+      await _storage.write(key: _parentPinKey, value: pin);
+      _logger.d('Parent PIN saved successfully');
     } catch (e) {
       return false;
     }
@@ -166,64 +148,60 @@ class SecureStorage {
 
   Future<String?> getParentPin() async {
     try {
-      return await _storage.read(key: _keyParentPin);
+      return await _storage.read(key: _parentPinKey);
     } catch (e) {
+      _logger.e('Error reading parent PIN: $e');
       return null;
     }
   }
 
-  Future<bool> saveParentPin(String pin) async {
+  Future<bool> verifyParentPin(String pin) async {
     try {
-      await _storage.write(key: _keyParentPin, value: pin);
-      return true;
+      final storedPin = await getParentPin();
+      return storedPin == pin;
     } catch (e) {
+      _logger.e('Error verifying parent PIN: $e');
       return false;
     }
   }
 
-  Future<bool> deleteParentPin() async {
+  // Child Session
+  Future<void> saveChildSession(String childId) async {
     try {
-      await _storage.delete(key: _keyParentPin);
-      return true;
+      await _storage.write(key: _childSessionKey, value: childId);
+      _logger.d('Child session saved: $childId');
     } catch (e) {
-      return false;
+      _logger.e('Error saving child session: $e');
+      rethrow;
     }
   }
-
-  Future<bool> hasParentPin() async {
-    try {
-      final pin = await getParentPin();
-      return pin != null && pin.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // ==================== CHILD SESSION ====================
 
   Future<String?> getChildSession() async {
     try {
-      return await _storage.read(key: _keyChildSession);
+      return await _storage.read(key: _childSessionKey);
     } catch (e) {
+      _logger.e('Error reading child session: $e');
       return null;
     }
   }
 
-  Future<bool> saveChildSession(String childId) async {
+  Future<void> clearChildSession() async {
     try {
-      await _storage.write(key: _keyChildSession, value: childId);
-      return true;
+      await _storage.delete(key: _childSessionKey);
+      _logger.d('Child session cleared');
     } catch (e) {
-      return false;
+      _logger.e('Error clearing child session: $e');
     }
   }
 
-  Future<bool> clearChildSession() async {
+  // User Role
+  Future<void> saveUserRole(String role) async {
     try {
-      await _storage.delete(key: _keyChildSession);
-      return true;
+      await _storage.write(key: _userRoleKey, value: role);
+      _logger.d('User role saved: $role');
     } catch (e) {
-      return false;
+      _logger.e('Error saving user role: $e');
+      rethrow;
     }
   }
 
@@ -293,7 +271,7 @@ class SecureStorage {
   Future<bool> clearAll() async {
     try {
       await _storage.deleteAll();
-      return true;
+      _logger.d('All secure storage data cleared');
     } catch (e) {
       return false;
     }
