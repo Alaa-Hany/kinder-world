@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kinder_world/core/models/activity.dart';
 import 'package:kinder_world/core/models/child_profile.dart';
 import 'package:kinder_world/core/repositories/content_repository.dart';
-import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
 /// State for content/controller
@@ -67,7 +65,7 @@ class ContentController extends StateNotifier<ContentState> {
         isLoading: false,
       );
       _logger.d('Loaded ${activities.length} activities');
-    } catch (e) {
+    } catch (e, _) {
       _logger.e('Error loading activities: $e');
       state = state.copyWith(
         isLoading: false,
@@ -94,8 +92,8 @@ class ContentController extends StateNotifier<ContentState> {
       _logger
           .d('Loaded ${activities.length} activities for category: $category');
       return activities;
-    } catch (e) {
-      _logger.e('Error filtering by category: $category, $e');
+    } catch (e, _) {
+      _logger.e('Error loading activities by category: $category, $e');
       return [];
     }
   }
@@ -105,8 +103,8 @@ class ContentController extends StateNotifier<ContentState> {
       final activities = await _contentRepository.getActivitiesByType(type);
       _logger.d('Loaded ${activities.length} activities for type: $type');
       return activities;
-    } catch (e) {
-      _logger.e('Error filtering by type: $type, $e');
+    } catch (e, _) {
+      _logger.e('Error loading activities by type: $type, $e');
       return [];
     }
   }
@@ -116,21 +114,31 @@ class ContentController extends StateNotifier<ContentState> {
       final activities = await _contentRepository.getActivitiesByAspect(aspect);
       _logger.d('Loaded ${activities.length} activities for aspect: $aspect');
       return activities;
-    } catch (e) {
-      _logger.e('Error filtering by aspect: $aspect, $e');
+    } catch (e, _) {
+      _logger.e('Error loading activities by aspect: $aspect, $e');
       return [];
     }
   }
 
   Future<List<Activity>> loadActivitiesByDifficulty(String difficulty) async {
     try {
-      final activities =
-          await _contentRepository.getActivitiesByDifficulty(difficulty);
-      _logger.d(
-          'Filtered ${activities.length} activities by difficulty: $difficulty');
+      final activities = await _contentRepository.getPopularActivities(limit: 10);
+      
+      state = state.copyWith(popularActivities: activities);
+      _logger.d('Loaded ${activities.length} popular activities');
+    } catch (e, _) {
+      _logger.e('Error loading popular activities: $e');
+    }
+  }
+
+  /// Load recently added activities
+  Future<List<Activity>> loadRecentlyAddedActivities() async {
+    try {
+      final activities = await _contentRepository.getRecentlyAddedActivities(limit: 10);
+      _logger.d('Loaded ${activities.length} recently added activities');
       return activities;
-    } catch (e) {
-      _logger.e('Error filtering by difficulty: $difficulty, $e');
+    } catch (e, _) {
+      _logger.e('Error loading recently added activities: $e');
       return [];
     }
   }
@@ -140,12 +148,9 @@ class ContentController extends StateNotifier<ContentState> {
       final activities =
           await _contentRepository.getRecommendedActivities(child);
       state = state.copyWith(recommendedActivities: activities);
-      _logger
-          .d('Loaded ${activities.length} recommendations for ${child.name}');
-      return activities;
-    } catch (e) {
+      _logger.d('Loaded ${activities.length} recommended activities for ${child.name}');
+    } catch (e, _) {
       _logger.e('Error loading recommended activities: $e');
-      return [];
     }
   }
 
@@ -154,8 +159,8 @@ class ContentController extends StateNotifier<ContentState> {
       final activities = await _contentRepository.getActivitiesForChild(child);
       _logger.d('Loaded ${activities.length} activities for ${child.name}');
       return activities;
-    } catch (e) {
-      _logger.e('Error loading activities for ${child.name}: $e');
+    } catch (e, _) {
+      _logger.e('Error loading activities for child: ${child.name}, $e');
       return [];
     }
   }
@@ -165,32 +170,80 @@ class ContentController extends StateNotifier<ContentState> {
       final activities = await _contentRepository.searchActivities(query);
       _logger.d('Search "$query" found ${activities.length} activities');
       return activities;
-    } catch (e) {
+    } catch (e, _) {
       _logger.e('Error searching activities: $query, $e');
       return [];
     }
   }
 
+  /// Filter activities by difficulty
+  Future<List<Activity>> filterByDifficulty(String difficulty) async {
+    try {
+      final activities = await _contentRepository.getActivitiesByDifficulty(difficulty);
+      _logger.d('Filtered ${activities.length} activities by difficulty: $difficulty');
+      return activities;
+    } catch (e, _) {
+      _logger.e('Error filtering by difficulty: $difficulty, $e');
+      return [];
+    }
+  }
+
+  /// Filter activities by age range
+  Future<List<Activity>> filterByAgeRange(int minAge, int maxAge) async {
+    try {
+      final activities = state.activities.where((activity) {
+        // Check if any age in the range is appropriate for the activity
+        for (int age = minAge; age <= maxAge; age++) {
+          if (activity.isAppropriateForAge(age)) {
+            return true;
+          }
+        }
+        return false;
+      }).toList();
+      
+      _logger.d('Filtered ${activities.length} activities for age range: $minAge-$maxAge');
+      return activities;
+    } catch (e, _) {
+      _logger.e('Error filtering by age range: $minAge-$maxAge, $e');
+      return [];
+    }
+  }
+
+  // ==================== OFFLINE SUPPORT ====================
+
+  /// Get offline available activities
   Future<List<Activity>> getOfflineActivities() async {
     try {
       final activities = await _contentRepository.getOfflineActivities();
       _logger.d('Loaded ${activities.length} offline activities');
       return activities;
-    } catch (e) {
-      _logger.e('Error loading offline activities: $e');
+    } catch (e, _) {
+      _logger.e('Error getting offline activities: $e');
       return [];
     }
   }
 
   Future<Activity?> getActivity(String id) async {
     try {
-      final activity = await _contentRepository.getActivity(id);
-      if (activity == null) {
-        _logger.w('Activity not found: $id');
-      }
+      final success = await _contentRepository.downloadForOffline(activityId);
+      _logger.d('Download activity for offline: $activityId - $success');
+      return success;
+    } catch (e, _) {
+      _logger.e('Error downloading for offline: $activityId, $e');
+      return false;
+    }
+  }
+
+  // ==================== ACTIVITY INTERACTION ====================
+
+  /// Get activity by ID
+  Future<Activity?> getActivity(String activityId) async {
+    try {
+      final activity = await _contentRepository.getActivity(activityId);
+      _logger.d('Retrieved activity: $activityId');
       return activity;
-    } catch (e) {
-      _logger.e('Error getting activity: $id, $e');
+    } catch (e, _) {
+      _logger.e('Error getting activity: $activityId, $e');
       return null;
     }
   }
@@ -209,12 +262,30 @@ class ContentController extends StateNotifier<ContentState> {
         );
       }
       return success;
-    } catch (e) {
+    } catch (e, _) {
       _logger.e('Error incrementing play count: $activityId, $e');
       return false;
     }
   }
 
+  // ==================== CONTENT DISCOVERY ====================
+
+  /// Get activities by interests
+  Future<List<Activity>> getActivitiesByInterests(List<String> interests) async {
+    try {
+      final activities = state.activities.where((activity) {
+        return activity.tags.any((tag) => interests.contains(tag));
+      }).toList();
+      
+      _logger.d('Found ${activities.length} activities matching interests: $interests');
+      return activities;
+    } catch (e, _) {
+      _logger.e('Error getting activities by interests: $interests, $e');
+      return [];
+    }
+  }
+
+  /// Get daily recommended activities
   Future<List<Activity>> getDailyRecommendations(ChildProfile child) async {
     try {
       final recommended = await loadActivitiesForChild(child);
@@ -233,13 +304,14 @@ class ContentController extends StateNotifier<ContentState> {
         if (aMatches != bMatches) {
           return bMatches.compareTo(aMatches);
         }
+        
         final aRating = a.averageRating ?? 0.0;
         final bRating = b.averageRating ?? 0.0;
         return bRating.compareTo(aRating);
       });
 
       return filtered.take(5).toList();
-    } catch (e) {
+    } catch (e, _) {
       _logger.e('Error getting daily recommendations: $e');
       return [];
     }
@@ -249,28 +321,66 @@ class ContentController extends StateNotifier<ContentState> {
       ChildProfile child) async {
     try {
       return state.popularActivities.take(3).toList();
-    } catch (e) {
+    } catch (e, _) {
       _logger.e('Error getting continue learning activities: $e');
       return [];
     }
   }
 
-  List<String> getAllCategories() => ActivityCategories.all;
-  List<String> getAllTypes() => ActivityTypes.all;
-  List<String> getAllAspects() => ActivityAspects.all;
-  String getCategoryDisplayName(String category) =>
-      ActivityCategories.getDisplayName(category);
-  String getTypeDisplayName(String type) => ActivityTypes.getDisplayName(type);
-  String getAspectDisplayName(String aspect) =>
-      ActivityAspects.getDisplayName(aspect);
+  // ==================== CATEGORY MANAGEMENT ====================
 
+  /// Get all categories
+  List<String> getAllCategories() {
+    return ActivityCategories.all;
+  }
+
+  /// Get all types
+  List<String> getAllTypes() {
+    return ActivityTypes.all;
+  }
+
+  /// Get all aspects
+  List<String> getAllAspects() {
+    return ActivityAspects.all;
+  }
+
+  /// Get category display name
+  String getCategoryDisplayName(String category) {
+    return ActivityCategories.getDisplayName(category);
+  }
+
+  /// Get type display name
+  String getTypeDisplayName(String type) {
+    return ActivityTypes.getDisplayName(type);
+  }
+
+  /// Get aspect display name
+  String getAspectDisplayName(String aspect) {
+    return ActivityAspects.getDisplayName(aspect);
+  }
+
+  // ==================== ERROR HANDLING ====================
+
+  /// Clear error state
   void clearError() {
     state = state.copyWith(error: null);
   }
+
+  // ==================== SYNC OPERATIONS ====================
+
+  /// Sync content with server
+  Future<bool> syncWithServer() async {
+    try {
+      return await _contentRepository.syncWithServer();
+    } catch (e, _) {
+      _logger.e('Error syncing content: $e');
+      return false;
+    }
+  }
 }
 
-final contentControllerProvider =
-    StateNotifierProvider<ContentController, ContentState>((ref) {
+// Provider
+final contentControllerProvider = StateNotifierProvider<ContentController, ContentState>((ref) {
   final contentRepository = ref.watch(contentRepositoryProvider);
   final logger = ref.watch(loggerProvider);
   return ContentController(
@@ -279,6 +389,18 @@ final contentControllerProvider =
   );
 });
 
+// Repository provider
+final contentRepositoryProvider = Provider<ContentRepository>((ref) {
+  final activityBox = Hive.box('activities');
+  final logger = ref.watch(loggerProvider);
+  
+  return ContentRepository(
+    activityBox: activityBox,
+    logger: logger,
+  );
+});
+
+// Helper providers
 final allActivitiesProvider = Provider<List<Activity>>((ref) {
   return ref.watch(contentControllerProvider).activities;
 });

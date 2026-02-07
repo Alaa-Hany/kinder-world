@@ -1,32 +1,29 @@
-import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-
-// Workaround for analyzer: allow JsonKey on Freezed constructor params
-// (some analyzer versions report 'invalid_annotation_target')
-// ignore_for_file: invalid_annotation_target
+import 'package:hive/hive.dart';
 
 part 'notification_item.freezed.dart';
 part 'notification_item.g.dart';
 
 @freezed
 class NotificationItem with _$NotificationItem {
+  @HiveType(typeId: 8)
   const factory NotificationItem({
-    required String id,
-    required String type,
-    required String title,
-    required String body,
-    required String recipientId,
-    required String recipientRole,
-    @JsonKey(name: 'related_child_id') String? relatedChildId,
-    @JsonKey(name: 'related_activity_id') String? relatedActivityId,
-    @JsonKey(name: 'is_read') required bool isRead,
-    @JsonKey(name: 'is_sent') required bool isSent,
-    @JsonKey(name: 'sent_at') DateTime? sentAt,
-    @JsonKey(name: 'read_at') DateTime? readAt,
-    @JsonKey(name: 'priority') required String priority,
-    Map<String, dynamic>? data,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
-    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    @HiveField(0) required String id,
+    @HiveField(1) required String type,
+    @HiveField(2) required String title,
+    @HiveField(3) required String body,
+    @HiveField(4) required String recipientId,
+    @HiveField(5) required String recipientRole,
+    @HiveField(6) @JsonKey(name: 'related_child_id') String? relatedChildId,
+    @HiveField(7) @JsonKey(name: 'related_activity_id') String? relatedActivityId,
+    @HiveField(8) @JsonKey(name: 'is_read') required bool isRead,
+    @HiveField(9) @JsonKey(name: 'is_sent') required bool isSent,
+    @HiveField(10) @JsonKey(name: 'sent_at') DateTime? sentAt,
+    @HiveField(11) @JsonKey(name: 'read_at') DateTime? readAt,
+    @HiveField(12) @JsonKey(name: 'priority') required String priority,
+    @HiveField(13) Map<String, dynamic>? data,
+    @HiveField(14) @JsonKey(name: 'created_at') required DateTime createdAt,
+    @HiveField(15) @JsonKey(name: 'expires_at') DateTime? expiresAt,
   }) = _NotificationItem;
 
   const NotificationItem._();
@@ -42,7 +39,7 @@ class NotificationItem with _$NotificationItem {
 
   // Check if notification is urgent
   bool get isUrgent {
-    return priority == NotificationPriority.high;
+    return priority == NotificationPriority.urgent;
   }
 
   // Check if notification is for parent
@@ -178,12 +175,28 @@ class NotificationTypes {
 // Notification priorities
 class NotificationPriority {
   static const String low = 'low';
-  static const String medium = 'medium';
+  static const String normal = 'normal';
   static const String high = 'high';
+  static const String urgent = 'urgent';
   
   static const List<String> all = [
-    low, medium, high
+    low, normal, high, urgent
   ];
+  
+  static Color getColor(String priority) {
+    switch (priority) {
+      case urgent:
+        return Colors.red;
+      case high:
+        return Colors.orange;
+      case normal:
+        return Colors.blue;
+      case low:
+        return Colors.grey;
+      default:
+        return Colors.blue;
+    }
+  }
 }
 
 // Notification data keys

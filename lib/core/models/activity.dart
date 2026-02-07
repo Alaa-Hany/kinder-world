@@ -1,39 +1,37 @@
-// Workaround for analyzer: allow JsonKey on Freezed constructor params
-// (some analyzer versions report 'invalid_annotation_target')
-// ignore_for_file: invalid_annotation_target
-
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hive/hive.dart';
 
 part 'activity.freezed.dart';
 part 'activity.g.dart';
 
 @freezed
 class Activity with _$Activity {
+  @HiveType(typeId: 3)
   const factory Activity({
-    required String id,
-    required String title,
-    required String description,
-    required String category,
-    required String type,
-    required String aspect,
-    required List<String> ageRange,
-    required String difficulty,
-    required int duration,
-    required int xpReward,
-    required String thumbnailUrl,
-    String? contentUrl,
-    required List<String> tags,
-    required List<String> learningObjectives,
-    String? instructions,
-    List<String>? materialsNeeded,
-    @JsonKey(name: 'is_offline_available') required bool isOfflineAvailable,
-    @JsonKey(name: 'is_premium') required bool isPremium,
-    @JsonKey(name: 'parent_approval_required') required bool parentApprovalRequired,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
-    @JsonKey(name: 'updated_at') required DateTime updatedAt,
-    @JsonKey(name: 'completion_rate') double? completionRate,
-    @JsonKey(name: 'average_rating') double? averageRating,
-    @JsonKey(name: 'play_count') required int playCount,
+    @HiveField(0) required String id,
+    @HiveField(1) required String title,
+    @HiveField(2) required String description,
+    @HiveField(3) required String category,
+    @HiveField(4) required String type,
+    @HiveField(5) required String aspect,
+    @HiveField(6) required List<String> ageRange,
+    @HiveField(7) required String difficulty,
+    @HiveField(8) required int duration,
+    @HiveField(9) required int xpReward,
+    @HiveField(10) required String thumbnailUrl,
+    @HiveField(11) String? contentUrl,
+    @HiveField(12) required List<String> tags,
+    @HiveField(13) required List<String> learningObjectives,
+    @HiveField(14) String? instructions,
+    @HiveField(15) List<String>? materialsNeeded,
+    @HiveField(16) @JsonKey(name: 'is_offline_available') required bool isOfflineAvailable,
+    @HiveField(17) @JsonKey(name: 'is_premium') required bool isPremium,
+    @HiveField(18) @JsonKey(name: 'parent_approval_required') required bool parentApprovalRequired,
+    @HiveField(19) @JsonKey(name: 'created_at') required DateTime createdAt,
+    @HiveField(20) @JsonKey(name: 'updated_at') required DateTime updatedAt,
+    @HiveField(21) @JsonKey(name: 'completion_rate') double? completionRate,
+    @HiveField(22) @JsonKey(name: 'average_rating') double? averageRating,
+    @HiveField(23) @JsonKey(name: 'play_count') required int playCount,
   }) = _Activity;
 
   const Activity._();
@@ -145,27 +143,6 @@ class ActivityCategories {
     socialSkills, emotionalIntelligence, creativity, motorSkills,
     problemSolving, music, games, stories, videos
   ];
-
-  static String getDisplayName(String category) {
-    switch (category) {
-      case mathematics: return 'Mathematics';
-      case science: return 'Science';
-      case reading: return 'Reading';
-      case history: return 'History';
-      case geography: return 'Geography';
-      case languages: return 'Languages';
-      case socialSkills: return 'Social Skills';
-      case emotionalIntelligence: return 'Emotional Intelligence';
-      case creativity: return 'Creativity';
-      case motorSkills: return 'Motor Skills';
-      case problemSolving: return 'Problem Solving';
-      case music: return 'Music';
-      case games: return 'Games';
-      case stories: return 'Stories';
-      case videos: return 'Videos';
-      default: return category;
-    }
-  }
 }
 
 // Activity types
@@ -185,22 +162,6 @@ class ActivityTypes {
     lesson, game, quiz, story, video, interactiveStory,
     craft, song, challenge, simulation
   ];
-
-  static String getDisplayName(String type) {
-    switch (type) {
-      case lesson: return 'Lesson';
-      case game: return 'Game';
-      case quiz: return 'Quiz';
-      case story: return 'Story';
-      case video: return 'Video';
-      case interactiveStory: return 'Interactive Story';
-      case craft: return 'Craft';
-      case song: return 'Song';
-      case challenge: return 'Challenge';
-      case simulation: return 'Simulation';
-      default: return type;
-    }
-  }
 }
 
 // Activity aspects (from SRS)

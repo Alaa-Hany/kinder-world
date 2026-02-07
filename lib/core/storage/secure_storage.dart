@@ -1,7 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:kinder_world/core/subscription/plan_info.dart';
 
-/// Secure storage service for sensitive data
 class SecureStorage {
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
@@ -16,64 +14,47 @@ class SecureStorage {
   static const String _keyAuthToken = 'auth_token';
   static const String _keyRefreshToken = 'refresh_token';
   static const String _keyUserId = 'user_id';
+  static const String _keyUserEmail = 'user_email';
   static const String _keyUserRole = 'user_role';
   static const String _keyParentPin = 'parent_pin';
   static const String _keyChildSession = 'child_session';
-  static const String _keyPlanTier = 'plan_tier';
-  static const String _keyHasActiveSubscription = 'has_active_subscription';
-  static const String _keyParentName = 'parent_name';
+  static const String _keyIsPremium = 'is_premium';
+  static const String _keyPlanType = 'plan_type';
 
-  // ==================== AUTH TOKEN ====================
+  // Auth Token
+  Future<void> saveAuthToken(String token) async {
+    try {
+      await _storage.write(key: _authTokenKey, value: token);
+      _logger.d('Auth token saved successfully');
+    } catch (e) {
+      _logger.e('Error saving auth token: $e');
+      rethrow;
+    }
+  }
 
   Future<String?> getAuthToken() async {
     try {
-      return await _storage.read(key: _keyAuthToken);
+      return await _storage.read(key: _authTokenKey);
     } catch (e) {
+      _logger.e('Error reading auth token: $e');
       return null;
     }
   }
 
-  Future<bool> saveAuthToken(String token) async {
+  Future<void> deleteAuthToken() async {
     try {
-      await _storage.write(key: _keyAuthToken, value: token);
-      return true;
+      await _storage.delete(key: _authTokenKey);
+      _logger.d('Auth token deleted');
     } catch (e) {
-      return false;
+      _logger.e('Error deleting auth token: $e');
     }
   }
 
-  Future<bool> deleteAuthToken() async {
+  // Parent PIN
+  Future<void> saveParentPin(String pin) async {
     try {
-      await _storage.delete(key: _keyAuthToken);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // ==================== REFRESH TOKEN ====================
-
-  Future<String?> getRefreshToken() async {
-    try {
-      return await _storage.read(key: _keyRefreshToken);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<bool> saveRefreshToken(String token) async {
-    try {
-      await _storage.write(key: _keyRefreshToken, value: token);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> deleteRefreshToken() async {
-    try {
-      await _storage.delete(key: _keyRefreshToken);
-      return true;
+      await _storage.write(key: _parentPinKey, value: pin);
+      _logger.d('Parent PIN saved successfully');
     } catch (e) {
       return false;
     }
@@ -101,6 +82,34 @@ class SecureStorage {
   Future<bool> deleteUserId() async {
     try {
       await _storage.delete(key: _keyUserId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ==================== USER EMAIL ====================
+
+  Future<String?> getUserEmail() async {
+    try {
+      return await _storage.read(key: _keyUserEmail);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> saveUserEmail(String email) async {
+    try {
+      await _storage.write(key: _keyUserEmail, value: email);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteUserEmail() async {
+    try {
+      await _storage.delete(key: _keyUserEmail);
       return true;
     } catch (e) {
       return false;
@@ -139,61 +148,118 @@ class SecureStorage {
 
   Future<String?> getParentPin() async {
     try {
-      return await _storage.read(key: _keyParentPin);
+      return await _storage.read(key: _parentPinKey);
     } catch (e) {
+      _logger.e('Error reading parent PIN: $e');
       return null;
     }
   }
 
-  Future<bool> saveParentPin(String pin) async {
+  Future<bool> verifyParentPin(String pin) async {
     try {
-      await _storage.write(key: _keyParentPin, value: pin);
-      return true;
+      final storedPin = await getParentPin();
+      return storedPin == pin;
     } catch (e) {
+      _logger.e('Error verifying parent PIN: $e');
       return false;
     }
   }
 
-  Future<bool> deleteParentPin() async {
+  // Child Session
+  Future<void> saveChildSession(String childId) async {
     try {
-      await _storage.delete(key: _keyParentPin);
-      return true;
+      await _storage.write(key: _childSessionKey, value: childId);
+      _logger.d('Child session saved: $childId');
     } catch (e) {
-      return false;
+      _logger.e('Error saving child session: $e');
+      rethrow;
     }
   }
-
-  Future<bool> hasParentPin() async {
-    try {
-      final pin = await getParentPin();
-      return pin != null && pin.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // ==================== CHILD SESSION ====================
 
   Future<String?> getChildSession() async {
     try {
-      return await _storage.read(key: _keyChildSession);
+      return await _storage.read(key: _childSessionKey);
+    } catch (e) {
+      _logger.e('Error reading child session: $e');
+      return null;
+    }
+  }
+
+  Future<void> clearChildSession() async {
+    try {
+      await _storage.delete(key: _childSessionKey);
+      _logger.d('Child session cleared');
+    } catch (e) {
+      _logger.e('Error clearing child session: $e');
+    }
+  }
+
+  // User Role
+  Future<void> saveUserRole(String role) async {
+    try {
+      await _storage.write(key: _userRoleKey, value: role);
+      _logger.d('User role saved: $role');
+    } catch (e) {
+      _logger.e('Error saving user role: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== PREMIUM STATUS ====================
+
+  Future<bool?> getIsPremium() async {
+    try {
+      final value = await _storage.read(key: _keyIsPremium);
+      if (value == null) return null;
+      return value == 'true';
     } catch (e) {
       return null;
     }
   }
 
-  Future<bool> saveChildSession(String childId) async {
+  Future<bool> saveIsPremium(bool isPremium) async {
     try {
-      await _storage.write(key: _keyChildSession, value: childId);
+      await _storage.write(
+        key: _keyIsPremium,
+        value: isPremium ? 'true' : 'false',
+      );
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  Future<bool> clearChildSession() async {
+  Future<bool> clearIsPremium() async {
     try {
-      await _storage.delete(key: _keyChildSession);
+      await _storage.delete(key: _keyIsPremium);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ==================== PLAN TYPE ====================
+
+  Future<String?> getPlanType() async {
+    try {
+      return await _storage.read(key: _keyPlanType);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> savePlanType(String planType) async {
+    try {
+      await _storage.write(key: _keyPlanType, value: planType);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> clearPlanType() async {
+    try {
+      await _storage.delete(key: _keyPlanType);
       return true;
     } catch (e) {
       return false;
@@ -202,22 +268,29 @@ class SecureStorage {
 
   // ==================== CLEAR ALL ====================
 
-  Future<bool> clearAuthData() async {
+  Future<bool> clearAll() async {
     try {
-      await deleteAuthToken();
-      await deleteRefreshToken();
-      await deleteUserId();
-      await deleteUserRole();
-      await clearChildSession();
-      return true;
+      await _storage.deleteAll();
+      _logger.d('All secure storage data cleared');
     } catch (e) {
       return false;
     }
   }
 
-  Future<bool> clearAll() async {
+  /// Clear only authentication/session data while preserving child profiles and preferences
+  /// Use this for logout to keep local child data intact
+  Future<bool> clearAuthOnly() async {
     try {
-      await _storage.deleteAll();
+      // Clear auth tokens and session
+      await _storage.delete(key: _keyAuthToken);
+      await _storage.delete(key: _keyUserRole);
+      await _storage.delete(key: _keyUserId);
+      await _storage.delete(key: _keyUserEmail);
+      await _storage.delete(key: _keyChildSession);
+      await _storage.delete(key: _keyParentPin);
+      
+      // Preserve: child profiles, plan type, theme settings, privacy settings
+      // These are accessible without authentication
       return true;
     } catch (e) {
       return false;
@@ -246,97 +319,6 @@ class SecureStorage {
   /// Backwards-compatible alias for getting the parent id (previous API used getParentId)
   Future<String?> getParentId() async => getUserId();
 
-  Future<PlanTier?> getPlanTier() async {
-    try {
-      final value = await _storage.read(key: _keyPlanTier);
-      return _mapToPlanTier(value);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<bool> savePlanTier(PlanTier tier) async {
-    try {
-      await _storage.write(key: _keyPlanTier, value: _planTierToString(tier));
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> clearPlanTier() async {
-    try {
-      await _storage.delete(key: _keyPlanTier);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> hasActiveSubscription() async {
-    try {
-      final value = await _storage.read(key: _keyHasActiveSubscription);
-      if (value == null) return false;
-      return value.toLowerCase() == 'true';
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> setActiveSubscription(bool isActive) async {
-    try {
-      await _storage.write(
-        key: _keyHasActiveSubscription,
-        value: isActive ? 'true' : 'false',
-      );
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<String?> getParentName() async {
-    try {
-      return await _storage.read(key: _keyParentName);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<bool> saveParentName(String name) async {
-    try {
-      await _storage.write(key: _keyParentName, value: name);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  PlanTier? _mapToPlanTier(String? value) {
-    if (value == null) return null;
-    switch (value.toLowerCase()) {
-      case 'free':
-        return PlanTier.free;
-      case 'premium':
-        return PlanTier.premium;
-      case 'family_plus':
-      case 'familyplus':
-      case 'family+':
-      case 'family':
-        return PlanTier.familyPlus;
-      default:
-        return null;
-    }
-  }
-
-  String _planTierToString(PlanTier tier) {
-    switch (tier) {
-      case PlanTier.free:
-        return 'free';
-      case PlanTier.premium:
-        return 'premium';
-      case PlanTier.familyPlus:
-        return 'family_plus';
-    }
-  }
+  /// Backwards-compatible alias for getting the parent email
+  Future<String?> getParentEmail() async => getUserEmail();
 }
