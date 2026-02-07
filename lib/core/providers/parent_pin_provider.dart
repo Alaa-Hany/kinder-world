@@ -53,13 +53,13 @@ class ParentPinNotifier extends StateNotifier<ParentPinState> {
   Future<void> _loadPinState() async {
     try {
       final pin = await _secureStorage.getParentPin();
-      
+
       state = state.copyWith(
         pin: pin,
         isRequired: pin != null,
         isVerified: false,
       );
-      
+
       _logger.d('Parent PIN state loaded');
     } catch (e) {
       _logger.e('Error loading parent PIN state: $e');
@@ -69,7 +69,7 @@ class ParentPinNotifier extends StateNotifier<ParentPinState> {
 
   Future<bool> setParentPin(String pin) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       // Validate PIN
       if (pin.length < 4) {
@@ -79,16 +79,16 @@ class ParentPinNotifier extends StateNotifier<ParentPinState> {
         );
         return false;
       }
-      
+
       await _secureStorage.saveParentPin(pin);
-      
+
       state = ParentPinState(
         pin: pin,
         isRequired: true,
         isVerified: false,
         isLoading: false,
       );
-      
+
       _logger.d('Parent PIN set successfully');
       return true;
     } catch (e) {
@@ -103,11 +103,11 @@ class ParentPinNotifier extends StateNotifier<ParentPinState> {
 
   Future<bool> verifyPin(String enteredPin) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       final storedPin = await _secureStorage.getParentPin();
       final isValid = storedPin != null && storedPin == enteredPin;
-      
+
       if (isValid) {
         state = state.copyWith(
           isVerified: true,
@@ -122,7 +122,7 @@ class ParentPinNotifier extends StateNotifier<ParentPinState> {
         );
         _logger.w('Parent PIN verification failed');
       }
-      
+
       return isValid;
     } catch (e) {
       _logger.e('Error verifying PIN: $e');
@@ -136,17 +136,17 @@ class ParentPinNotifier extends StateNotifier<ParentPinState> {
 
   Future<void> clearPin() async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       await _secureStorage.deleteParentPin();
-      
+
       state = const ParentPinState(
         pin: null,
         isRequired: false,
         isVerified: false,
         isLoading: false,
       );
-      
+
       _logger.d('Parent PIN cleared');
     } catch (e) {
       _logger.e('Error clearing PIN: $e');
@@ -175,10 +175,11 @@ class ParentPinNotifier extends StateNotifier<ParentPinState> {
 }
 
 // Provider
-final parentPinProvider = StateNotifierProvider<ParentPinNotifier, ParentPinState>((ref) {
+final parentPinProvider =
+    StateNotifierProvider<ParentPinNotifier, ParentPinState>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);
   final logger = ref.watch(loggerProvider);
-  
+
   return ParentPinNotifier(
     secureStorage: secureStorage,
     logger: logger,

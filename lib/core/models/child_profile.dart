@@ -42,13 +42,12 @@ class ChildProfile with _$ChildProfile {
   factory ChildProfile.fromJson(Map<String, dynamic> json) =>
       _$ChildProfileFromJson(json);
 
-  // Helper methods
   int get nextLevelXP => level * 1000;
   double get xpProgress => (xp % 1000) / 1000.0;
   String get displayAge => age <= 0 ? '—' : age.toString();
-  
+
   bool get hasStreak => streak > 0;
-  
+
   String get ageGroup {
     if (age <= 6) return 'early_childhood';
     if (age <= 9) return 'middle_childhood';
@@ -56,17 +55,15 @@ class ChildProfile with _$ChildProfile {
   }
 }
 
-// Learning styles
 class LearningStyles {
   static const String visual = 'visual';
   static const String auditory = 'auditory';
   static const String kinesthetic = 'kinesthetic';
   static const String reading = 'reading';
-  
+
   static const List<String> all = [visual, auditory, kinesthetic, reading];
 }
 
-// Moods
 class ChildMoods {
   static const String happy = 'happy';
   static const String excited = 'excited';
@@ -74,11 +71,10 @@ class ChildMoods {
   static const String tired = 'tired';
   static const String sad = 'sad';
   static const String angry = 'angry';
-  
+
   static const List<String> all = [happy, excited, calm, tired, sad, angry];
 }
 
-// Backwards-compatible MoodTypes API expected by UI
 class MoodTypes {
   static const String happy = ChildMoods.happy;
   static const String excited = ChildMoods.excited;
@@ -90,19 +86,19 @@ class MoodTypes {
   static String getEmoji(String mood) {
     switch (mood) {
       case happy:
-        return '😊';
+        return 'ًںکٹ';
       case excited:
-        return '🤩';
+        return 'ًں¤©';
       case calm:
-        return '😌';
+        return 'ًںکŒ';
       case tired:
-        return '😴';
+        return 'ًںک´';
       case sad:
-        return '😢';
+        return 'ًںک¢';
       case angry:
-        return '😠';
+        return 'ًںک ';
       default:
-        return '🙂';
+        return 'ًں™‚';
     }
   }
 
@@ -124,4 +120,4 @@ class MoodTypes {
         return 'Neutral';
     }
   }
-} 
+}

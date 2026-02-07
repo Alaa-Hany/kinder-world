@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kinder_world/core/models/user.dart';
+import 'package:kinder_world/core/network/api_exception.dart';
 import 'package:kinder_world/core/repositories/auth_repository.dart';
-import 'package:kinder_world/core/services/auth_service.dart';
-import 'package:kinder_world/core/subscription/plan_info.dart';
 import 'package:kinder_world/app.dart';
 import 'package:logger/logger.dart';
 
@@ -46,7 +45,6 @@ class AuthState {
 class AuthController extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
   final Logger _logger;
-  static const String _premiumEmail = 'w@w.w';
 
   AuthController({
     required AuthRepository authRepository,
@@ -60,16 +58,17 @@ class AuthController extends StateNotifier<AuthState> {
   /// Initialize authentication state
   Future<void> _initialize() async {
     _logger.d('Initializing auth controller');
-    
+
     final isAuthenticated = await _authRepository.isAuthenticated();
     final user = await _authRepository.getCurrentUser();
-    
+
     state = state.copyWith(
       isAuthenticated: isAuthenticated,
       user: user,
     );
-    
-    _logger.d('Auth initialized: authenticated=$isAuthenticated, user=${user?.id}');
+
+    _logger.d(
+        'Auth initialized: authenticated=$isAuthenticated, user=${user?.id}');
   }
 
   // ==================== PARENT AUTHENTICATION ====================
@@ -80,21 +79,20 @@ class AuthController extends StateNotifier<AuthState> {
     required String password,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
-      final normalizedEmail = email.trim().toLowerCase();
       final user = await _authRepository.loginParent(
-        email: normalizedEmail,
+        email: email,
         password: password,
       );
-      
+
       if (user != null) {
         state = state.copyWith(
           user: user,
           isAuthenticated: true,
           isLoading: false,
         );
-        await _applyPremiumOverride(normalizedEmail);
+
         _logger.d('Parent login successful: ${user.id}');
         return true;
       } else {
@@ -104,6 +102,13 @@ class AuthController extends StateNotifier<AuthState> {
         );
         return false;
       }
+    } on ApiException catch (e) {
+      _logger.e('Parent login error: ${e.message}');
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+      );
+      return false;
     } catch (e) {
       _logger.e('Parent login error: $e');
       state = state.copyWith(
@@ -122,23 +127,22 @@ class AuthController extends StateNotifier<AuthState> {
     required String confirmPassword,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
-      final normalizedEmail = email.trim().toLowerCase();
       final user = await _authRepository.registerParent(
         name: name,
-        email: normalizedEmail,
+        email: email,
         password: password,
         confirmPassword: confirmPassword,
       );
-      
+
       if (user != null) {
         state = state.copyWith(
           user: user,
           isAuthenticated: true,
           isLoading: false,
         );
-        await _applyPremiumOverride(normalizedEmail);
+
         _logger.d('Parent registration successful: ${user.id}');
         return true;
       } else {
@@ -148,6 +152,13 @@ class AuthController extends StateNotifier<AuthState> {
         );
         return false;
       }
+    } on ApiException catch (e) {
+      _logger.e('Parent registration error: ${e.message}');
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+      );
+      return false;
     } catch (e) {
       _logger.e('Parent registration error: $e');
       state = state.copyWith(
@@ -166,85 +177,43 @@ class AuthController extends StateNotifier<AuthState> {
     required List<String> picturePassword,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
-      final user = await _authRepository.loginChild(
+      final success = await _authRepository.loginChild(
         childId: childId,
         picturePassword: picturePassword,
       );
-      
-      if (user != null) {
+
+      if (success) {
         state = state.copyWith(
-          user: user,
+          user: null,
           isAuthenticated: true,
           isLoading: false,
         );
-        
-        _logger.d('Child login successful: ${user.id}');
+
+        _logger.d('Child login successful: $childId');
         return true;
       } else {
         state = state.copyWith(
           isLoading: false,
-          error: 'child_login_failed',
+          error: 'Invalid picture password',
         );
         return false;
       }
-    } on ChildLoginException catch (e) {
+    } on ApiException catch (e) {
+      _logger.e('Child login error: ${e.message}');
       state = state.copyWith(
         isLoading: false,
-        error: _childLoginErrorForStatus(e.statusCode),
+        error: e.message,
       );
       return false;
     } catch (e) {
       _logger.e('Child login error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: 'child_login_failed',
+        error: 'Login failed. Please try again.',
       );
       return false;
-    }
-  }
-
-  /// Register child account
-  Future<ChildRegisterResponse?> registerChild({
-    required String name,
-    required List<String> picturePassword,
-    required String parentEmail,
-  }) async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final response = await _authRepository.registerChild(
-        name: name,
-        picturePassword: picturePassword,
-        parentEmail: parentEmail,
-      );
-
-      if (response != null) {
-        state = state.copyWith(
-          isLoading: false,
-        );
-        return response;
-      }
-
-      state = state.copyWith(
-        isLoading: false,
-        error: 'child_register_failed',
-      );
-      return null;
-    } on ChildRegisterException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: _childRegisterErrorForStatus(e.statusCode, e.detailCode),
-      );
-      return null;
-    } catch (e) {
-      _logger.e('Child register error: $e');
-      state = state.copyWith(
-        isLoading: false,
-        error: 'child_register_failed',
-      );
-      return null;
     }
   }
 
@@ -253,17 +222,17 @@ class AuthController extends StateNotifier<AuthState> {
   /// Logout current user
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
-    
+
     try {
       await _authRepository.logout();
-      
+
       state = const AuthState(
         user: null,
         isAuthenticated: false,
         isLoading: false,
         error: null,
       );
-      
+
       _logger.d('User logged out successfully');
     } catch (e) {
       _logger.e('Error during logout: $e');
@@ -323,35 +292,6 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(error: null);
   }
 
-  String _childLoginErrorForStatus(int? statusCode) {
-    switch (statusCode) {
-      case 401:
-        return 'child_login_401';
-      case 404:
-        return 'child_login_404';
-      case 422:
-        return 'child_login_422';
-      default:
-        return 'child_login_failed';
-    }
-  }
-
-  String _childRegisterErrorForStatus(int? statusCode, String? detailCode) {
-    if (statusCode == 402 && detailCode == 'CHILD_LIMIT_REACHED') {
-      return 'child_register_limit';
-    }
-    switch (statusCode) {
-      case 401:
-        return 'child_register_401';
-      case 404:
-        return 'child_register_404';
-      case 422:
-        return 'child_register_422';
-      default:
-        return 'child_register_failed';
-    }
-  }
-
   /// Validate token
   Future<bool> validateToken() async {
     try {
@@ -361,42 +301,6 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
   }
-
-  Future<void> setPremiumStatus(bool isPremium) async {
-    await _authRepository.savePremiumStatus(isPremium);
-    final existingPlanType = await _authRepository.getPlanType();
-    if (!(isPremium && existingPlanType == 'family_plus')) {
-      await _authRepository.savePlanType(isPremium ? 'premium' : 'free');
-    }
-    final user = state.user;
-    if (user == null) return;
-    state = state.copyWith(
-      user: user.copyWith(
-        subscriptionStatus:
-            isPremium ? SubscriptionStatus.active : SubscriptionStatus.expired,
-      ),
-    );
-  }
-
-  Future<void> applyPlanSelection(PlanTier tier) async {
-    switch (tier) {
-      case PlanTier.free:
-        await setPremiumStatus(false);
-        break;
-      case PlanTier.premium:
-        await setPremiumStatus(true);
-        break;
-      case PlanTier.familyPlus:
-        await _authRepository.savePlanType('family_plus');
-        await setPremiumStatus(true);
-        break;
-    }
-  }
-
-  Future<void> _applyPremiumOverride(String email) async {
-    final normalized = email.trim().toLowerCase();
-    await setPremiumStatus(normalized == _premiumEmail);
-  }
 }
 
 // ==================== PROVIDERS ====================
@@ -404,34 +308,22 @@ class AuthController extends StateNotifier<AuthState> {
 /// Main auth repository provider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);
-  final networkService = ref.watch(networkServiceProvider);
   final logger = ref.watch(loggerProvider);
-  
-  return AuthRepository(
-    secureStorage: secureStorage,
-    networkService: networkService,
-    logger: logger,
-  );
-});
+  final apiClient = ref.watch(apiClientProvider);
 
-/// Auth service provider
-final authServiceProvider = Provider<AuthService>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  final networkService = ref.watch(networkServiceProvider);
-  final logger = ref.watch(loggerProvider);
-  
-  return AuthService(
-    repository: authRepository,
-    networkService: networkService,
+  return AuthRepository(
+    apiClient: apiClient,
+    secureStorage: secureStorage,
     logger: logger,
   );
 });
 
 /// Main auth controller provider - SINGLE SOURCE OF TRUTH
-final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AuthState>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   final logger = ref.watch(loggerProvider);
-  
+
   return AuthController(
     authRepository: authRepository,
     logger: logger,
@@ -448,12 +340,6 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 /// Get current user
 final currentUserProvider = Provider<User?>((ref) {
   return ref.watch(authControllerProvider).user;
-});
-
-/// Get current authenticated user - fetches fresh data from API
-final meProvider = FutureProvider<User?>((ref) async {
-  final authRepository = ref.watch(authRepositoryProvider);
-  return await authRepository.getMe();
 });
 
 /// Check if current user is parent

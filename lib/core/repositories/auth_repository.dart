@@ -1,81 +1,25 @@
 import 'package:dio/dio.dart';
+import 'package:kinder_world/core/models/api/auth_models.dart';
+import 'package:kinder_world/core/models/api/child_models.dart';
 import 'package:kinder_world/core/models/user.dart';
-import 'package:kinder_world/core/network/network_service.dart';
+import 'package:kinder_world/core/network/api_client.dart';
+import 'package:kinder_world/core/network/api_exception.dart';
 import 'package:kinder_world/core/storage/secure_storage.dart';
 import 'package:logger/logger.dart';
 
-class ChildLoginException implements Exception {
-  final int? statusCode;
-
-  const ChildLoginException({this.statusCode});
-}
-
-class ChildRegisterException implements Exception {
-  final int? statusCode;
-  final String? detailCode;
-
-  const ChildRegisterException({
-    this.statusCode,
-    this.detailCode,
-  });
-}
-
-class ChildRegisterResponse {
-  final String childId;
-  final String? name;
-
-  const ChildRegisterResponse({
-    required this.childId,
-    this.name,
-  });
-}
-
 /// Repository for authentication operations
 class AuthRepository {
+  final ApiClient _apiClient;
   final SecureStorage _secureStorage;
-  final NetworkService _networkService;
   final Logger _logger;
 
   AuthRepository({
+    required ApiClient apiClient,
     required SecureStorage secureStorage,
-    required NetworkService networkService,
     required Logger logger,
-  })  : _secureStorage = secureStorage,
-        _networkService = networkService,
+  })  : _apiClient = apiClient,
+        _secureStorage = secureStorage,
         _logger = logger;
-
-  User? _userFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      final userJson = Map<String, dynamic>.from(data);
-      final id = userJson['id'];
-      if (id != null) {
-        userJson['id'] = id.toString();
-      }
-      return User.fromJson(userJson);
-    }
-    return null;
-  }
-
-  Future<User?> _persistAuthFromResponse(Map<String, dynamic> data) async {
-    final user = _userFromJson(data['user']);
-    if (user == null) return null;
-
-    final accessToken = data['access_token'];
-    if (accessToken is String && accessToken.isNotEmpty) {
-      await _secureStorage.saveAuthToken(accessToken);
-    }
-
-    final refreshToken = data['refresh_token'];
-    if (refreshToken is String && refreshToken.isNotEmpty) {
-      await _secureStorage.saveRefreshToken(refreshToken);
-    }
-
-    await _secureStorage.saveUserId(user.id);
-    await _secureStorage.saveUserRole(user.role);
-    await _secureStorage.saveUserEmail(user.email);
-
-    return user;
-  }
 
   // ==================== AUTHENTICATION STATE ====================
 
@@ -92,40 +36,29 @@ class AuthRepository {
   /// Get current user from storage/API
   Future<User?> getCurrentUser() async {
     try {
-      final role = await _secureStorage.getUserRole();
-      if (role == null) return null;
+      final token = await _secureStorage.getAuthToken();
+      if (token == null || token.isEmpty) return null;
 
+      final role = await _secureStorage.getUserRole();
       if (role == UserRoles.child) {
-        final childId = await _secureStorage.getChildSession();
-        if (childId == null) return null;
-        final now = DateTime.now();
-        return User(
-          id: childId,
-          email: '$childId@child.local',
-          role: UserRoles.child,
-          name: 'Child $childId',
-          createdAt: now,
-          updatedAt: now,
-          isActive: true,
-        );
+        return null;
       }
 
-      final response = await _networkService.get<Map<String, dynamic>>('/auth/me');
+      final response = await _apiClient.get<Map<String, dynamic>>('/auth/me');
       final data = response.data;
       if (data == null) return null;
-      return _userFromJson(data['user']);
+
+      return MeResponse.fromJson(data).user;
     } on DioException catch (e) {
-      _logger.e('Error getting current user: ${e.message}');
+      _logger.e('Error getting current user: $e');
+      if (e.response?.statusCode == 401) {
+        await _secureStorage.clearAuthData();
+      }
       return null;
     } catch (e) {
       _logger.e('Error getting current user: $e');
       return null;
     }
-  }
-
-  /// Alias for getCurrentUser - fetch fresh user data from API
-  Future<User?> getMe() async {
-    return await getCurrentUser();
   }
 
   /// Get user role
@@ -146,42 +79,34 @@ class AuthRepository {
     required String password,
   }) async {
     try {
-      final normalizedEmail = email.trim().toLowerCase();
-      _logger.d('Attempting parent login for: $normalizedEmail');
+      _logger.d('Attempting parent login for: $email');
 
-      if (normalizedEmail.isEmpty || password.isEmpty) {
-        _logger.w('Login failed: Empty credentials');
-        return null;
-      }
-
-      final response = await _networkService.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<Map<String, dynamic>>(
         '/auth/login',
         data: {
-          'email': normalizedEmail,
+          'email': email,
           'password': password,
         },
+        options: Options(extra: {'skipAuth': true, 'skipRefresh': true}),
       );
 
       final data = response.data;
-      if (data == null) {
-        _logger.e('Login failed: empty response');
-        return null;
-      }
+      if (data == null) return null;
 
-      final user = await _persistAuthFromResponse(Map<String, dynamic>.from(data));
-      if (user == null) {
-        _logger.e('Login failed: invalid user data');
-        return null;
-      }
+      final auth = AuthResponse.fromJson(data);
+      await _persistAuth(auth);
 
-      _logger.d('Parent login successful: ${user.id}');
-      return user;
+      _logger.d('Parent login successful: ${auth.user.id}');
+      return auth.user;
     } on DioException catch (e) {
-      _logger.e('Parent login error: ${e.response?.statusCode} - ${e.response?.data}');
-      return null;
+      final message = _extractErrorMessage(
+        e,
+        fallback: 'Invalid email or password',
+      );
+      throw ApiException(message);
     } catch (e) {
       _logger.e('Parent login error: $e');
-      return null;
+      throw ApiException('Login failed. Please try again.');
     }
   }
 
@@ -193,240 +118,94 @@ class AuthRepository {
     required String confirmPassword,
   }) async {
     try {
-      final normalizedEmail = email.trim().toLowerCase();
-      _logger.d('Attempting parent registration for: $normalizedEmail');
+      _logger.d('Attempting parent registration for: $email');
 
-      // Validation
-      if (password != confirmPassword) {
-        _logger.w('Registration failed: Passwords do not match');
-        return null;
-      }
-
-      if (password.length < 6) {
-        _logger.w('Registration failed: Password too short');
-        return null;
-      }
-
-      final response = await _networkService.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<Map<String, dynamic>>(
         '/auth/register',
         data: {
           'name': name,
-          'email': normalizedEmail,
+          'email': email,
           'password': password,
           'confirmPassword': confirmPassword,
         },
+        options: Options(extra: {'skipAuth': true, 'skipRefresh': true}),
       );
 
       final data = response.data;
-      if (data == null) {
-        _logger.e('Registration failed: empty response');
-        return null;
-      }
+      if (data == null) return null;
 
-      final user = await _persistAuthFromResponse(Map<String, dynamic>.from(data));
-      if (user == null) {
-        _logger.e('Registration failed: invalid user data');
-        return null;
-      }
+      final auth = AuthResponse.fromJson(data);
+      await _persistAuth(auth);
 
-      _logger.d('Parent registration successful: ${user.id}');
-      return user;
+      _logger.d('Parent registration successful: ${auth.user.id}');
+      return auth.user;
     } on DioException catch (e) {
-      _logger.e('Parent registration error: ${e.response?.statusCode} - ${e.response?.data}');
-      return null;
+      final message = _extractErrorMessage(
+        e,
+        fallback: 'Registration failed. Please try again.',
+      );
+      throw ApiException(message);
     } catch (e) {
       _logger.e('Parent registration error: $e');
-      return null;
+      throw ApiException('Registration failed. Please try again.');
     }
   }
 
   // ==================== CHILD AUTHENTICATION ====================
 
-  /// Login child via picture password
-  Future<User?> loginChild({
+  /// Login child with picture password
+  Future<bool> loginChild({
     required String childId,
     required List<String> picturePassword,
   }) async {
     try {
       _logger.d('Attempting child login for: $childId');
 
-      if (childId.trim().isEmpty || picturePassword.length != 3) {
-        _logger.w('Child login failed: Missing or invalid credentials');
-        throw const ChildLoginException(statusCode: 422);
-      }
-
-      final response = await _networkService.post<Map<String, dynamic>>(
+      final idValue = int.tryParse(childId) ?? childId;
+      final response = await _apiClient.post<Map<String, dynamic>>(
         '/auth/child/login',
         data: {
-          'child_id': int.tryParse(childId) ?? childId,
+          'child_id': idValue,
           'picture_password': picturePassword,
         },
+        options: Options(extra: {'skipAuth': true, 'skipRefresh': true}),
       );
 
       final data = response.data;
-      final success = data != null && data['success'] == true;
-      if (!success) {
-        _logger.w('Child login failed: Invalid credentials');
-        throw const ChildLoginException(statusCode: 401);
+      if (data == null) return false;
+      final login = ChildLoginResponse.fromJson(data);
+      if (!login.success) {
+        throw ApiException('Invalid picture password');
       }
 
-      final resolvedName = _extractChildName(data);
-      final now = DateTime.now();
-      final childUser = User(
-        id: childId,
-        email: '$childId@child.local',
-        role: UserRoles.child,
-        name: resolvedName?.isNotEmpty == true
-            ? resolvedName!.trim()
-            : 'Child $childId',
-        createdAt: now,
-        updatedAt: now,
-        isActive: true,
-      );
-
-      await _secureStorage.saveAuthToken('child_session_$childId');
-      await _secureStorage.saveUserId(childId);
+      await _secureStorage.saveAuthToken('child_session_${login.childId}');
+      await _secureStorage.deleteRefreshToken();
+      await _secureStorage.saveUserId(login.childId);
       await _secureStorage.saveUserRole(UserRoles.child);
-      await _secureStorage.saveChildSession(childId);
+      await _secureStorage.saveChildSession(login.childId);
 
-      _logger.d('Child login successful: ${childUser.id}');
-      return childUser;
+      _logger.d('Child login successful: ${login.childId}');
+      return true;
     } on DioException catch (e) {
-      _logger.e('Child login error: ${e.response?.statusCode} - ${e.response?.data}');
-      throw ChildLoginException(statusCode: e.response?.statusCode);
+      final message = _extractErrorMessage(
+        e,
+        fallback: 'Invalid picture password',
+      );
+      throw ApiException(message);
     } catch (e) {
       _logger.e('Child login error: $e');
-      throw const ChildLoginException();
+      if (e is ApiException) rethrow;
+      throw ApiException('Login failed. Please try again.');
     }
-  }
-
-  /// Register child via picture password
-  Future<ChildRegisterResponse?> registerChild({
-    required String name,
-    required List<String> picturePassword,
-    required String parentEmail,
-  }) async {
-    try {
-      final trimmedName = name.trim();
-      final trimmedEmail = parentEmail.trim().toLowerCase();
-
-      if (trimmedName.isEmpty ||
-          trimmedEmail.isEmpty ||
-          picturePassword.length != 3) {
-        _logger.w('Child register failed: Missing or invalid data');
-        throw const ChildRegisterException(statusCode: 422);
-      }
-
-      final response = await _networkService.post<Map<String, dynamic>>(
-        '/auth/child/register',
-        data: {
-          'name': trimmedName,
-          'picture_password': picturePassword,
-          'parent_email': trimmedEmail,
-        },
-      );
-
-      final data = response.data;
-      if (data == null) {
-        _logger.e('Child register failed: empty response');
-        return null;
-      }
-
-      String? childId;
-      String? childName;
-
-      if (data['child'] is Map) {
-        final childJson = Map<String, dynamic>.from(data['child']);
-        childId = childJson['id']?.toString() ?? childJson['child_id']?.toString();
-        childName = childJson['name']?.toString();
-      }
-
-      childId ??= data['child_id']?.toString() ?? data['id']?.toString();
-      childName ??= data['name']?.toString();
-
-      if (childId == null || childId.isEmpty) {
-        _logger.e('Child register failed: missing child id');
-        return null;
-      }
-
-      return ChildRegisterResponse(
-        childId: childId,
-        name: childName,
-      );
-    } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-      String? detailCode;
-      final data = e.response?.data;
-      if (data is Map) {
-        final detail = data['detail'];
-        if (detail is Map) {
-          final code = detail['code'];
-          if (code != null) {
-            detailCode = code.toString();
-          }
-        } else if (data['code'] != null) {
-          detailCode = data['code'].toString();
-        }
-      }
-      _logger.e('Child register error: $statusCode - $data');
-      throw ChildRegisterException(
-        statusCode: statusCode,
-        detailCode: detailCode,
-      );
-    } catch (e) {
-      _logger.e('Child register error: $e');
-      throw const ChildRegisterException();
-    }
-  }
-
-  String? _extractChildName(dynamic data) {
-    String? extractFromMap(Map<String, dynamic> map) {
-      String? pick(dynamic value) {
-        if (value == null) return null;
-        final name = value.toString().trim();
-        return name.isNotEmpty ? name : null;
-      }
-
-      final direct = pick(map['name']) ??
-          pick(map['child_name']) ??
-          pick(map['childName']) ??
-          pick(map['full_name']) ??
-          pick(map['fullName']);
-      if (direct != null) return direct;
-
-      for (final key in [
-        'child',
-        'child_profile',
-        'childProfile',
-        'profile',
-        'user',
-        'data',
-        'result',
-        'payload',
-      ]) {
-        final nested = map[key];
-        if (nested is Map) {
-          final name =
-              extractFromMap(Map<String, dynamic>.from(nested));
-          if (name != null) return name;
-        }
-      }
-      return null;
-    }
-
-    if (data is Map) {
-      return extractFromMap(Map<String, dynamic>.from(data));
-    }
-    return null;
   }
 
   // ==================== LOGOUT ====================
 
-  /// Logout current user (clears auth tokens only, preserves local profiles/preferences)
+  /// Logout current user
   Future<bool> logout() async {
     try {
       _logger.d('Logging out user');
-      await _secureStorage.clearAuthOnly();
+      await _secureStorage.clearAuthData();
       _logger.d('Logout successful');
       return true;
     } catch (e) {
@@ -456,7 +235,7 @@ class AuthRepository {
   Future<bool> verifyParentPin(String enteredPin) async {
     try {
       final storedPin = await _secureStorage.getParentPin();
-      
+
       if (storedPin == null) {
         _logger.w('No PIN found');
         return false;
@@ -513,69 +292,29 @@ class AuthRepository {
     }
   }
 
-  // ==================== PREMIUM STATUS ====================
-
-  Future<bool?> getPremiumStatus() async {
-    try {
-      return await _secureStorage.getIsPremium();
-    } catch (e) {
-      _logger.e('Error getting premium status: $e');
-      return null;
-    }
-  }
-
-  Future<bool> savePremiumStatus(bool isPremium) async {
-    try {
-      return await _secureStorage.saveIsPremium(isPremium);
-    } catch (e) {
-      _logger.e('Error saving premium status: $e');
-      return false;
-    }
-  }
-
-  // ==================== PLAN TYPE ====================
-
-  Future<String?> getPlanType() async {
-    try {
-      return await _secureStorage.getPlanType();
-    } catch (e) {
-      _logger.e('Error getting plan type: $e');
-      return null;
-    }
-  }
-
-  Future<bool> savePlanType(String planType) async {
-    try {
-      return await _secureStorage.savePlanType(planType);
-    } catch (e) {
-      _logger.e('Error saving plan type: $e');
-      return false;
-    }
-  }
-
   // ==================== TOKEN MANAGEMENT ====================
 
   /// Refresh authentication token
   Future<String?> refreshToken() async {
     try {
-      final refreshToken = await _secureStorage.getRefreshToken();
-      if (refreshToken == null || refreshToken.isEmpty) return null;
+      final currentRefresh = await _secureStorage.getRefreshToken();
+      if (currentRefresh == null || currentRefresh.isEmpty) return null;
 
-      final response = await _networkService.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<Map<String, dynamic>>(
         '/auth/refresh',
-        data: {'refresh_token': refreshToken},
+        data: {'refresh_token': currentRefresh},
+        options: Options(extra: {'skipAuth': true, 'skipRefresh': true}),
       );
 
       final data = response.data;
-      final newToken = data?['access_token'];
-      if (newToken is String && newToken.isNotEmpty) {
-        await _secureStorage.saveAuthToken(newToken);
-        return newToken;
-      }
+      if (data == null) return null;
 
-      return null;
+      final refresh = RefreshResponse.fromJson(data);
+      await _secureStorage.saveAuthToken(refresh.accessToken);
+
+      return refresh.accessToken;
     } on DioException catch (e) {
-      _logger.e('Error refreshing token: ${e.response?.statusCode} - ${e.response?.data}');
+      _logger.e('Error refreshing token: $e');
       return null;
     } catch (e) {
       _logger.e('Error refreshing token: $e');
@@ -587,15 +326,39 @@ class AuthRepository {
   Future<bool> validateToken() async {
     try {
       final token = await _secureStorage.getAuthToken();
-      
       if (token == null || token.isEmpty) return false;
 
-      // TODO: Implement actual token validation with API
-      // For now, just check if token exists
-      return true;
+      final role = await _secureStorage.getUserRole();
+      if (role == UserRoles.child) return true;
+
+      final response = await _apiClient.get<Map<String, dynamic>>('/auth/me');
+      return response.statusCode == 200;
     } catch (e) {
       _logger.e('Error validating token: $e');
       return false;
     }
+  }
+
+  Future<void> _persistAuth(AuthResponse auth) async {
+    await _secureStorage.saveAuthToken(auth.accessToken);
+    await _secureStorage.saveRefreshToken(auth.refreshToken);
+    await _secureStorage.saveUserId(auth.user.id);
+    await _secureStorage.saveUserRole(auth.user.role);
+  }
+
+  String _extractErrorMessage(
+    DioException e, {
+    required String fallback,
+  }) {
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final detail = data['detail'];
+      if (detail is String && detail.isNotEmpty) {
+        return detail;
+      }
+    } else if (data is String && data.isNotEmpty) {
+      return data;
+    }
+    return fallback;
   }
 }
